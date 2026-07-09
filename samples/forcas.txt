@@ -1,0 +1,5 @@
+Ensaio de forca - exemplo
+tempo(s) Fx(N) Fy(N) Fz(N)
+0,00	10	3	20
+0,01	12	-4	25
+0,02	8	2	18
