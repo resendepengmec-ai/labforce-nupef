@@ -1,71 +1,26 @@
-# ForceLab
+# Forças de usinagem (LabForce NUPEF)
 
-ForceLab e um prototipo didatico para estudar cavaco, forca de corte e parametros de usinagem.
+Análise de sinais de dinamômetro (Fx, Fy, Fz) no navegador. É o mesmo padrão do módulo de grandezas elétricas: etapas, seleção de faixas, gravação direta na pasta (Chrome/Edge) ou em `.zip`. Nenhum dado é enviado para servidor.
 
-## Como executar
+- **Manual técnico:** [`manual.html`](manual.html), com 14 seções e redação ASD-STE100 em português. Inclui a verificação no navegador.
+- **Entrada:** TXT/CSV com 4 colunas mapeáveis (tempo, Fx, Fy, Fz). Aceita DynoWare: metadados, tab e vírgula decimal.
+- **Calibração:** fator por canal (padrão 1,0). Um fator negativo inverte o sentido.
+- **Saídas:**
+  - `forcas_resumo.csv`;
+  - `<faixa>_faixa.csv`;
+  - `corte_teorico.csv` (opcional);
+  - PNGs `_faixas`, `_sinal` e `_espectro`;
+  - `relatorio.txt`.
+- **Força de corte teórica (opcional, torneamento):** modelo da Sandvik Coromant/Kienzle, `kc = kc1·hm^-mc·(1−γ0/100)` e `Fc = kc·ap·fn`. Referência: https://www.sandvik.coromant.com/pt-pt/knowledge/machining-formulas-definitions
 
-Opcao simples:
+## Mudanças em relação ao ForceLab (protótipo)
 
-1. Abra `index.html` no navegador.
+- **Frequência dominante:** agora é FFT com janela de Hann sobre a faixa inteira. O protótipo reamostrava para no máximo 512 pontos sem filtro, o que dava frequência errada (aliasing) em sinais longos.
+- **Calculadora `Fc = kc·ap·f`:** foi substituída pela força teórica de Kienzle, comparada com a força medida.
+- **Seleção:** várias faixas por ensaio e vários ensaios por rodada, com resultados gravados em pasta.
 
-Opcao com servidor local em PowerShell:
+`docs/` guarda as notas do protótipo. O manual técnico substitui `docs/FORMULAS.md`.
 
-```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File scripts\serve.ps1 -Root . -Port 4173
-```
+## Testes
 
-Depois acesse:
-
-```text
-http://127.0.0.1:4173/
-```
-
-## O que existe agora
-
-- Leitura de arquivo TXT/CSV com quatro colunas.
-- Mapeamento manual das colunas, por padrao `tempo`, `Fx`, `Fy`, `Fz`.
-- Resumo das forcas maximas por eixo e da resultante.
-- Previa das primeiras amostras validas do arquivo importado.
-- Janela grafica para selecionar uma faixa do sinal.
-- Calculo de media, RMS, pico maximo, desvio padrao, coeficiente de variacao, fator de crista, curtose, skewness e frequencia dominante.
-- Exportacao CSV da faixa selecionada.
-- Calculadora de forca principal de corte mantida no codigo, mas escondida temporariamente na interface.
-- Documentacao inicial em `docs/`.
-
-## Arquivos principais
-
-- `index.html`: tela principal.
-- `src/parser.js`: leitura e interpretacao do TXT.
-- `src/styles.css`: estilos da interface.
-- `src/app.js`: logica da calculadora.
-- `samples/forcas.txt`: arquivo de exemplo.
-- `docs/PROJECT.md`: visao do projeto.
-- `docs/FORMULAS.md`: formulas iniciais.
-- `docs/NOTES.md`: notas conceituais.
-
-## Observacao
-
-Os calculos atuais usam um modelo simplificado. Os valores devem ser validados contra o PDF de referencia antes de serem tratados como resultado academico formal.
-
-## Formato do TXT
-
-O arquivo pode conter cabecalho. Linhas sem quatro valores numericos sao ignoradas automaticamente.
-
-As quatro colunas numericas podem ser separadas por tabulacao, espaco ou ponto e virgula. Numeros com virgula decimal sao aceitos, por exemplo `10,5`.
-
-Padrao esperado:
-
-```text
-Ensaio de forca - exemplo
-tempo(s) Fx(N) Fy(N) Fz(N)
-0,00	10,5	3,2	18,1
-0,01	11,0	3,4	19,0
-```
-
-O mapeamento das colunas e feito na tela. O padrao e `tempo`, `Fx`, `Fy`, `Fz`.
-
-Arquivos exportados pelo DynoWare com metadados no inicio, cabecalho `Time Ff (Fx) Fp (Fy) Fc (Fz)`, colunas por tabulacao e decimais com virgula sao aceitos. O arquivo `E1.3.txt` foi validado com 50001 amostras.
-
-## Analise de faixa
-
-Depois de importar o TXT, use `Analisar faixa` para abrir o grafico. Arraste sobre o sinal para selecionar o intervalo desejado. A tabela estatistica, o grafico e o CSV exportado passam a considerar apenas a faixa selecionada. Clique na faixa destacada ou no botao `Baixar CSV` para exportar.
+`npm test` na raiz roda `testes/teste_forcas.js`, com 31 verificações.

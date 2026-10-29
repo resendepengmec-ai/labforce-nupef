@@ -1,0 +1,144 @@
+/* modulo.css - padrao visual dos modulos do LabForce NUPEF (forcas e eletrica).
+   Mesma linguagem da pagina inicial: papel claro, tipografia DIN (Bahnschrift
+   no Windows), filetes finos. Cada modulo define --acento no <body>. */
+:root {
+  --papel: #f5f7f6; --painel: #ffffff; --tinta: #17201c; --cinza: #5e6a64; --linha: #d3dbd7;
+  --ok: #1d7a3a; --erro: #b42318; --aviso-f: #fff6df; --aviso-b: #d9a42b;
+  --fonte: "Bahnschrift", "DIN Alternate", "D-DIN", "Barlow", "Roboto", system-ui, sans-serif;
+  --mono: ui-monospace, "Cascadia Mono", Consolas, "Liberation Mono", monospace;
+  --acento: #196f64; --acento-t: #ffffff;
+  color-scheme: light;
+}
+body.mod-eletrica { --acento: #0b5cad; }
+body.mod-forcas { --acento: #196f64; }
+@media (prefers-color-scheme: dark) {
+  :root { --papel: #131816; --painel: #1a201d; --tinta: #e4ebe7; --cinza: #9aa7a0; --linha: #2f3934;
+    --ok: #5cc27a; --erro: #ff8a7e; --aviso-f: #3a2f12; --aviso-b: #a3802c; --acento-t: #0d1310; color-scheme: dark; }
+  body.mod-eletrica { --acento: #5aa5f0; }
+  body.mod-forcas { --acento: #4fb3a5; }
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--papel); color: var(--tinta); font: 400 16px/1.5 var(--fonte); }
+h1, h2, h3 { line-height: 1.2; margin: 0; font-weight: 600; }
+code, .mono { font-family: var(--mono); font-size: .88em; }
+a { color: var(--acento); }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* ---- barra superior ---------------------------------------------------- */
+.barra { border-bottom: 1px solid var(--linha); background: var(--papel); }
+.barra-in { max-width: 1180px; margin: 0 auto; padding: 14px 20px; display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
+.marca { color: var(--tinta); text-decoration: none; font-weight: 700; font-size: 1.05rem; white-space: nowrap; }
+.marca span { color: var(--cinza); font-weight: 400; }
+.modulo { font-size: 1.05rem; color: var(--acento); font-weight: 600; padding-left: 18px; border-left: 1px solid var(--linha); }
+.barra nav { margin-left: auto; display: flex; gap: 4px; }
+.barra nav a { color: var(--tinta); text-decoration: none; padding: 10px 12px; border-radius: 6px; min-height: 44px; display: inline-flex; align-items: center; }
+.barra nav a:hover { background: color-mix(in srgb, var(--acento) 10%, transparent); color: var(--acento); }
+.barra nav a[aria-current="page"] { color: var(--acento); box-shadow: inset 0 -2px 0 var(--acento); border-radius: 0; }
+
+main { max-width: 1180px; margin: 0 auto; padding: 22px 20px 32px; }
+.titulo-pag { margin-bottom: 18px; }
+.titulo-pag h1 { font-size: clamp(1.6rem, 3.4vw, 2.2rem); font-stretch: 87.5%; letter-spacing: -.01em; }
+.titulo-pag p { margin: 6px 0 0; color: var(--cinza); max-width: 70ch; }
+
+/* ---- etapas (sequencia real do fluxo) ---------------------------------- */
+.etapas { list-style: none; margin: 0 0 22px; padding: 0; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; counter-reset: etapa; }
+.etapas li { counter-increment: etapa; border-top: 3px solid var(--linha); padding: 8px 2px 0; color: var(--cinza); font-size: .9rem; line-height: 1.25; }
+.etapas li::before { content: counter(etapa) " "; font-weight: 700; }
+.etapas li[data-estado="atual"] { border-top-color: var(--acento); color: var(--tinta); font-weight: 600; }
+.etapas li[data-estado="feito"] { border-top-color: color-mix(in srgb, var(--acento) 45%, var(--linha)); color: var(--tinta); }
+.etapas li[data-estado="feito"]::after { content: " ✓"; color: var(--acento); }
+
+/* ---- secoes ------------------------------------------------------------- */
+.cartao { background: var(--painel); border: 1px solid var(--linha); border-radius: 8px; padding: 20px; margin-bottom: 18px; }
+.cartao > h2 { font-size: 1.2rem; margin-bottom: 14px; display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: baseline; }
+.cartao > h2 .resumo { font-weight: 400; }
+.cartao > h2 .num { color: var(--acento); font-weight: 700; }
+.cartao.concluido { padding-top: 12px; padding-bottom: 12px; }
+.cartao.concluido > h2 { margin-bottom: 0; font-size: 1.02rem; color: var(--cinza); }
+.cartao h3 { font-size: 1.02rem; margin-bottom: 6px; }
+.grade2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 22px; }
+.grade3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+
+/* ---- formularios -------------------------------------------------------- */
+fieldset { border: 1px solid var(--linha); border-radius: 8px; padding: 10px 14px 14px; margin: 0; min-width: 0; }
+legend { font-weight: 600; padding: 0 6px; }
+label.lin { display: flex; flex-direction: column; gap: 4px; margin: 8px 0; font-size: .92rem; color: var(--cinza); }
+label.chk { display: flex; gap: 10px; align-items: flex-start; margin: 4px 0; min-height: 36px; padding-top: 6px; cursor: pointer; }
+label.chk input { margin-top: 3px; width: 18px; height: 18px; accent-color: var(--acento); flex: none; }
+input, select { font: inherit; color: var(--tinta); background: var(--painel); border: 1px solid var(--linha); border-radius: 6px; padding: 8px 10px; min-height: 42px; min-width: 0; }
+input[type="checkbox"] { min-height: 0; }
+input:focus-visible, select:focus-visible, button:focus-visible, a:focus-visible, canvas:focus-visible, .soltar:focus-within { outline: 2px solid var(--acento); outline-offset: 2px; }
+input[aria-invalid="true"] { border-color: var(--erro); background: color-mix(in srgb, var(--erro) 7%, var(--painel)); }
+.campo-erro { color: var(--erro); font-size: .82rem; min-height: 0; }
+.nota { color: var(--cinza); font-size: .88rem; margin: .4rem 0; }
+.avancado { margin: 16px 0 4px; }
+.avancado summary { cursor: pointer; font-weight: 600; min-height: 44px; display: flex; align-items: center; }
+
+button { font: inherit; border-radius: 7px; padding: 10px 18px; min-height: 44px; cursor: pointer; border: 1px solid transparent; }
+button.prim { background: var(--acento); color: var(--acento-t); font-weight: 600; }
+button.prim:hover:not(:disabled) { filter: brightness(.9); }
+button.sec { background: transparent; color: var(--tinta); border-color: var(--linha); }
+button.sec:hover:not(:disabled) { border-color: var(--acento); color: var(--acento); }
+button.lnk { background: none; border: 0; color: var(--acento); padding: 6px 8px; min-height: 36px; text-decoration: underline; }
+button:disabled { opacity: .45; cursor: not-allowed; }
+.acoes { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; align-items: center; }
+.erro { color: var(--erro); margin: 8px 0; }
+.erro:empty { display: none; }
+.ok { color: var(--ok); margin: 6px 0; }
+.aviso { background: var(--aviso-f); border-left: 4px solid var(--aviso-b); padding: 8px 12px; border-radius: 6px; margin: 8px 0; }
+.info { color: var(--cinza); margin: 0 0 8px; }
+
+/* ---- arquivos ----------------------------------------------------------- */
+.soltar { position: relative; display: grid; place-items: center; text-align: center; border: 2px dashed var(--linha); border-radius: 10px; padding: 28px 12px; cursor: pointer; color: var(--cinza); min-height: 96px; }
+.soltar.sobre { border-color: var(--acento); color: var(--acento); }
+.soltar input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+.lista { list-style: none; padding: 0; margin: 10px 0 0; font-family: var(--mono); font-size: .85rem; max-height: 200px; overflow: auto; }
+.lista li { padding: 4px 0; border-bottom: 1px solid var(--linha); display: flex; justify-content: space-between; gap: 8px; }
+
+/* ---- selecao das faixas ------------------------------------------------- */
+.instrucao { font-weight: 600; margin: 4px 0 10px; color: var(--acento); }
+.selecao canvas { width: 100%; height: 420px; display: block; border: 1px solid var(--linha); border-radius: 8px; background: #fff; cursor: crosshair; touch-action: none; }
+.leitura { font-family: var(--mono); font-size: .82rem; color: var(--cinza); text-align: right; min-height: 1.4em; margin-top: 4px; }
+.tab-faixas { margin-top: 10px; }
+.tab-faixas input { width: 8.5em; min-height: 38px; padding: 6px 8px; font-variant-numeric: tabular-nums; }
+.tab-faixas td.est { color: var(--cinza); font-size: .85rem; white-space: normal; }
+
+/* ---- progresso ---------------------------------------------------------- */
+.progresso { display: flex; align-items: center; gap: 10px; margin: 8px 0; color: var(--tinta); }
+.progresso[hidden] { display: none; }
+.progresso::before { content: ""; width: 18px; height: 18px; border-radius: 50%; border: 3px solid var(--linha); border-top-color: var(--acento); animation: gira .8s linear infinite; flex: none; }
+@keyframes gira { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .progresso::before { animation: none; } }
+
+/* ---- resultados --------------------------------------------------------- */
+.tabela-rolar { overflow-x: auto; }
+.tabela { border-collapse: collapse; width: 100%; font-size: .9rem; font-variant-numeric: tabular-nums; }
+.tabela th, .tabela td { border-bottom: 1px solid var(--linha); padding: 6px 9px; text-align: right; white-space: nowrap; }
+.tabela th:first-child, .tabela td:first-child { text-align: left; }
+.tabela th { color: var(--cinza); font-weight: 600; vertical-align: bottom; }
+.st { font-weight: 600; font-size: .78rem; padding: 2px 7px; border-radius: 4px; }
+.st-ATENDE { background: color-mix(in srgb, var(--ok) 16%, transparent); color: var(--ok); }
+.st-EXCEDE { background: color-mix(in srgb, var(--erro) 16%, transparent); color: var(--erro); }
+.st-INCONCLUSIVO, .st-FS_INSTAVEL { background: color-mix(in srgb, var(--aviso-b) 25%, transparent); }
+.faixa { border-top: 1px solid var(--linha); padding-top: 16px; margin-top: 16px; }
+.faixa > h3 { font-size: 1.08rem; }
+.figuras { display: grid; gap: 12px; margin-top: 10px; }
+canvas.figura { width: 100%; height: auto; border: 1px solid var(--linha); border-radius: 6px; background: #fff; }
+.relatorio { margin-top: 16px; }
+.relatorio summary { cursor: pointer; font-weight: 600; min-height: 44px; display: flex; align-items: center; }
+pre.log { font-family: var(--mono); font-size: .78rem; background: var(--papel); border: 1px solid var(--linha); border-radius: 6px; padding: 10px; max-height: 420px; overflow: auto; white-space: pre; }
+
+.rodape { max-width: 1180px; margin: 0 auto; padding: 16px 20px 28px; border-top: 1px solid var(--linha); color: var(--cinza); font-size: .84rem; }
+.rodape p { margin: 4px 0; max-width: 90ch; }
+.ocupado, .ocupado * { cursor: progress !important; }
+
+@media (max-width: 860px) {
+  .grade2, .grade3 { grid-template-columns: minmax(0, 1fr); }
+  .etapas { grid-template-columns: repeat(5, minmax(0, 1fr)); font-size: .78rem; }
+  .etapas li { font-size: .74rem; }
+  .selecao canvas { height: 300px; }
+  .modulo { border-left: 0; padding-left: 0; }
+  .barra nav { margin-left: 0; width: 100%; }
+}

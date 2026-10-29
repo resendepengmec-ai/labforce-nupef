@@ -5,8 +5,9 @@ Análise de ensaios de usinagem no navegador, do NUPEF (Laboratório de Usinagem
 | Página | Pasta | Conteúdo |
 |---|---|---|
 | Início | `/` | Escolha entre as duas análises |
-| Análise de forças de usinagem | [`forcas/`](forcas/README.md) | ForceLab: sinais do dinamômetro (Fx, Fy, Fz), faixa, estatística, CSV |
-| Análise de grandezas elétricas | [`eletrica/`](eletrica/README.md) | Potências, FFT, IEEE 519-2022 e IEEE 1459-2010 (aquisição ESP32 3F+N; método da rotina Scilab v5.3.3) |
+| Análise de forças de usinagem | [`forcas/`](forcas/README.md) | Sinais do dinamômetro (Fx, Fy, Fz): calibração, faixas, estatística, espectro, força de corte teórica (opcional). Manual: `forcas/manual.html` |
+| Análise de grandezas elétricas | [`eletrica/`](eletrica/README.md) | Potências, FFT, IEEE 519-2022 e IEEE 1459-2010 (aquisição ESP32 3F+N; método da rotina Scilab v5.3.3). Manual: `eletrica/manual.html` |
+| Partes comuns | `comum/` | FFT, gráficos, seleção de faixas, gravação em pasta/zip, estilos dos módulos e dos manuais |
 
 ## Executar localmente
 

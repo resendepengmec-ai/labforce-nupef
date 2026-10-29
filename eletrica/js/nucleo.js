@@ -1,7 +1,7 @@
 // nucleo.js - funcoes numericas de Potencias_Eletricas (porte de funcoesPotencia.sci v5.3.3)
 // Indices em base 0 (no Scilab, base 1). Vetores: Float64Array.
-import { fft } from "./fft.js";
-import { sprintf } from "./formato.js";
+import { fft } from "../../comum/js/fft.js";
+import { sprintf } from "../../comum/js/formato.js";
 
 // ---- avisos (equivale ao mprintf do Scilab dentro das funcoes) ------------
 let saidaAviso = (s) => console.warn(s);

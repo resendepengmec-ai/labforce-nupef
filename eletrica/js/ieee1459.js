@@ -2,7 +2,7 @@
 // (porte de potenciasIEEE1459.sci v5.3.3). Tensoes fase-neutro, correntes de
 // linha, In = -(ia+ib+ic) CALCULADA. Ver hipoteses no cabecalho do .sci.
 import { ciclosSincronos, mapaRaias, dftJanelas, rnd } from "./nucleo.js";
-import { sprintf, nv } from "./formato.js";
+import { sprintf, nv } from "../../comum/js/formato.js";
 
 // complexos como [re, im]
 const cmul = (a, b) => [a[0] * b[0] - a[1] * b[1], a[0] * b[1] + a[1] * b[0]];

@@ -1,4 +1,6 @@
-# Potências Elétricas · web
+# Grandezas elétricas (LabForce NUPEF)
+
+Manual técnico de uso: [`manual.html`](manual.html) (14 seções, ASD-STE100 em português, com verificação no navegador).
 
 Análise de ensaios de potência elétrica em máquinas-ferramenta. A aquisição é feita com ESP32, em sistema trifásico a 4 fios (3F+N), e a análise roda **no navegador**. É o porte da rotina Scilab `Potencias_Eletricas v5.3.3` (IFG Câmpus Goiânia). O método e os resultados são os mesmos.
 
@@ -63,13 +65,13 @@ npm test        # na raiz do repositório; node >= 18, sem instalar nada
 ```
 index.html          interface (5 etapas)
 css/estilo.css
-js/fft.js           FFT radix-2 + Bluestein (qualquer N, como fft() do Scilab)
 js/nucleo.js        funcoesPotencia.sci (RMS, média móvel, fs, FFT, DFT por janela, mapa de raias)
 js/ieee519.js       qualidadeIEEE519.sci
 js/ieee1459.js      potenciasIEEE1459.sci
 js/analise.js       laço principal do .sce (ensaio -> faixas -> linhas de CSV e relatório)
-js/graficos.js      gráficos em canvas (mesmos estilos de série da v5.3.3)
-js/saida.js         pasta (File System Access + IndexedDB) e .zip sem dependências
+js/figuras.js       figuras da análise (espectro, IEEE 519, IEEE 1459)
+js/autoteste.js     verificação (manual, seção 6)
+../comum/js/        FFT, gráficos, seleção de faixas, gravação em pasta/zip, interface comum
 js/app.js           interface
 img/                esquemático 3F+N e ícone
 testes/             testes, dados e referência do Scilab

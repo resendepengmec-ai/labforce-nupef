@@ -1,0 +1,435 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Manual · Forças de usinagem · LabForce NUPEF</title>
+<meta name="description" content="Manual técnico de uso do módulo de forças de usinagem (ASD-STE100 adaptado ao português).">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
+<link rel="icon" href="../assets/icone.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../comum/css/modulo.css">
+<link rel="stylesheet" href="../comum/css/manual.css">
+</head>
+<body class="mod-forcas">
+<header class="barra">
+  <div class="barra-in">
+    <a class="marca" href="../">LabForce <span>NUPEF</span></a>
+    <span class="modulo">Forças de usinagem</span>
+    <nav aria-label="Navegação do módulo">
+      <a href="./">Análise</a>
+      <a href="manual.html" aria-current="page">Manual</a>
+      <a href="../">Início</a>
+    </nav>
+  </div>
+</header>
+
+<div class="manual">
+<nav class="indice" aria-label="Índice do manual">
+  <p>Índice</p>
+  <ol>
+    <li><a href="#s1">1 Escopo e aplicação</a></li>
+    <li><a href="#s2">2 Convenções de formatação</a></li>
+    <li><a href="#s3">3 Termos e símbolos</a></li>
+    <li><a href="#s4">4 Advertências e cuidados gerais</a></li>
+    <li><a href="#s5">5 Acesso e arquivos</a></li>
+    <li><a href="#s6">6 Teste de verificação</a></li>
+    <li><a href="#s7">7 Montagem do dinamômetro</a></li>
+    <li><a href="#s8">8 Parâmetros</a></li>
+    <li><a href="#s9">9 Taxa de amostragem</a></li>
+    <li><a href="#s10">10 Procedimento de uso</a></li>
+    <li><a href="#s11">11 Resultados</a></li>
+    <li><a href="#s12">12 Interpretação e limites</a></li>
+    <li><a href="#s13">13 Falhas e soluções</a></li>
+    <li><a href="#s14">14 Referências</a></li>
+  </ol>
+  <button id="btImprimir" class="sec imprimir" type="button">Imprimir ou salvar em PDF</button>
+</nav>
+
+<article class="doc">
+<header>
+  <h1>Manual técnico de uso: forças de usinagem</h1>
+  <p>Módulo de forças de usinagem do LabForce NUPEF, versão web 2.0.0. Redação conforme a ASD-STE100, adaptada ao português.</p>
+</header>
+
+<section id="s1">
+<h2>1 Escopo e aplicação</h2>
+<p>Este manual dá as instruções de uso do módulo de forças de usinagem.</p>
+<p>O módulo analisa as forças medidas com um dinamômetro de usinagem nas direções x, y e z. Os dados de entrada são arquivos de texto (<code>.txt</code> ou <code>.csv</code>) com 4 colunas: tempo e as 3 forças. O módulo aceita os arquivos exportados pelo DynoWare. O módulo funciona no navegador. Os arquivos não saem do computador.</p>
+<p>O módulo faz estas tarefas:</p>
+<ul>
+  <li>Lê o arquivo e ignora as linhas de texto (metadados e cabeçalho).</li>
+  <li>Multiplica cada força pelo fator de calibração do canal.</li>
+  <li>Calcula a taxa de amostragem pela coluna de tempo.</li>
+  <li>Calcula, em cada faixa, a média, o RMS, o pico, o desvio padrão, o coeficiente de variação, o fator de crista, a curtose, a assimetria e a frequência dominante de Fx, Fy, Fz e da resultante Fr.</li>
+  <li>Mostra o espectro de amplitude das forças (FFT).</li>
+  <li>Calcula a força de corte teórica do torneamento e compara com a força medida (opcional).</li>
+  <li>Grava os resultados em arquivos CSV, TXT e PNG numa pasta do computador.</li>
+</ul>
+<p>O módulo não faz estas tarefas:</p>
+<ul>
+  <li>Não corrige o deslocamento do zero (offset) nem a deriva do amplificador de carga.</li>
+  <li>Não filtra o sinal. O sinal analisado é o sinal do arquivo multiplicado pelo fator de calibração.</li>
+  <li>Não substitui a calibração do dinamômetro. O fator de calibração só corrige um ganho conhecido.</li>
+  <li>Não garante a força teórica. A força teórica é uma estimativa com dados de catálogo.</li>
+</ul>
+</section>
+
+<section id="s2">
+<h2>2 Convenções de formatação</h2>
+<p>Este manual usa a mesma formatação em todas as seções.</p>
+<div class="tabela-rolar"><table>
+  <thead><tr><th>Elemento</th><th>Formatação</th><th>Exemplo</th></tr></thead>
+  <tbody>
+    <tr><td>Arquivo, campo, mensagem</td><td>Fonte de código</td><td><code>forcas_resumo.csv</code>, <code>relatorio.txt</code></td></tr>
+    <tr><td>Botão ou opção da tela</td><td>Negrito</td><td><strong>Continuar</strong>, <strong>Analisar faixas</strong></td></tr>
+    <tr><td>Unidade de medida</td><td>Entre colchetes</td><td>Fz [N], fs [Hz]</td></tr>
+    <tr><td>Procedimento</td><td>Lista numerada, uma ação por passo</td><td>1. Abra o módulo.</td></tr>
+    <tr><td>Figura</td><td>Imagem e legenda em itálico abaixo</td><td><em>Figura 1 — …</em></td></tr>
+    <tr><td>Instrução de segurança</td><td>Rótulo em negrito antes do texto</td><td><strong>ADVERTÊNCIA:</strong>, <strong>CUIDADO:</strong>, <strong>NOTA:</strong></td></tr>
+  </tbody>
+</table></div>
+<p>Os rótulos de segurança têm este significado:</p>
+<ul>
+  <li><strong>ADVERTÊNCIA:</strong> instrução que evita lesão ou morte.</li>
+  <li><strong>CUIDADO:</strong> instrução que evita dano ao equipamento ou perda de dados.</li>
+  <li><strong>NOTA:</strong> informação útil que não é uma instrução de segurança.</li>
+</ul>
+</section>
+
+<section id="s3">
+<h2>3 Termos e símbolos</h2>
+<p>Cada termo desta tabela tem um só significado neste manual.</p>
+<div class="tabela-rolar"><table>
+  <thead><tr><th>Termo</th><th>Significado</th></tr></thead>
+  <tbody>
+    <tr><td>Ensaio</td><td>Um arquivo de forças de uma operação de usinagem (exemplo: <code>E1.3.txt</code>).</td></tr>
+    <tr><td>Faixa</td><td>Um intervalo de tempo do ensaio que o operador seleciona para a análise.</td></tr>
+    <tr><td>Região de interesse</td><td>O intervalo que os 2 primeiros limites delimitam no modo com zoom.</td></tr>
+    <tr><td>Rodada</td><td>Uma análise completa, do botão <strong>Iniciar análise</strong> até a mensagem <code>Concluído</code>.</td></tr>
+    <tr><td>Pasta de resultados</td><td>A pasta <code>resultados_AAAAMMDD_hhmmss</code> que o módulo cria em cada rodada.</td></tr>
+    <tr><td>Canal</td><td>Uma força do arquivo: Fx, Fy ou Fz [N].</td></tr>
+    <tr><td>Fx, Fy, Fz</td><td>No torneamento, na convenção da figura 1: força de avanço (Ff), força passiva (Fp) e força de corte (Fc) [N].</td></tr>
+    <tr><td>Fr</td><td>Força resultante em cada amostra: Fr = √(Fx² + Fy² + Fz²) [N].</td></tr>
+    <tr><td>Fator de calibração</td><td>O número que multiplica o sinal de um canal [-]. Padrão 1,0.</td></tr>
+    <tr><td>Taxa de amostragem (fs)</td><td>A quantidade de amostras por segundo, calculada pela coluna de tempo [Hz].</td></tr>
+    <tr><td>RMS</td><td>Valor eficaz: raiz da média dos quadrados [N].</td></tr>
+    <tr><td>DP</td><td>Desvio padrão populacional [N].</td></tr>
+    <tr><td>CV</td><td>Coeficiente de variação = DP/|média| [-].</td></tr>
+    <tr><td>Fator de crista</td><td>Pico/RMS [-].</td></tr>
+    <tr><td>Curtose</td><td>Quarto momento padronizado [-]. Distribuição normal = 3; senoide = 1,5.</td></tr>
+    <tr><td>Assimetria</td><td>Terceiro momento padronizado [-]. Distribuição simétrica = 0.</td></tr>
+    <tr><td>Frequência dominante</td><td>A frequência da maior raia do espectro do sinal sem a média [Hz].</td></tr>
+    <tr><td>ap</td><td>Profundidade de corte [mm].</td></tr>
+    <tr><td>fn</td><td>Avanço por rotação [mm/rot].</td></tr>
+    <tr><td>vc</td><td>Velocidade de corte [m/min].</td></tr>
+    <tr><td>κr</td><td>Ângulo de posição da aresta [°].</td></tr>
+    <tr><td>γ0</td><td>Ângulo de saída [°].</td></tr>
+    <tr><td>hm</td><td>Espessura média do cavaco [mm].</td></tr>
+    <tr><td>kc, kc1</td><td>Força específica de corte; kc1 é o valor para hm = 1 mm [N/mm²].</td></tr>
+    <tr><td>mc</td><td>Expoente de correção de kc pela espessura do cavaco [-].</td></tr>
+    <tr><td>Fc, Pc, Q</td><td>Força de corte [N], potência líquida de corte [kW] e taxa de remoção de material [cm³/min].</td></tr>
+  </tbody>
+</table></div>
+</section>
+
+<section id="s4">
+<h2>4 Advertências e cuidados gerais</h2>
+<p class="seg seg-adv"><strong>ADVERTÊNCIA:</strong> Pare a máquina e bloqueie o comando antes de montar ou ajustar o dinamômetro. Uma peça em rotação pode prender a mão ou a roupa.</p>
+<p class="seg seg-adv"><strong>ADVERTÊNCIA:</strong> Use óculos de proteção durante o ensaio e mantenha as proteções da máquina fechadas. O cavaco é cortante e quente.</p>
+<p class="seg seg-cui"><strong>CUIDADO:</strong> Não exceda a faixa de medição do dinamômetro. Uma sobrecarga pode danificar os sensores piezoelétricos.</p>
+<p class="seg seg-cui"><strong>CUIDADO:</strong> Não abra os arquivos CSV da pasta de resultados durante a rodada. O módulo grava os arquivos após cada faixa, e a gravação pode falhar.</p>
+<p class="seg seg-cui"><strong>CUIDADO:</strong> Use o fator de calibração 1,0 se o arquivo já estiver em N. Um fator errado dá forças erradas sem aviso.</p>
+<p class="seg seg-cui"><strong>CUIDADO:</strong> Sem gravação direta em pasta (seção 5), não feche a aba antes do download do <code>.zip</code>. Os resultados ficam só na memória do navegador.</p>
+<p class="seg seg-nota"><strong>NOTA:</strong> A força teórica é uma estimativa. Use a força medida como resultado do ensaio.</p>
+</section>
+
+<section id="s5">
+<h2>5 Acesso e arquivos</h2>
+<p>O módulo é uma página web. Não é necessário instalar programas. O endereço é <code>https://resendepengmec-ai.github.io/labforce-nupef/forcas/</code>.</p>
+<div class="tabela-rolar"><table>
+  <thead><tr><th>Navegador</th><th>Gravação dos resultados</th></tr></thead>
+  <tbody>
+    <tr><td>Chrome ou Edge no computador</td><td>Direto na pasta que o operador escolhe. O navegador lembra a pasta.</td></tr>
+    <tr><td>Firefox, Safari ou celular</td><td>Num arquivo <code>.zip</code> que o navegador baixa no fim da rodada.</td></tr>
+  </tbody>
+</table></div>
+<p>O código do módulo fica no repositório <code>labforce-nupef</code>, nestes arquivos:</p>
+<div class="tabela-rolar"><table>
+  <thead><tr><th>Arquivo</th><th>Função</th></tr></thead>
+  <tbody>
+    <tr><td><code>forcas/index.html</code>, <code>js/app.js</code></td><td>Tela e fluxo da análise.</td></tr>
+    <tr><td><code>js/nucleo.js</code></td><td>Leitura do arquivo, calibração, taxa de amostragem, estatística, frequência dominante e força teórica.</td></tr>
+    <tr><td><code>js/analise.js</code>, <code>js/figuras.js</code></td><td>Fluxo de um ensaio, linhas dos CSV e gráficos.</td></tr>
+    <tr><td><code>js/autoteste.js</code>, <code>testes/</code></td><td>Teste de verificação (seção 6).</td></tr>
+    <tr><td><code>samples/torneamento_sintetico.txt</code></td><td>Arquivo de exemplo no formato do DynoWare (sinal sintético).</td></tr>
+    <tr><td><code>../comum/</code></td><td>Partes comuns aos módulos: FFT, gráficos, seleção de faixas, gravação e estilos.</td></tr>
+  </tbody>
+</table></div>
+<h3 id="s5-1">5.1 Procedimento de acesso</h3>
+<ol class="passos">
+  <li>Abra o Chrome ou o Edge no computador do laboratório.</li>
+  <li>Abra o endereço do módulo.</li>
+  <li>Faça o teste de verificação (seção 6) no primeiro uso do computador.</li>
+</ol>
+<p class="seg seg-nota"><strong>NOTA:</strong> A página atualiza sozinha quando o repositório muda. Se a tela mostrar uma versão antiga, pressione <strong>Ctrl+F5</strong>. A versão aparece no rodapé da tela de análise.</p>
+</section>
+
+<section id="s6">
+<h2>6 Teste de verificação</h2>
+<p>Faça este teste no primeiro uso de um computador e após cada atualização do módulo. O teste usa sinais sintéticos com resultado conhecido: senoides, um arquivo no formato do DynoWare e um ensaio completo com Fz = 800 N.</p>
+<h3 id="s6-1">6.1 Procedimento</h3>
+<ol class="passos">
+  <li>Clique em <strong>Executar a verificação</strong>.</li>
+  <li>Aguarde o fim do teste. O tempo é menor que 5 s.</li>
+  <li>Confirme que a mensagem mostra <code>Forças de usinagem: 31 verificações OK</code>.</li>
+</ol>
+<div class="verif">
+  <button id="btVerificar" class="prim" type="button" data-modulo="js/autoteste.js" data-nome="Forças de usinagem">Executar a verificação</button>
+  <p id="resVerificar" class="res" role="status" aria-live="polite"></p>
+</div>
+<p class="seg seg-cui"><strong>CUIDADO:</strong> Se a mensagem mostrar <code>FALHA</code>, não use o módulo. Pressione <strong>Ctrl+F5</strong> e faça o teste outra vez. Se a falha continuar, informe o responsável pelo módulo.</p>
+<p class="seg seg-nota"><strong>NOTA:</strong> O responsável pelo módulo executa o mesmo teste no repositório com o comando <code>npm test</code>.</p>
+</section>
+
+<section id="s7">
+<h2>7 Montagem do dinamômetro</h2>
+<p>O módulo considera a convenção usual do torneamento: Fz é a força de corte, Fx é a força de avanço e Fy é a força passiva. O DynoWare escreve esta convenção no cabeçalho do arquivo: <code>Time Ff (Fx) Fp (Fy) Fc (Fz)</code>. A figura 1 mostra a convenção.</p>
+<figure>
+  <img src="img/manual/montagem.png" alt="Etapa 1 da tela: esquema do torneamento com a peça, a ferramenta sobre o dinamômetro e os vetores Fz = Fc vertical, Fx = Ff ao longo do eixo da peça e Fy = Fp radial; lista de conferência ao lado." loading="lazy">
+  <figcaption>Figura 1 — Etapa 1 da tela: convenção dos eixos e lista de conferência da montagem.</figcaption>
+</figure>
+<h3 id="s7-1">7.1 Procedimento de montagem</h3>
+<p class="seg seg-adv"><strong>ADVERTÊNCIA:</strong> Pare a máquina e bloqueie o comando antes de montar o dinamômetro.</p>
+<ol class="passos">
+  <li>Fixe o dinamômetro na máquina conforme o manual do fabricante.</li>
+  <li>Fixe a ferramenta no dinamômetro com o torque de aperto do fabricante.</li>
+  <li>Confirme que o eixo z do dinamômetro está na direção da velocidade de corte.</li>
+  <li>Confirme que o eixo x está na direção do avanço.</li>
+  <li>Conecte os cabos do dinamômetro ao amplificador de carga.</li>
+  <li>Ajuste no amplificador a sensibilidade e a faixa de medição de cada canal.</li>
+  <li>Use no software de aquisição a mesma sensibilidade e a mesma faixa.</li>
+  <li>Zere o amplificador (reset) com a ferramenta sem contato com a peça.</li>
+  <li>Exporte o ensaio com o tempo e as 3 forças, em N.</li>
+</ol>
+<p class="seg seg-cui"><strong>CUIDADO:</strong> Uma fixação solta altera as forças medidas e pode criar vibração.</p>
+<p class="seg seg-nota"><strong>NOTA:</strong> Com outra montagem, as direções podem mudar. Use o mapeamento das colunas (seção 8) para associar cada coluna do arquivo a Fx, Fy e Fz. Um fator de calibração negativo inverte o sentido de um canal.</p>
+<p class="seg seg-nota"><strong>NOTA:</strong> Os amplificadores de carga têm deriva. Grave o ensaio logo após o reset e faça ensaios curtos.</p>
+</section>
+
+<section id="s8">
+<h2>8 Parâmetros</h2>
+<p>Os parâmetros ficam na etapa 2 da tela (figura 3). O navegador lembra os valores. Altere um parâmetro somente na condição da coluna “Quando alterar”.</p>
+<div class="tabela-rolar"><table>
+  <thead><tr><th>Campo</th><th>Valor padrão</th><th>Unidade</th><th>Quando alterar</th></tr></thead>
+  <tbody>
+    <tr><td>Colunas 1 a 4</td><td>tempo, Fx, Fy, Fz</td><td>-</td><td>Quando o arquivo tiver outra ordem de colunas. Cada grandeza deve aparecer uma vez. Use <strong>ignorar</strong> para uma coluna sem uso.</td></tr>
+    <tr><td>Fatores Fx, Fy, Fz</td><td>1,0</td><td>-</td><td>Quando o arquivo não estiver em N ou quando houver um ganho conhecido a corrigir. Um fator negativo inverte o sentido do canal. O fator não pode ser 0.</td></tr>
+    <tr><td>Faixas por ensaio</td><td>1</td><td>-</td><td>Para analisar mais trechos do mesmo ensaio (1 a 8).</td></tr>
+    <tr><td>Zoom</td><td>desmarcado</td><td>-</td><td>Para delimitar antes uma região de interesse em ensaios longos.</td></tr>
+    <tr><td>Espectro (FFT)</td><td>marcado</td><td>-</td><td>Desmarque para não gerar o gráfico do espectro.</td></tr>
+    <tr><td>Salvar gráficos (PNG)</td><td>marcado</td><td>-</td><td>Desmarque para gravar só os arquivos de texto.</td></tr>
+    <tr><td>Faixa mínima</td><td>0,5</td><td>s</td><td>Para aceitar faixas mais curtas ou exigir faixas mais longas.</td></tr>
+  </tbody>
+</table></div>
+<p>Os campos da força teórica só aparecem com a opção <strong>Força de corte teórica</strong> marcada.</p>
+<div class="tabela-rolar"><table>
+  <thead><tr><th>Campo</th><th>Valor padrão</th><th>Unidade</th><th>Quando alterar</th></tr></thead>
+  <tbody>
+    <tr><td>ap</td><td>2</td><td>mm</td><td>Em cada ensaio: use a profundidade de corte real.</td></tr>
+    <tr><td>fn</td><td>0,25</td><td>mm/rot</td><td>Em cada ensaio: use o avanço real.</td></tr>
+    <tr><td>vc</td><td>120</td><td>m/min</td><td>Em cada ensaio. Para calcular vc pelo diâmetro D [mm] e pela rotação n [rpm], use <strong>Calcular vc pelo diâmetro e pela rotação</strong>.</td></tr>
+    <tr><td>κr</td><td>90</td><td>°</td><td>Quando o ângulo de posição da ferramenta for outro.</td></tr>
+    <tr><td>γ0</td><td>0</td><td>°</td><td>Quando o ângulo de saída da ferramenta for outro.</td></tr>
+    <tr><td>kc1</td><td>vazio</td><td>N/mm²</td><td>Sempre: digite o valor do catálogo para o material da peça.</td></tr>
+    <tr><td>mc</td><td>0,25</td><td>-</td><td>Quando o catálogo der outro valor para o material da peça.</td></tr>
+    <tr><td>Canal comparado com Fc</td><td>Fz</td><td>-</td><td>Quando a força de corte estiver em outro canal.</td></tr>
+  </tbody>
+</table></div>
+<p class="seg seg-nota"><strong>NOTA:</strong> A taxa de amostragem não é um parâmetro. O módulo calcula a taxa pela coluna de tempo (seção 9).</p>
+</section>
+
+<section id="s9">
+<h2>9 Taxa de amostragem</h2>
+<p>O módulo calcula a taxa de amostragem de cada ensaio pela coluna de tempo:</p>
+<p class="formula">fs = (N − 1) / (t_N − t_1)        [Hz]</p>
+<p>N é a quantidade de amostras, t_1 é o primeiro tempo e t_N é o último tempo. Ensaios com taxas diferentes podem estar na mesma rodada.</p>
+<p>O módulo também verifica o passo de tempo entre as amostras:</p>
+<ol class="passos">
+  <li>Se o tempo não for crescente, o módulo ignora o ensaio e mostra <code>a coluna de tempo não é crescente</code>.</li>
+  <li>Se o passo variar mais de 1 % do passo médio, o módulo mostra <code>AVISO ... o passo de tempo variou</code>.</li>
+</ol>
+<p class="seg seg-cui"><strong>CUIDADO:</strong> Com o aviso de passo de tempo, use as estatísticas da faixa. Não use a frequência dominante nem o espectro.</p>
+<p class="seg seg-nota"><strong>NOTA:</strong> A resolução do espectro é fs/N da faixa. Uma faixa de 2 s tem resolução de 0,5 Hz. A maior frequência do espectro é fs/2.</p>
+<p class="seg seg-nota"><strong>NOTA:</strong> Ajuste a taxa de amostragem da aquisição para mais de 2 vezes a maior frequência de interesse. O filtro passa-baixa do amplificador deve estar abaixo de fs/2.</p>
+</section>
+
+<section id="s10">
+<h2>10 Procedimento de uso</h2>
+<p>Uma rodada tem 5 etapas: montagem, configuração, arquivos, faixas e resultados. A barra de etapas mostra a etapa atual (figura 2). Uma etapa concluída fica recolhida, com um resumo. Antes de iniciar a análise, <strong>Alterar</strong> reabre a etapa.</p>
+<figure>
+  <img src="img/manual/etapas.png" alt="Barra com as 5 etapas: 1 Montagem, 2 Configuração, 3 Arquivos, 4 Faixas, 5 Resultados." width="1140" height="40" loading="lazy">
+  <figcaption>Figura 2 — Barra de etapas. A etapa atual tem o traço na cor do módulo; as concluídas têm ✓.</figcaption>
+</figure>
+<h3 id="s10-1">10.1 Confirmar a montagem</h3>
+<ol class="passos">
+  <li>Abra o módulo (seção 5.1).</li>
+  <li>Compare a montagem real com a convenção da etapa 1.</li>
+  <li>Faça a conferência da lista da etapa 1.</li>
+  <li>Clique em <strong>OK, montagem conferida</strong>.</li>
+</ol>
+<h3 id="s10-2">10.2 Configurar a análise</h3>
+<figure>
+  <img src="img/manual/configuracao.png" alt="Etapa 2: quadros de colunas do arquivo, calibração por canal com fatores 1,0, faixas e saídas, e o quadro da força de corte teórica com ap, fn, vc, κr, γ0, kc1, mc e canal comparado." loading="lazy">
+  <figcaption>Figura 3 — Etapa 2 com a força de corte teórica marcada.</figcaption>
+</figure>
+<ol class="passos">
+  <li>Em <strong>Colunas do arquivo</strong>, escolha a grandeza de cada coluna.</li>
+  <li>Em <strong>Calibração por canal</strong>, confirme os fatores. Para voltar ao padrão, clique em <strong>Voltar todos para 1,0</strong>.</li>
+  <li>Em <strong>Faixas por ensaio</strong>, escolha quantas faixas vai avaliar em cada ensaio.</li>
+  <li>Para delimitar antes uma região de interesse, marque <strong>Delimitar antes uma região de interesse (zoom)</strong>.</li>
+  <li>Marque ou desmarque <strong>Espectro de amplitude (FFT)</strong> e <strong>Salvar gráficos (PNG)</strong>.</li>
+  <li>Para comparar com a força teórica, marque <strong>Força de corte teórica</strong> e preencha os campos (seção 8).</li>
+  <li>Clique em <strong>Continuar</strong>.</li>
+</ol>
+<p class="seg seg-nota"><strong>NOTA:</strong> Um valor inválido fica com a borda vermelha e uma mensagem abaixo do campo. A etapa só continua com todos os campos válidos.</p>
+<h3 id="s10-3">10.3 Escolher os arquivos e a pasta</h3>
+<ol class="passos">
+  <li>Arraste os arquivos para a área tracejada, ou clique na área e escolha os arquivos.</li>
+  <li>Confira a lista dos arquivos.</li>
+  <li>Clique em <strong>Escolher pasta…</strong> e escolha a pasta de resultados. Nos próximos usos, clique em <strong>Usar a pasta “…”</strong>.</li>
+  <li>Se o navegador pedir permissão de escrita, clique em <strong>Permitir</strong>.</li>
+  <li>Clique em <strong>Iniciar análise</strong>.</li>
+</ol>
+<p class="seg seg-nota"><strong>NOTA:</strong> O módulo analisa os arquivos em ordem de nome.</p>
+<h3 id="s10-4">10.4 Selecionar as faixas</h3>
+<figure>
+  <img src="img/manual/faixas.png" alt="Etapa 4: gráfico de Fx, Fy e Fz no tempo, com o início da faixa f1 marcado por uma linha tracejada; tabela com os tempos de início e fim." loading="lazy">
+  <figcaption>Figura 4 — Seleção da faixa: início da faixa f1 marcado (linha tracejada); falta o fim.</figcaption>
+</figure>
+<p>O gráfico mostra Fx (azul), Fy (verde) e Fz (vermelho) no tempo. A linha acima do gráfico mostra a próxima ação. Cada limite pode ser marcado de duas formas: com um clique no gráfico ou com o tempo digitado na tabela.</p>
+<ol class="passos">
+  <li>Com zoom, clique no início e no fim da região de interesse.</li>
+  <li>Clique no início da faixa 1. Escolha um trecho de corte estável, sem a entrada e a saída da ferramenta.</li>
+  <li>Clique no fim da faixa 1. O módulo marca a faixa com a cor e o rótulo f1.</li>
+  <li>Faça os passos 2 e 3 para cada faixa seguinte.</li>
+  <li>Confira os tempos e a situação de cada faixa na tabela.</li>
+  <li>Clique em <strong>Analisar faixas</strong>.</li>
+</ol>
+<p>Para usar o teclado, digite o tempo [s] no campo <strong>Início</strong> ou <strong>Fim</strong> da tabela e pressione <strong>Tab</strong>.</p>
+<p class="seg seg-nota"><strong>NOTA:</strong> <strong>Desfazer</strong> (ou <strong>Ctrl+Z</strong>) remove o último limite marcado. <strong>Limpar faixas</strong> remove todos os limites do ensaio. <strong>Pular este ensaio</strong> passa ao próximo ensaio sem análise.</p>
+<p class="seg seg-nota"><strong>NOTA:</strong> Uma faixa menor que a faixa mínima fica marcada em cinza com o texto “(curta)”. O módulo não analisa esta faixa.</p>
+<h3 id="s10-5">10.5 Concluir a rodada</h3>
+<ol class="passos">
+  <li>Aguarde a análise de cada ensaio. A linha de progresso mostra a faixa em análise.</li>
+  <li>Aguarde a mensagem <code>Concluído: … arquivo(s) gravado(s) em …</code>.</li>
+  <li>Abra a pasta de resultados no computador, ou abra o <code>.zip</code> baixado.</li>
+</ol>
+<p class="seg seg-nota"><strong>NOTA:</strong> <strong>Nova análise</strong> volta à etapa 3 com a mesma configuração.</p>
+</section>
+
+<section id="s11">
+<h2>11 Resultados</h2>
+<p>Cada rodada cria uma pasta de resultados nova. O módulo não substitui os resultados de rodadas anteriores.</p>
+<p>Com 1 faixa por ensaio, o rótulo é o nome do ensaio (exemplo: <code>E1.3</code>). Com 2 ou mais faixas, o rótulo tem o número da faixa (exemplo: <code>E1.3_f2</code>).</p>
+<figure>
+  <img src="img/manual/resultados.png" alt="Etapa 5: comparação da força teórica com a medida e tabela com média, RMS, pico, DP, CV, fator de crista, curtose, assimetria e frequência dominante de Fx, Fy, Fz e Fr." loading="lazy">
+  <figcaption>Figura 5 — Etapa 5: comparação com a força teórica e estatística por canal. Abaixo, a tela mostra os gráficos da faixa.</figcaption>
+</figure>
+<div class="tabela-rolar"><table>
+  <thead><tr><th>Arquivo</th><th>Quando o módulo grava</th><th>Conteúdo</th></tr></thead>
+  <tbody>
+    <tr><td><code>relatorio.txt</code></td><td>Sempre</td><td>Colunas, calibração, opções, taxa de amostragem, avisos e estatística de cada faixa.</td></tr>
+    <tr><td><code>forcas_resumo.csv</code></td><td>Sempre</td><td>Uma linha por faixa e canal (Fx, Fy, Fz, Fr): tempos, n, fs, média, RMS, pico, DP, CV, fator de crista, curtose, assimetria, frequência dominante. Separador: ponto e vírgula. Decimal: vírgula.</td></tr>
+    <tr><td><code>&lt;rótulo&gt;_faixa.csv</code></td><td>Sempre</td><td>As amostras da faixa: tempo [s], Fx, Fy, Fz e Fr [N], já com os fatores de calibração.</td></tr>
+    <tr><td><code>corte_teorico.csv</code></td><td>Força teórica marcada</td><td>Uma linha por faixa: parâmetros de corte, hm, kc, Fc teórica, Pc, Q, Fc medida e diferença [%].</td></tr>
+    <tr><td><code>&lt;ensaio&gt;_faixas.png</code></td><td>Gráficos marcados</td><td>Forças do ensaio com as faixas marcadas (registro da seleção).</td></tr>
+    <tr><td><code>&lt;rótulo&gt;_sinal.png</code></td><td>Gráficos marcados</td><td>Fx, Fy e Fz na faixa, com a média de cada canal tracejada.</td></tr>
+    <tr><td><code>&lt;rótulo&gt;_espectro.png</code></td><td>FFT e gráficos marcados</td><td>Espectro de amplitude de Fx, Fy e Fz na faixa, sem a média.</td></tr>
+  </tbody>
+</table></div>
+<p class="seg seg-nota"><strong>NOTA:</strong> Os gráficos usam a mesma cor para cada canal: Fx azul, Fy verde e Fz vermelho. As legendas mostram a unidade entre colchetes.</p>
+</section>
+
+<section id="s12">
+<h2>12 Interpretação e limites de medição</h2>
+<h3 id="s12-1">12.1 Estatística por canal</h3>
+<p>O módulo calcula a estatística com as N amostras x<sub>i</sub> da faixa:</p>
+<p class="formula">média = Σxᵢ / N                RMS = √(Σxᵢ² / N)
+pico = máx |xᵢ|                DP = √(Σ(xᵢ − média)² / N)
+CV = DP / |média|              fator de crista = pico / RMS
+assimetria = Σ(xᵢ − média)³ / (N·DP³)
+curtose = Σ(xᵢ − média)⁴ / (N·DP⁴)</p>
+<p>A frequência dominante é a maior raia do espectro do sinal sem a média, com janela de Hann e interpolação entre raias.</p>
+<div class="tabela-rolar"><table>
+  <thead><tr><th>Grandeza</th><th>Interpretação</th></tr></thead>
+  <tbody>
+    <tr><td>Média de Fz</td><td>Força de corte média da faixa. É o valor que se compara com a força teórica.</td></tr>
+    <tr><td>DP e CV</td><td>Dispersão da força em torno da média. CV alto indica corte instável, vibração ou cavaco segmentado.</td></tr>
+    <tr><td>Fator de crista</td><td>Picos em relação ao RMS. Valores altos indicam impactos (corte interrompido, quebra de cavaco).</td></tr>
+    <tr><td>Curtose</td><td>Próxima de 3: variação aleatória. Muito maior que 3: picos isolados. Próxima de 1,5: oscilação periódica.</td></tr>
+    <tr><td>Assimetria</td><td>Diferente de 0: a força passa mais tempo de um lado da média (exemplo: picos só para cima).</td></tr>
+    <tr><td>Frequência dominante</td><td>Compare com a rotação (n/60 [Hz]), com a frequência de passagem dos dentes e com a frequência natural do conjunto.</td></tr>
+  </tbody>
+</table></div>
+<h3 id="s12-2">12.2 Força de corte teórica</h3>
+<p>O módulo usa as fórmulas de torneamento da Sandvik Coromant, com o modelo de Kienzle para a força específica de corte:</p>
+<p class="formula">hm = fn · sen κr                          [mm]
+kc = kc1 · hm^(−mc) · (1 − γ0/100)        [N/mm²]
+Fc = kc · ap · fn                          [N]
+Pc = vc · ap · fn · kc / (60 · 10³)        [kW]
+Q  = vc · ap · fn                          [cm³/min]
+vc = π · D · n / 1000                      [m/min]</p>
+<p>O módulo compara Fc teórica com o valor absoluto da média do canal escolhido:</p>
+<p class="formula">diferença = 100 · (|Fc medida| − Fc teórica) / Fc teórica        [%]</p>
+<p class="seg seg-nota"><strong>NOTA:</strong> kc1 e mc dependem do material, do tratamento térmico e da dureza. Use os dados do fabricante da ferramenta para o material real. O desgaste da ferramenta, a geometria real da aresta e o raio de ponta alteram a força. Uma diferença grande não indica, sozinha, erro de medição.</p>
+<p class="seg seg-cui"><strong>CUIDADO:</strong> As fórmulas são de torneamento. Não use a força teórica em fresamento ou furação.</p>
+<h3 id="s12-3">12.3 Limites de medição</h3>
+<ol class="passos">
+  <li><strong>Zero e deriva.</strong> O módulo não remove o offset. Um reset fora de hora ou a deriva do amplificador somam um erro constante à média. Confira se a força é próxima de zero antes da entrada da ferramenta.</li>
+  <li><strong>Frequência natural.</strong> O conjunto dinamômetro e ferramenta tem uma frequência natural. Componentes do sinal perto dela ficam amplificadas. Não interprete a amplitude do espectro perto da frequência natural.</li>
+  <li><strong>Filtro e taxa.</strong> Componentes acima de fs/2 aparecem rebatidas no espectro se o filtro do amplificador não as remover.</li>
+  <li><strong>Escolha da faixa.</strong> A entrada e a saída da ferramenta alteram a média e o DP. Use só o trecho de corte estável.</li>
+  <li><strong>Resultante.</strong> Fr é calculada em cada amostra. A média de Fr não é igual à resultante das médias.</li>
+</ol>
+</section>
+
+<section id="s13">
+<h2>13 Falhas e soluções</h2>
+<div class="tabela-rolar"><table>
+  <thead><tr><th>Sintoma</th><th>Causa provável</th><th>Ação</th></tr></thead>
+  <tbody>
+    <tr><td>Tela de uma versão antiga ou verificação com <code>FALHA</code></td><td>O navegador usa arquivos antigos da memória.</td><td>Pressione <strong>Ctrl+F5</strong>. Faça a verificação (seção 6) outra vez.</td></tr>
+    <tr><td>“Escolha tempo, Fx, Fy e Fz uma vez cada”</td><td>Uma grandeza está em 2 colunas ou falta uma grandeza.</td><td>Corrija o mapeamento das colunas.</td></tr>
+    <tr><td><code>arquivo sem 4 colunas numéricas válidas</code></td><td>O arquivo tem menos de 4 colunas, ou o mapeamento está errado.</td><td>Abra o arquivo num editor de texto e confira as colunas.</td></tr>
+    <tr><td><code>a coluna de tempo não é crescente</code></td><td>A coluna de tempo está em outra posição.</td><td>Corrija o mapeamento das colunas.</td></tr>
+    <tr><td><code>AVISO ... o passo de tempo variou</code></td><td>A aquisição perdeu amostras, ou o tempo tem poucas casas decimais.</td><td>Use as estatísticas. Não use a frequência dominante. Exporte o tempo com mais casas decimais.</td></tr>
+    <tr><td>Aviso: “Este navegador não grava direto em pasta”</td><td>O navegador não tem gravação em pasta (Firefox, Safari, celular).</td><td>Use o <code>.zip</code>, ou use Chrome ou Edge no computador.</td></tr>
+    <tr><td>“Permissão de escrita negada” ou “Não foi possível acessar a pasta lembrada”</td><td>O navegador não deu permissão, ou a pasta mudou de lugar.</td><td>Clique em <strong>Escolher pasta…</strong> e escolha a pasta outra vez.</td></tr>
+    <tr><td><strong>Analisar faixas</strong> desabilitado</td><td>Falta um limite, ou todas as faixas são curtas.</td><td>Siga a linha de instrução acima do gráfico.</td></tr>
+    <tr><td>Força antes do corte diferente de zero</td><td>O amplificador não foi zerado, ou houve deriva.</td><td>Faça o reset antes de cada ensaio (seção 7.1).</td></tr>
+    <tr><td>Força com sinal invertido</td><td>Eixo do dinamômetro em sentido oposto à convenção.</td><td>Use o fator de calibração −1,0 no canal.</td></tr>
+    <tr><td>Diferença com a força teórica maior que 30 %</td><td>kc1 ou mc de outro material, parâmetros de corte errados ou ferramenta desgastada.</td><td>Confira ap, fn, vc e os dados do catálogo. Inspecione a aresta da ferramenta.</td></tr>
+    <tr><td>Aviso “erro na análise” num ensaio</td><td>Erro durante a análise do ensaio.</td><td>Os resultados das faixas anteriores ficam gravados. Veja a mensagem no <code>relatorio.txt</code>.</td></tr>
+  </tbody>
+</table></div>
+</section>
+
+<section id="s14">
+<h2>14 Referências</h2>
+<ul class="ref">
+  <li>AEROSPACE, SECURITY AND DEFENCE INDUSTRIES ASSOCIATION OF EUROPE (ASD). <em>ASD-STE100</em>: Simplified Technical English. Issue 9. Bruxelas: ASD, 2025. Disponível em: <a href="https://www.asd-ste100.org" rel="noopener noreferrer">https://www.asd-ste100.org</a>. Acesso em: 29 out. 2026.</li>
+  <li>KIENZLE, O. Die Bestimmung von Kräften und Leistungen an spanenden Werkzeugen und Werkzeugmaschinen. <em>VDI-Zeitschrift</em>, Düsseldorf, v. 94, n. 11/12, p. 299-305, 1952.</li>
+  <li>SANDVIK COROMANT. <em>Fórmulas e definições de usinagem</em>. Sandviken: Sandvik Coromant, [2026]. Disponível em: <a href="https://www.sandvik.coromant.com/pt-pt/knowledge/machining-formulas-definitions" rel="noopener noreferrer">https://www.sandvik.coromant.com/pt-pt/knowledge/machining-formulas-definitions</a>. Acesso em: 29 out. 2026.</li>
+  <li>SANDVIK COROMANT. <em>Specific cutting force</em>. Sandviken: Sandvik Coromant, [2026]. Disponível em: <a href="https://www.sandvik.coromant.com/pt-pt/knowledge/materials/specific-cutting-force" rel="noopener noreferrer">https://www.sandvik.coromant.com/pt-pt/knowledge/materials/specific-cutting-force</a>. Acesso em: 29 out. 2026.</li>
+</ul>
+</section>
+</article>
+</div>
+
+<footer class="rodape">
+  <p>LabForce NUPEF, IFG Câmpus Goiânia. Módulo de forças de usinagem, versão web 2.0.0.</p>
+</footer>
+<script type="module" src="../comum/js/manual.js"></script>
+</body>
+</html>

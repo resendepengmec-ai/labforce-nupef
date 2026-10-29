@@ -3,7 +3,7 @@
 // blocos de 3 s, P99 x 1,5 (V) / 2,0 (I), grupos de ordens rebatidas,
 // ruido subtraido apos a agregacao, LD. Resultado INDICATIVO (medido no quadro).
 import { ciclosSincronos, mapaRaias, dftJanelas, percentil, rnd } from "./nucleo.js";
-import { sprintf, nv } from "./formato.js";
+import { sprintf, nv } from "../../comum/js/formato.js";
 
 export function limitesTensaoIEEE519(Vlinha) {
   if (Vlinha <= 1e3) return { limVh: 5.0, limTHD: 8.0 };

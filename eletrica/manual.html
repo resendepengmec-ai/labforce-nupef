@@ -1,0 +1,453 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Manual · Grandezas elétricas · LabForce NUPEF</title>
+<meta name="description" content="Manual técnico de uso do módulo de grandezas elétricas (ASD-STE100 adaptado ao português).">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
+<link rel="icon" href="../assets/icone.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../comum/css/modulo.css">
+<link rel="stylesheet" href="../comum/css/manual.css">
+</head>
+<body class="mod-eletrica">
+<header class="barra">
+  <div class="barra-in">
+    <a class="marca" href="../">LabForce <span>NUPEF</span></a>
+    <span class="modulo">Grandezas elétricas</span>
+    <nav aria-label="Navegação do módulo">
+      <a href="./">Análise</a>
+      <a href="manual.html" aria-current="page">Manual</a>
+      <a href="../">Início</a>
+    </nav>
+  </div>
+</header>
+
+<div class="manual">
+<nav class="indice" aria-label="Índice do manual">
+  <p>Índice</p>
+  <ol>
+    <li><a href="#s1">1 Escopo e aplicação</a></li>
+    <li><a href="#s2">2 Convenções de formatação</a></li>
+    <li><a href="#s3">3 Termos e símbolos</a></li>
+    <li><a href="#s4">4 Advertências e cuidados gerais</a></li>
+    <li><a href="#s5">5 Acesso e arquivos</a></li>
+    <li><a href="#s6">6 Teste de verificação</a></li>
+    <li><a href="#s7">7 Ligação 3F+N</a></li>
+    <li><a href="#s8">8 Parâmetros</a></li>
+    <li><a href="#s9">9 Taxa de amostragem</a></li>
+    <li><a href="#s10">10 Procedimento de uso</a></li>
+    <li><a href="#s11">11 Resultados</a></li>
+    <li><a href="#s12">12 Interpretação e limites</a></li>
+    <li><a href="#s13">13 Falhas e soluções</a></li>
+    <li><a href="#s14">14 Referências</a></li>
+  </ol>
+  <button id="btImprimir" class="sec imprimir" type="button">Imprimir ou salvar em PDF</button>
+</nav>
+
+<article class="doc">
+<header>
+  <h1>Manual técnico de uso: grandezas elétricas</h1>
+  <p>Módulo de grandezas elétricas do LabForce NUPEF, versão web 1.1.0 (método Potencias_Eletricas v5.3.3). Redação conforme a ASD-STE100, adaptada ao português.</p>
+</header>
+
+<section id="s1">
+<h2>1 Escopo e aplicação</h2>
+<p>Este manual dá as instruções de uso do módulo de grandezas elétricas.</p>
+<p>O módulo calcula grandezas elétricas de um sistema trifásico a 4 fios (3F+N). Os dados de entrada são os arquivos de aquisição do ESP32 (<code>.txt</code>). O módulo funciona no navegador. Os arquivos não saem do computador.</p>
+<p>O módulo faz estas tarefas:</p>
+<ul>
+  <li>Detecta a taxa de amostragem de cada ensaio.</li>
+  <li>Calcula a potência ativa, a tensão, a corrente efetiva, a potência aparente e o fator de potência.</li>
+  <li>Mede a frequência da rede e as defasagens entre canais (FFT).</li>
+  <li>Avalia os harmônicos com os limites da IEEE 519-2022.</li>
+  <li>Calcula as potências da IEEE 1459-2010 para 4 fios.</li>
+  <li>Grava os resultados em arquivos CSV, TXT e PNG numa pasta do computador.</li>
+</ul>
+<p>O módulo não faz estas tarefas:</p>
+<ul>
+  <li>Não mede a corrente de neutro. O módulo calcula a corrente de neutro.</li>
+  <li>Não avalia a conformidade legal no ponto de acoplamento comum (PCC). Os resultados são indicativos do equipamento.</li>
+  <li>Não separa sem ambiguidade os harmônicos acima da metade da taxa de amostragem.</li>
+</ul>
+<p class="seg seg-nota"><strong>NOTA:</strong> O método é o mesmo da rotina Scilab Potencias_Eletricas v5.3.3. Nos mesmos arquivos e nas mesmas faixas, os resultados são iguais aos do Scilab (seção 6).</p>
+</section>
+
+<section id="s2">
+<h2>2 Convenções de formatação</h2>
+<p>Este manual usa a mesma formatação em todas as seções.</p>
+<div class="tabela-rolar"><table>
+  <thead><tr><th>Elemento</th><th>Formatação</th><th>Exemplo</th></tr></thead>
+  <tbody>
+    <tr><td>Arquivo, campo, mensagem</td><td>Fonte de código</td><td><code>dados_obtidos.csv</code>, <code>relatorio.txt</code></td></tr>
+    <tr><td>Botão ou opção da tela</td><td>Negrito</td><td><strong>Continuar</strong>, <strong>Analisar faixas</strong></td></tr>
+    <tr><td>Unidade de medida</td><td>Entre colchetes</td><td>P [W], fs [Hz]</td></tr>
+    <tr><td>Procedimento</td><td>Lista numerada, uma ação por passo</td><td>1. Abra o módulo.</td></tr>
+    <tr><td>Figura</td><td>Imagem e legenda em itálico abaixo</td><td><em>Figura 1 — …</em></td></tr>
+    <tr><td>Instrução de segurança</td><td>Rótulo em negrito antes do texto</td><td><strong>ADVERTÊNCIA:</strong>, <strong>CUIDADO:</strong>, <strong>NOTA:</strong></td></tr>
+  </tbody>
+</table></div>
+<p>Os rótulos de segurança têm este significado:</p>
+<ul>
+  <li><strong>ADVERTÊNCIA:</strong> instrução que evita lesão ou morte.</li>
+  <li><strong>CUIDADO:</strong> instrução que evita dano ao equipamento ou perda de dados.</li>
+  <li><strong>NOTA:</strong> informação útil que não é uma instrução de segurança.</li>
+</ul>
+</section>
+
+<section id="s3">
+<h2>3 Termos e símbolos</h2>
+<p>Cada termo desta tabela tem um só significado neste manual.</p>
+<div class="tabela-rolar"><table>
+  <thead><tr><th>Termo</th><th>Significado</th></tr></thead>
+  <tbody>
+    <tr><td>Ensaio</td><td>Um arquivo <code>.txt</code> de aquisição do ESP32 (exemplo: <code>E1R1.txt</code>).</td></tr>
+    <tr><td>Faixa</td><td>Um intervalo de tempo do ensaio que o operador seleciona para a análise.</td></tr>
+    <tr><td>Região de interesse</td><td>O intervalo que os 2 primeiros limites delimitam no modo com zoom.</td></tr>
+    <tr><td>Rodada</td><td>Uma análise completa, do botão <strong>Iniciar análise</strong> até a mensagem <code>Concluído</code>.</td></tr>
+    <tr><td>Pasta de resultados</td><td>A pasta <code>resultados_AAAAMMDD_hhmmss</code> que o módulo cria em cada rodada.</td></tr>
+    <tr><td>Canal</td><td>Uma entrada do ESP32: Va, Vb, Vc, Ia, Ib ou Ic.</td></tr>
+    <tr><td>Fator de calibração</td><td>O número que multiplica o sinal de um canal [-].</td></tr>
+    <tr><td>Taxa de amostragem (fs)</td><td>A quantidade de amostras por segundo de cada canal, ajustada no firmware [Hz].</td></tr>
+    <tr><td>Janela síncrona</td><td>Uma janela de análise com um número inteiro de ciclos da rede e de amostras.</td></tr>
+    <tr><td>f1</td><td>Frequência fundamental da rede [Hz].</td></tr>
+    <tr><td>P, Pt</td><td>Potência ativa [W].</td></tr>
+    <tr><td>Se</td><td>Potência aparente efetiva da IEEE 1459 [VA].</td></tr>
+    <tr><td>St</td><td>Potência aparente aritmética (método convencional) [VA].</td></tr>
+    <tr><td>PF</td><td>Fator de potência = P/Se [-].</td></tr>
+    <tr><td>FP</td><td>Fator de potência convencional = P/St [-].</td></tr>
+    <tr><td>IL</td><td>Corrente de demanda máxima no PCC [A].</td></tr>
+    <tr><td>Isc/IL</td><td>Relação entre a corrente de curto-circuito e IL no PCC [-].</td></tr>
+    <tr><td>LD</td><td>Limite de detecção. Abaixo do LD, o valor é ruído [%].</td></tr>
+    <tr><td>PCC</td><td>Ponto de acoplamento comum com a rede da concessionária.</td></tr>
+    <tr><td>P99</td><td>Percentil 99 dos valores de 3 s da faixa.</td></tr>
+  </tbody>
+</table></div>
+</section>
+
+<section id="s4">
+<h2>4 Advertências e cuidados gerais</h2>
+<p class="seg seg-adv"><strong>ADVERTÊNCIA:</strong> Desligue e bloqueie o circuito antes de instalar as pontas de tensão. O contato com partes energizadas pode causar choque elétrico e morte.</p>
+<p class="seg seg-adv"><strong>ADVERTÊNCIA:</strong> Use somente sensores e pontas com categoria de medição e tensão nominal adequadas ao circuito. Um sensor inadequado pode falhar e causar choque elétrico.</p>
+<p class="seg seg-cui"><strong>CUIDADO:</strong> Não abra os arquivos CSV da pasta de resultados durante a rodada. O módulo grava os arquivos após cada faixa, e a gravação pode falhar.</p>
+<p class="seg seg-cui"><strong>CUIDADO:</strong> Use os fatores de calibração da posição do sensor em uso. Um fator errado dá potências erradas sem aviso.</p>
+<p class="seg seg-cui"><strong>CUIDADO:</strong> Sem gravação direta em pasta (seção 5), não feche a aba antes do download do <code>.zip</code>. Os resultados ficam só na memória do navegador.</p>
+<p class="seg seg-nota"><strong>NOTA:</strong> Os resultados são indicativos. A IEEE 519 se aplica ao PCC, não ao equipamento.</p>
+</section>
+
+<section id="s5">
+<h2>5 Acesso e arquivos</h2>
+<p>O módulo é uma página web. Não é necessário instalar programas. O endereço é <code>https://resendepengmec-ai.github.io/labforce-nupef/eletrica/</code>.</p>
+<div class="tabela-rolar"><table>
+  <thead><tr><th>Navegador</th><th>Gravação dos resultados</th></tr></thead>
+  <tbody>
+    <tr><td>Chrome ou Edge no computador</td><td>Direto na pasta que o operador escolhe. O navegador lembra a pasta.</td></tr>
+    <tr><td>Firefox, Safari ou celular</td><td>Num arquivo <code>.zip</code> que o navegador baixa no fim da rodada.</td></tr>
+  </tbody>
+</table></div>
+<p>O código do módulo fica no repositório <code>labforce-nupef</code>, nestes arquivos:</p>
+<div class="tabela-rolar"><table>
+  <thead><tr><th>Arquivo</th><th>Função</th></tr></thead>
+  <tbody>
+    <tr><td><code>eletrica/index.html</code>, <code>js/app.js</code></td><td>Tela e fluxo da análise.</td></tr>
+    <tr><td><code>js/nucleo.js</code></td><td>Leitura, taxa de amostragem, RMS, potências básicas, FFT (equivale a <code>funcoesPotencia.sci</code>).</td></tr>
+    <tr><td><code>js/ieee519.js</code></td><td>Harmônicos e limites da IEEE 519-2022 (equivale a <code>qualidadeIEEE519.sci</code>).</td></tr>
+    <tr><td><code>js/ieee1459.js</code></td><td>Potências da IEEE 1459-2010 (equivale a <code>potenciasIEEE1459.sci</code>).</td></tr>
+    <tr><td><code>js/analise.js</code>, <code>js/figuras.js</code></td><td>Fluxo de um ensaio, linhas dos CSV e gráficos.</td></tr>
+    <tr><td><code>js/autoteste.js</code>, <code>testes/</code></td><td>Teste de verificação (seção 6) e comparação com o Scilab.</td></tr>
+    <tr><td><code>../comum/</code></td><td>Partes comuns aos módulos: FFT, gráficos, seleção de faixas, gravação e estilos.</td></tr>
+  </tbody>
+</table></div>
+<h3 id="s5-1">5.1 Procedimento de acesso</h3>
+<ol class="passos">
+  <li>Abra o Chrome ou o Edge no computador do laboratório.</li>
+  <li>Abra o endereço do módulo.</li>
+  <li>Faça o teste de verificação (seção 6) no primeiro uso do computador.</li>
+</ol>
+<p class="seg seg-nota"><strong>NOTA:</strong> A página atualiza sozinha quando o repositório muda. Se a tela mostrar uma versão antiga, pressione <strong>Ctrl+F5</strong>. A versão aparece no rodapé da tela de análise.</p>
+</section>
+
+<section id="s6">
+<h2>6 Teste de verificação</h2>
+<p>Faça este teste no primeiro uso de um computador e após cada atualização do módulo. O teste usa sinais sintéticos com resultado conhecido, inclusive um ensaio completo a 800 Hz com P = 1650 W.</p>
+<h3 id="s6-1">6.1 Procedimento</h3>
+<ol class="passos">
+  <li>Clique em <strong>Executar a verificação</strong>.</li>
+  <li>Aguarde o fim do teste. O tempo é menor que 10 s.</li>
+  <li>Confirme que a mensagem mostra <code>Grandezas elétricas: 45 verificações OK</code>.</li>
+</ol>
+<div class="verif">
+  <button id="btVerificar" class="prim" type="button" data-modulo="js/autoteste.js" data-nome="Grandezas elétricas">Executar a verificação</button>
+  <p id="resVerificar" class="res" role="status" aria-live="polite"></p>
+</div>
+<p class="seg seg-cui"><strong>CUIDADO:</strong> Se a mensagem mostrar <code>FALHA</code>, não use o módulo. Pressione <strong>Ctrl+F5</strong> e faça o teste outra vez. Se a falha continuar, informe o responsável pelo módulo.</p>
+<p class="seg seg-nota"><strong>NOTA:</strong> O responsável pelo módulo também compara a versão web com o Scilab v5.3.3 nos mesmos arquivos. Comando no repositório: <code>npm test</code>. Resultado da versão 1.1.0: 402 de 402 linhas iguais.</p>
+</section>
+
+<section id="s7">
+<h2>7 Ligação 3F+N</h2>
+<p>O módulo considera um sistema trifásico a 4 fios com tensões medidas entre fase e neutro. A figura 1 mostra a ligação.</p>
+<figure>
+  <img src="img/ligacao_3F_N.png" alt="Esquemático da ligação 3F+N: sensores de corrente Ia, Ib e Ic nas fases A, B e C, com a seta no sentido rede para carga; pontas de tensão Va, Vb e Vc em relação ao neutro; aquisição ESP32 com 6 canais." width="743" height="515" loading="lazy">
+  <figcaption>Figura 1 — Ligação 3F+N dos sensores ao módulo de aquisição ESP32.</figcaption>
+</figure>
+<h3 id="s7-1">7.1 Procedimento de ligação</h3>
+<p class="seg seg-adv"><strong>ADVERTÊNCIA:</strong> Desligue e bloqueie o circuito antes de instalar as pontas de tensão. O contato com partes energizadas pode causar choque elétrico e morte.</p>
+<ol class="passos">
+  <li>Instale o sensor de corrente Ia no condutor da fase A.</li>
+  <li>Instale o sensor de corrente Ib no condutor da fase B.</li>
+  <li>Instale o sensor de corrente Ic no condutor da fase C.</li>
+  <li>Coloque a seta de cada sensor de corrente no sentido rede → carga.</li>
+  <li>Conecte a ponta Va na fase A.</li>
+  <li>Conecte a ponta Vb na fase B.</li>
+  <li>Conecte a ponta Vc na fase C.</li>
+  <li>Conecte a ponta N no neutro.</li>
+  <li>Confirme que cada sensor de corrente está na mesma fase da ponta de tensão correspondente: Ia com Va, Ib com Vb, Ic com Vc.</li>
+  <li>Confirme que a sequência de fases é A-B-C.</li>
+</ol>
+<p class="seg seg-cui"><strong>CUIDADO:</strong> Um sensor de corrente com a seta invertida dá potência negativa na fase. Um sensor na fase errada dá potências e fator de potência errados.</p>
+<p class="seg seg-nota"><strong>NOTA:</strong> O módulo não mede a corrente de neutro. O módulo calcula In = −(ia + ib + ic). Para conferir, meça a corrente de neutro com um alicate amperímetro.</p>
+<p class="seg seg-nota"><strong>NOTA:</strong> No relatório, Vb−Va deve ser próximo de −120° e Vc−Va próximo de +120°. Outros valores indicam sequência de fases errada.</p>
+</section>
+
+<section id="s8">
+<h2>8 Parâmetros</h2>
+<p>Os parâmetros ficam na etapa 2 da tela (figura 3). Os fatores de calibração ficam no quadro <strong>Calibração por canal</strong>. Os outros ficam em <strong>Parâmetros avançados</strong>. O navegador lembra os valores. Altere um parâmetro somente na condição da coluna “Quando alterar”.</p>
+<div class="tabela-rolar"><table>
+  <thead><tr><th>Campo</th><th>Valor padrão</th><th>Unidade</th><th>Quando alterar</th></tr></thead>
+  <tbody>
+    <tr><td>Posição dos sensores e fatores Va … Ic</td><td>Posição Amarela</td><td>-</td><td>Quando a posição do sensor mudar. Escolha <strong>Personalizada</strong> para digitar outros fatores.</td></tr>
+    <tr><td>Frequência da rede</td><td>60</td><td>Hz</td><td>Quando a rede for de 50 Hz.</td></tr>
+    <tr><td>Média móvel do gráfico</td><td>30</td><td>ciclos</td><td>Para mais ou menos suavização no gráfico de seleção. Não altera os resultados.</td></tr>
+    <tr><td>Faixa mínima</td><td>1</td><td>s</td><td>Para aceitar faixas mais curtas ou exigir faixas mais longas.</td></tr>
+    <tr><td>Isc/IL no PCC</td><td>10</td><td>-</td><td>Quando a relação Isc/IL do PCC for conhecida.</td></tr>
+    <tr><td>IL</td><td>vazio (automático)</td><td>A</td><td>Quando a corrente de demanda máxima do PCC for conhecida. Vazio usa a maior corrente da faixa.</td></tr>
+    <tr><td>Atraso dos canais</td><td>0 0 0 0 0 0</td><td>µs</td><td>Quando o atraso entre canais do ADC for medido. 1° a 60 Hz = 46 µs.</td></tr>
+  </tbody>
+</table></div>
+<p class="seg seg-nota"><strong>NOTA:</strong> A taxa de amostragem não é um parâmetro. O módulo detecta a taxa de cada ensaio (seção 9).</p>
+<p class="seg seg-nota"><strong>NOTA:</strong> Com IL automático, a TDD fica maior que a real. Use o valor real de IL para avaliar a TDD.</p>
+<p class="seg seg-nota"><strong>NOTA:</strong> <strong>Restaurar padrões</strong> volta os parâmetros avançados aos valores desta tabela.</p>
+</section>
+
+<section id="s9">
+<h2>9 Taxa de amostragem</h2>
+<p>O módulo detecta automaticamente a taxa de amostragem de cada ensaio. O módulo aceita qualquer taxa ajustada no firmware do ESP32. Ensaios com taxas diferentes podem estar na mesma rodada.</p>
+<h3 id="s9-1">9.1 Detecção</h3>
+<p>O módulo mede a posição da frequência da rede no espectro da tensão Va. Com esta posição, o módulo calcula a taxa de amostragem.</p>
+<p>A estimativa tem incerteza de aproximadamente 0,2 %, porque a frequência da rede varia aproximadamente 0,1 Hz. Por isso, o módulo arredonda a estimativa para o primeiro valor desta tabela a menos de 0,3 % da estimativa.</p>
+<div class="tabela-rolar"><table>
+  <thead><tr><th>Ordem</th><th>Valor redondo</th><th>Exemplos de taxa</th></tr></thead>
+  <tbody>
+    <tr><td>1</td><td>Múltiplo de 100 Hz</td><td>800 Hz, 1000 Hz, 2000 Hz, 6400 Hz</td></tr>
+    <tr><td>2</td><td>Múltiplo de 50 Hz</td><td>250 Hz</td></tr>
+    <tr><td>3</td><td>Múltiplo de 25 Hz</td><td>175 Hz</td></tr>
+    <tr><td>4</td><td>Múltiplo de 10 Hz</td><td>1010 Hz</td></tr>
+    <tr><td>5</td><td>Período múltiplo de 100 µs</td><td>3000 µs = 333,33 Hz</td></tr>
+    <tr><td>6</td><td>Múltiplo de 5 Hz</td><td>1005 Hz</td></tr>
+    <tr><td>7</td><td>Período múltiplo de 10 µs</td><td>4730 µs = 211,42 Hz</td></tr>
+    <tr><td>8</td><td>Número inteiro em Hz</td><td>Raro: as ordens 6 e 7 quase sempre se aplicam antes</td></tr>
+  </tbody>
+</table></div>
+<p>A tela, o relatório e a coluna fs [Hz] do <code>dados_obtidos.csv</code> mostram a taxa usada e a regra aplicada. Exemplo do relatório:</p>
+<pre>S1000: taxa de amostragem = 1000 Hz (estimada pela rede: 999.65 Hz; multiplo de 100 Hz)</pre>
+<p class="seg seg-nota"><strong>NOTA:</strong> Duas taxas a menos de 0,3 % uma da outra são indistinguíveis. Exemplo: 333 Hz e 333,33 Hz (3000 µs). Nesse caso, o módulo usa o valor da ordem menor da tabela.</p>
+<p class="seg seg-nota"><strong>NOTA:</strong> Se nenhum valor da tabela estiver a menos de 0,3 %, o módulo usa a taxa estimada e mostra <code>AVISO ... sem valor redondo a menos de 0,3 %</code>.</p>
+<p class="seg seg-nota"><strong>NOTA:</strong> Um período que não é múltiplo de 100 µs pode ser arredondado para um múltiplo de 5 Hz. Exemplo: 1230 µs (813,01 Hz) dá 815 Hz, com erro de 0,25 %. Prefira no firmware taxas múltiplas de 10 Hz ou períodos múltiplos de 100 µs.</p>
+<h3 id="s9-2">9.2 Janela síncrona</h3>
+<p>As análises da IEEE 519 e da IEEE 1459 usam janelas de 12 ciclos da rede (200 ms). Cada janela deve ter um número inteiro de amostras. Se 12 ciclos não dão um número inteiro de amostras, o módulo usa o número de ciclos mais próximo de 12 que dá.</p>
+<div class="tabela-rolar"><table>
+  <thead><tr><th>Taxa [Hz]</th><th>Ciclos por janela</th><th>Amostras por janela</th><th>Janelas em 3 s</th></tr></thead>
+  <tbody>
+    <tr><td>250</td><td>12</td><td>50</td><td>15</td></tr>
+    <tr><td>800</td><td>12</td><td>160</td><td>15</td></tr>
+    <tr><td>1000</td><td>12</td><td>200</td><td>15</td></tr>
+    <tr><td>333,33</td><td>9</td><td>50</td><td>20</td></tr>
+  </tbody>
+</table></div>
+<p class="seg seg-nota"><strong>NOTA:</strong> Uma janela que não é síncrona dá harmônicos falsos. A média móvel do gráfico de seleção usa a mesma regra.</p>
+<h3 id="s9-3">9.3 Verificação de taxa instável (FS_INSTAVEL)</h3>
+<p>O módulo também estima a taxa em blocos de 10 s. Se a estimativa variar mais de 0,5 % no ensaio, o módulo:</p>
+<ol class="passos">
+  <li>Mostra <code>AVISO ... a taxa variou ... %</code> na tela e no relatório.</li>
+  <li>Marca a situação IEEE 519 do ensaio como <code>FS_INSTAVEL</code>.</li>
+</ol>
+<p class="seg seg-cui"><strong>CUIDADO:</strong> Com FS_INSTAVEL, não use os resultados de harmônicos, de f1 e de tempo do ensaio. P, U e I continuam válidos. Verifique o firmware.</p>
+<p class="seg seg-nota"><strong>NOTA:</strong> Com a taxa ajustada no firmware, a variação normal é menor que 0,1 %. FS_INSTAVEL indica uma falha do firmware ou da aquisição.</p>
+</section>
+
+<section id="s10">
+<h2>10 Procedimento de uso</h2>
+<p>Uma rodada tem 5 etapas: ligação, configuração, arquivos, faixas e resultados. A barra de etapas mostra a etapa atual (figura 2). Uma etapa concluída fica recolhida, com um resumo. Antes de iniciar a análise, <strong>Alterar</strong> reabre a etapa.</p>
+<figure>
+  <img src="img/manual/etapas.png" alt="Barra com as 5 etapas: 1 Ligação, 2 Configuração, 3 Arquivos, 4 Faixas, 5 Resultados." width="1140" height="40" loading="lazy">
+  <figcaption>Figura 2 — Barra de etapas. A etapa atual tem o traço na cor do módulo; as concluídas têm ✓.</figcaption>
+</figure>
+<h3 id="s10-1">10.1 Confirmar a ligação</h3>
+<ol class="passos">
+  <li>Abra o módulo (seção 5.1).</li>
+  <li>Compare a ligação real com o esquemático da etapa 1.</li>
+  <li>Se a ligação estiver correta, clique em <strong>OK, estou ciente da aplicação</strong>.</li>
+  <li>Se a ligação estiver diferente, corrija a ligação (seção 7) antes de continuar.</li>
+</ol>
+<h3 id="s10-2">10.2 Configurar a análise</h3>
+<figure>
+  <img src="img/manual/configuracao.png" alt="Etapa 2: quadros de calibração por canal, faixas por ensaio com a opção de zoom e grandezas da análise." loading="lazy">
+  <figcaption>Figura 3 — Etapa 2: calibração, faixas e grandezas.</figcaption>
+</figure>
+<ol class="passos">
+  <li>Em <strong>Posição dos sensores</strong>, escolha a posição em uso. Os 6 campos mostram os fatores dessa posição.</li>
+  <li>Confirme o fator de cada canal. Se necessário, digite o fator correto. Use vírgula ou ponto decimal.</li>
+  <li>Em <strong>Quantidade de faixas</strong>, escolha quantas faixas vai avaliar em cada ensaio (1 a 8).</li>
+  <li>Para delimitar antes uma região de interesse, marque <strong>Delimitar antes uma região de interesse (zoom)</strong>.</li>
+  <li>Marque as grandezas da análise.</li>
+  <li>Se necessário, abra <strong>Parâmetros avançados</strong> e altere os campos (seção 8).</li>
+  <li>Clique em <strong>Continuar</strong>.</li>
+</ol>
+<p class="seg seg-nota"><strong>NOTA:</strong> Um valor inválido fica com a borda vermelha e uma mensagem abaixo do campo. A etapa só continua com todos os campos válidos.</p>
+<p class="seg seg-nota"><strong>NOTA:</strong> As potências básicas (P, U, Ief, St, FP) são sempre calculadas. A quantidade de faixas é a mesma para todos os ensaios da rodada.</p>
+<h3 id="s10-3">10.3 Escolher os arquivos e a pasta</h3>
+<figure>
+  <img src="img/manual/arquivos.png" alt="Etapa 3: área para soltar os arquivos, lista dos arquivos escolhidos e botão Escolher pasta." loading="lazy">
+  <figcaption>Figura 4 — Etapa 3: arquivos do ensaio e pasta de resultados.</figcaption>
+</figure>
+<ol class="passos">
+  <li>Arraste os arquivos <code>.txt</code> para a área tracejada, ou clique na área e escolha os arquivos.</li>
+  <li>Confira a lista dos arquivos.</li>
+  <li>Clique em <strong>Escolher pasta…</strong> e escolha a pasta de resultados. Nos próximos usos, clique em <strong>Usar a pasta “…”</strong>.</li>
+  <li>Se o navegador pedir permissão de escrita, clique em <strong>Permitir</strong>.</li>
+  <li>Clique em <strong>Iniciar análise</strong>.</li>
+</ol>
+<p class="seg seg-nota"><strong>NOTA:</strong> Sem gravação direta em pasta, a etapa não mostra o botão de pasta. Os resultados vão para um <code>.zip</code>.</p>
+<p class="seg seg-nota"><strong>NOTA:</strong> O módulo analisa os arquivos em ordem de nome. Os ensaios podem ter taxas de amostragem diferentes.</p>
+<h3 id="s10-4">10.4 Selecionar as faixas</h3>
+<figure>
+  <img src="img/manual/faixas.png" alt="Etapa 4: gráfico da potência suavizada com a região de interesse, a faixa f1 marcada e o início da faixa f2; tabela com os tempos de início e fim." loading="lazy">
+  <figcaption>Figura 5 — Seleção com zoom: região de interesse delimitada, faixa f1 marcada e início da faixa f2 (linha tracejada).</figcaption>
+</figure>
+<p>O gráfico mostra a potência ativa suavizada do ensaio. A linha acima do gráfico mostra a próxima ação. Cada limite pode ser marcado de duas formas: com um clique no gráfico ou com o tempo digitado na tabela.</p>
+<p>Com zoom:</p>
+<ol class="passos">
+  <li>Clique no início da região de interesse.</li>
+  <li>Clique no fim da região de interesse. O gráfico mostra só a região de interesse.</li>
+  <li>Clique no início da faixa 1.</li>
+  <li>Clique no fim da faixa 1. O módulo marca a faixa com a cor e o rótulo f1.</li>
+  <li>Faça os passos 3 e 4 para cada faixa seguinte.</li>
+  <li>Confira os tempos e a situação de cada faixa na tabela.</li>
+  <li>Clique em <strong>Analisar faixas</strong>.</li>
+</ol>
+<p>Sem zoom, faça os passos 3 a 7.</p>
+<p>Para usar o teclado:</p>
+<ol class="passos">
+  <li>Digite o tempo [s] no campo <strong>Início</strong> ou <strong>Fim</strong> da linha da tabela.</li>
+  <li>Pressione <strong>Tab</strong>. O gráfico e a tabela mostram o novo valor.</li>
+</ol>
+<p class="seg seg-nota"><strong>NOTA:</strong> <strong>Desfazer</strong> (ou <strong>Ctrl+Z</strong>) remove o último limite marcado. <strong>Limpar faixas</strong> remove todos os limites do ensaio. <strong>Pular este ensaio</strong> passa ao próximo ensaio sem análise.</p>
+<p class="seg seg-nota"><strong>NOTA:</strong> Um limite fora da região de interesse fica limitado à borda da região.</p>
+<p class="seg seg-nota"><strong>NOTA:</strong> Uma faixa menor que a faixa mínima fica marcada em cinza com o texto “(curta)”. O módulo não analisa esta faixa. As outras faixas mantêm o número escolhido.</p>
+<h3 id="s10-5">10.5 Concluir a rodada</h3>
+<ol class="passos">
+  <li>Aguarde a análise de cada ensaio. A linha de progresso mostra a faixa em análise.</li>
+  <li>Aguarde a mensagem <code>Concluído: … arquivo(s) gravado(s) em …</code>.</li>
+  <li>Abra a pasta de resultados no computador, ou abra o <code>.zip</code> baixado.</li>
+</ol>
+<p class="seg seg-nota"><strong>NOTA:</strong> <strong>Nova análise</strong> volta à etapa 3 com a mesma configuração.</p>
+</section>
+
+<section id="s11">
+<h2>11 Resultados</h2>
+<p>Cada rodada cria uma pasta de resultados nova. O módulo não substitui os resultados de rodadas anteriores.</p>
+<p>Com 1 faixa por ensaio, o rótulo é o nome do ensaio (exemplo: <code>E1R1</code>). Com 2 ou mais faixas, o rótulo tem o número da faixa (exemplo: <code>E1R1_f2</code>).</p>
+<figure>
+  <img src="img/manual/resultados.png" alt="Etapa 5: tabela-resumo com uma linha por faixa: Pt, U, Ief, t, St, FP, f1, fs, situação IEEE 519 e grandezas da IEEE 1459." loading="lazy">
+  <figcaption>Figura 6 — Etapa 5: resumo das faixas. Abaixo da tabela, a tela mostra os gráficos de cada faixa e o relatório.</figcaption>
+</figure>
+<div class="tabela-rolar"><table>
+  <thead><tr><th>Arquivo</th><th>Quando o módulo grava</th><th>Conteúdo</th></tr></thead>
+  <tbody>
+    <tr><td><code>relatorio.txt</code></td><td>Sempre</td><td>Calibração, opções, parâmetros, taxa de amostragem, avisos e resultados de cada faixa.</td></tr>
+    <tr><td><code>dados_obtidos.csv</code></td><td>Sempre</td><td>Uma linha por faixa: Pt [W], U [V], Ief [A], t [s], St [VA], FP [-], f1 [Hz], fs [Hz]. Separador: espaço. Decimal: vírgula.</td></tr>
+    <tr><td><code>ieee519_resumo.csv</code></td><td>IEEE 519 marcada</td><td>Uma linha por faixa: THDv, TDD, THDi [%], IL [A], LD [%] e situação. Separador: ponto e vírgula.</td></tr>
+    <tr><td><code>&lt;rótulo&gt;_IEEE519_harmonicos.csv</code></td><td>IEEE 519 marcada</td><td>Uma linha por grupo de ordens harmônicas, com limites e situação.</td></tr>
+    <tr><td><code>ieee1459_resumo.csv</code></td><td>IEEE 1459 marcada</td><td>Uma linha por faixa: P, Se, PF, Ve, Ie, In, P1+, Q1+, S1+, PF1+, SU1, LU, desequilíbrios, THDe, SeN, DeI, DeV, SeH, PH, HP.</td></tr>
+    <tr><td><code>&lt;ensaio&gt;_faixas.png</code></td><td>Gráficos marcados</td><td>Potência suavizada do ensaio com as faixas marcadas (registro da seleção).</td></tr>
+    <tr><td><code>&lt;rótulo&gt;_espectro.png</code></td><td>FFT e gráficos marcados</td><td>Espectro de amplitude das tensões [V] e das correntes [A].</td></tr>
+    <tr><td><code>&lt;rótulo&gt;_IEEE519.png</code></td><td>IEEE 519 e gráficos marcados</td><td>Harmônicos de V e I, THDv e TDD por bloco de 3 s, com limites e LD.</td></tr>
+    <tr><td><code>&lt;rótulo&gt;_IEEE1459.png</code></td><td>IEEE 1459 e gráficos marcados</td><td>Potências, fatores de potência, desequilíbrios e THD efetiva por bloco de 3 s.</td></tr>
+  </tbody>
+</table></div>
+<p class="seg seg-nota"><strong>NOTA:</strong> Os gráficos usam a mesma cor e o mesmo marcador para cada série: série 1 azul com círculo, série 2 verde com x, série 3 vermelha com triângulo e série 4 magenta com quadrado. As legendas mostram a unidade entre colchetes.</p>
+<p class="seg seg-nota"><strong>NOTA:</strong> Para sistemas a 4 fios, use Se e PF do arquivo <code>ieee1459_resumo.csv</code>. O <code>dados_obtidos.csv</code> usa St aritmética e Ief sem neutro, como as versões anteriores.</p>
+</section>
+
+<section id="s12">
+<h2>12 Interpretação e limites de medição</h2>
+<h3 id="s12-1">12.1 Situação na IEEE 519</h3>
+<p>O módulo compara o P99 dos valores de 3 s com o limite diário da norma: 1,5 × o limite para tensão e 2,0 × o limite para corrente.</p>
+<div class="tabela-rolar"><table>
+  <thead><tr><th>Situação</th><th>Significado</th></tr></thead>
+  <tbody>
+    <tr><td><code>ATENDE</code></td><td>O valor está abaixo do menor limite das ordens do grupo.</td></tr>
+    <tr><td><code>EXCEDE</code></td><td>O valor, sem o LD, está acima do maior limite das ordens do grupo.</td></tr>
+    <tr><td><code>INCONCL_ORDEM</code></td><td>O valor está entre o menor e o maior limite. O resultado depende da ordem harmônica real.</td></tr>
+    <tr><td><code>INCONCL_RUIDO</code></td><td>O valor está acima do maior limite, mas o ruído pode explicar a diferença.</td></tr>
+    <tr><td><code>FS_INSTAVEL</code></td><td>A taxa de amostragem variou mais de 0,5 % no ensaio (seção 9.3). A avaliação de harmônicos não é válida.</td></tr>
+  </tbody>
+</table></div>
+<p>Na tabela-resumo da tela, a situação geral de tensão e de corrente é <code>ATENDE</code>, <code>EXCEDE</code>, <code>INCONCLUSIVO</code> ou <code>FS_INSTAVEL</code>.</p>
+<h3 id="s12-2">12.2 Limites de medição</h3>
+<ol class="passos">
+  <li><strong>Taxa de amostragem.</strong> Os harmônicos acima da metade da taxa ficam rebatidos em grupos de ordens. A 250 Hz, as ordens 2 a 50 ficam em 11 grupos. A 800 Hz e a 1 kHz, há menos grupos com ordens misturadas. Com 6 kHz ou mais, cada grupo tem uma só ordem. THDv, TDD e as potências da IEEE 1459 são válidas em todas as taxas.</li>
+  <li><strong>Ruído do ADC.</strong> O ruído da corrente é aproximadamente 0,06 A por raia a 250 Hz. O módulo subtrai o ruído. Valores abaixo do LD não são conclusivos.</li>
+  <li><strong>Corrente de neutro.</strong> O módulo calcula In pela soma das correntes. Erros de calibração e de atraso entre canais aparecem em In.</li>
+  <li><strong>Atraso entre canais.</strong> O ADC do ESP32 converte os canais em sequência. O atraso altera os ângulos, Q1+, SU1 e os desequilíbrios. Use o campo de atraso dos canais para corrigir.</li>
+  <li><strong>Duração do ensaio.</strong> As regras semanais de 10 min da IEEE 519 não são avaliáveis em ensaios de 1 a 2 min.</li>
+  <li><strong>Ponto de medição.</strong> A IEEE 519 se aplica ao PCC. A medição no quadro da máquina é indicativa.</li>
+</ol>
+<p class="seg seg-nota"><strong>NOTA:</strong> Com o motor parado, LU e THDeI não têm significado físico. A corrente é quase só ruído.</p>
+</section>
+
+<section id="s13">
+<h2>13 Falhas e soluções</h2>
+<div class="tabela-rolar"><table>
+  <thead><tr><th>Sintoma</th><th>Causa provável</th><th>Ação</th></tr></thead>
+  <tbody>
+    <tr><td>Tela de uma versão antiga ou verificação com <code>FALHA</code></td><td>O navegador usa arquivos antigos da memória.</td><td>Pressione <strong>Ctrl+F5</strong>. Faça a verificação (seção 6) outra vez.</td></tr>
+    <tr><td>Aviso: “Este navegador não grava direto em pasta”</td><td>O navegador não tem gravação em pasta (Firefox, Safari, celular).</td><td>Use o <code>.zip</code>, ou use Chrome ou Edge no computador.</td></tr>
+    <tr><td>“Permissão de escrita negada” ou “Não foi possível acessar a pasta lembrada”</td><td>O navegador não deu permissão, ou a pasta mudou de lugar.</td><td>Clique em <strong>Escolher pasta…</strong> e escolha a pasta outra vez.</td></tr>
+    <tr><td><code>arquivo sem dados numéricos de 6 colunas</code></td><td>O arquivo não é do ESP32, ou as colunas estão incompletas.</td><td>Confira o arquivo. Cada linha de dados deve ter 6 números.</td></tr>
+    <tr><td><code>fs = … é insuficiente para a rede</code></td><td>A taxa é menor que 2,2 × a frequência da rede.</td><td>Aumente a taxa no firmware.</td></tr>
+    <tr><td><code>AVISO ... sem valor redondo a menos de 0,3 %</code></td><td>A taxa do firmware não é um valor redondo, ou a rede está fora de 60 Hz.</td><td>Confirme a taxa no firmware. O módulo usa a taxa estimada, com erro de até 0,2 %.</td></tr>
+    <tr><td><code>AVISO ... a taxa variou ... %</code></td><td>A taxa de amostragem não foi constante no ensaio.</td><td>Use P, U e I. Não use os resultados de harmônicos. Verifique o firmware.</td></tr>
+    <tr><td><code>Aviso: sem janela sincrona</code></td><td>A taxa não permite janela com número inteiro de amostras.</td><td>Use no firmware uma taxa múltipla de 10 Hz ou um período múltiplo de 100 µs.</td></tr>
+    <tr><td><code>faixa N IGNORADA</code> ou faixa “(curta)”</td><td>Faixa menor que a faixa mínima.</td><td>Altere os tempos da faixa na tabela antes de clicar em <strong>Analisar faixas</strong>.</td></tr>
+    <tr><td><strong>Analisar faixas</strong> desabilitado</td><td>Falta um limite, ou todas as faixas são curtas.</td><td>Siga a linha de instrução acima do gráfico.</td></tr>
+    <tr><td>Potência negativa numa fase</td><td>Seta do sensor de corrente invertida.</td><td>Inverta o sensor da fase (seção 7).</td></tr>
+    <tr><td>Vb−Va diferente de −120°</td><td>Sequência de fases errada ou ponta na fase errada.</td><td>Confira a ligação das pontas de tensão (seção 7).</td></tr>
+    <tr><td>In alta com carga trifásica equilibrada</td><td>Erro de calibração, atraso entre canais ou carga monofásica real.</td><td>Meça a corrente de neutro com alicate amperímetro. Confira os fatores de calibração.</td></tr>
+    <tr><td>Corrente sempre INCONCLUSIVO na IEEE 519</td><td>Grupos de ordens rebatidas e ruído do ADC.</td><td>Use a TDD. Para conclusão por harmônico, aumente a taxa de amostragem.</td></tr>
+    <tr><td>Aviso “erro na análise” num ensaio</td><td>Erro durante a análise do ensaio.</td><td>Os resultados das faixas anteriores ficam gravados. Veja a mensagem no <code>relatorio.txt</code>.</td></tr>
+  </tbody>
+</table></div>
+</section>
+
+<section id="s14">
+<h2>14 Referências</h2>
+<ul class="ref">
+  <li>AEROSPACE, SECURITY AND DEFENCE INDUSTRIES ASSOCIATION OF EUROPE (ASD). <em>ASD-STE100</em>: Simplified Technical English. Issue 9. Bruxelas: ASD, 2025. Disponível em: <a href="https://www.asd-ste100.org" rel="noopener noreferrer">https://www.asd-ste100.org</a>. Acesso em: 29 out. 2026.</li>
+  <li>INSTITUTE OF ELECTRICAL AND ELECTRONICS ENGINEERS (IEEE). <em>IEEE Std 519-2022</em>: IEEE Standard for Harmonic Control in Electric Power Systems. Nova York: IEEE, 2022.</li>
+  <li>INSTITUTE OF ELECTRICAL AND ELECTRONICS ENGINEERS (IEEE). <em>IEEE Std 1459-2010</em>: IEEE Standard Definitions for the Measurement of Electric Power Quantities Under Sinusoidal, Nonsinusoidal, Balanced, or Unbalanced Conditions. Nova York: IEEE, 2010.</li>
+  <li>INTERNATIONAL ELECTROTECHNICAL COMMISSION (IEC). <em>IEC 61000-4-7</em>: Electromagnetic compatibility (EMC) — Part 4-7: Testing and measurement techniques — General guide on harmonics and interharmonics measurements and instrumentation. Genebra: IEC, 2002 (+A1:2008).</li>
+  <li>RESENDE, P. V. S. <em>Potencias_Eletricas v5.3.3</em>: manual técnico de uso (ASD-STE100 adaptado ao português). Goiânia: IFG/NUPEF, 2026. Documento interno.</li>
+</ul>
+</section>
+</article>
+</div>
+
+<footer class="rodape">
+  <p>LabForce NUPEF, IFG Câmpus Goiânia. Módulo de grandezas elétricas, versão web 1.1.0.</p>
+</footer>
+<script type="module" src="../comum/js/manual.js"></script>
+</body>
+</html>

@@ -1,277 +1,211 @@
 <!doctype html>
 <html lang="pt-BR">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>ForceLab</title>
-    <link rel="stylesheet" href="src/styles.css">
-  </head>
-  <body>
-    <main class="app-shell">
-      <section class="workspace" aria-labelledby="app-title">
-        <div class="intro">
-          <a class="voltar" href="../">LabForce NUPEF</a>
-          <p class="eyebrow">Usinagem didatica</p>
-          <h1 id="app-title">ForceLab</h1>
-          <p>
-            Leia arquivos de forca em TXT, mapeie as quatro colunas medidas e
-            compare os dados com estimativas simples de usinagem.
-          </p>
-        </div>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Forças de usinagem · LabForce NUPEF</title>
+<meta name="description" content="Análise de ensaios de força de usinagem (dinamômetro, Fx, Fy, Fz) no navegador: faixas, estatística, espectro e força de corte teórica. Os dados não saem do computador.">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: blob:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
+<link rel="icon" href="../assets/icone.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../comum/css/modulo.css">
+<link rel="stylesheet" href="css/forcas.css">
+</head>
+<body class="mod-forcas">
+<header class="barra">
+  <div class="barra-in">
+    <a class="marca" href="../">LabForce <span>NUPEF</span></a>
+    <span class="modulo">Forças de usinagem</span>
+    <nav aria-label="Navegação do módulo">
+      <a href="./" aria-current="page">Análise</a>
+      <a href="manual.html">Manual</a>
+      <a href="../">Início</a>
+    </nav>
+  </div>
+</header>
 
-        <div class="tool-layout">
-          <section class="panel import-panel" aria-labelledby="import-title">
-            <div class="panel-header">
-              <h2 id="import-title">Arquivo TXT</h2>
-              <span id="file-status">nenhum arquivo</span>
-            </div>
+<main id="app">
+  <div class="titulo-pag">
+    <h1>Análise de forças de usinagem</h1>
+    <p>Sinais do dinamômetro (Fx, Fy, Fz). Os arquivos são processados neste navegador; nada é enviado para servidor.</p>
+  </div>
+  <noscript><p class="aviso">Esta página precisa de JavaScript.</p></noscript>
+  <p id="avisoNavegador" class="aviso" hidden></p>
 
-            <div class="import-body">
-              <label class="file-picker">
-                <span>Selecionar arquivo</span>
-                <input id="txt-file" type="file" accept=".txt,.csv,text/plain">
-              </label>
+  <ol class="etapas" aria-label="Etapas da análise">
+    <li>Montagem</li><li>Configuração</li><li>Arquivos</li><li>Faixas</li><li>Resultados</li>
+  </ol>
 
-              <div class="mapping-grid" aria-label="Mapeamento das colunas">
-                <label>
-                  Coluna 1
-                  <select id="column-1" data-column-map>
-                    <option value="tempo" selected>tempo</option>
-                    <option value="fx">Fx</option>
-                    <option value="fy">Fy</option>
-                    <option value="fz">Fz</option>
-                    <option value="ignorar">ignorar</option>
-                  </select>
-                </label>
-                <label>
-                  Coluna 2
-                  <select id="column-2" data-column-map>
-                    <option value="tempo">tempo</option>
-                    <option value="fx" selected>Fx</option>
-                    <option value="fy">Fy</option>
-                    <option value="fz">Fz</option>
-                    <option value="ignorar">ignorar</option>
-                  </select>
-                </label>
-                <label>
-                  Coluna 3
-                  <select id="column-3" data-column-map>
-                    <option value="tempo">tempo</option>
-                    <option value="fx">Fx</option>
-                    <option value="fy" selected>Fy</option>
-                    <option value="fz">Fz</option>
-                    <option value="ignorar">ignorar</option>
-                  </select>
-                </label>
-                <label>
-                  Coluna 4
-                  <select id="column-4" data-column-map>
-                    <option value="tempo">tempo</option>
-                    <option value="fx">Fx</option>
-                    <option value="fy">Fy</option>
-                    <option value="fz" selected>Fz</option>
-                    <option value="ignorar">ignorar</option>
-                  </select>
-                </label>
-              </div>
+  <!-- 1. Montagem -->
+  <section class="cartao" id="secMontagem" aria-labelledby="h1mon">
+    <h2 id="h1mon"><span class="num">1</span>Montagem do dinamômetro</h2>
+    <div class="montagem">
+      <figure>
+        <svg viewBox="0 0 520 300" role="img" aria-labelledby="svgTit">
+          <title id="svgTit">Torneamento: peça girando, ferramenta no dinamômetro. Fz é a força de corte (Fc), vertical; Fx é a força de avanço (Ff), ao longo do eixo da peça; Fy é a força passiva (Fp), radial.</title>
+          <rect x="30" y="70" width="300" height="90" rx="8" class="peca"/>
+          <ellipse cx="30" cy="115" rx="14" ry="45" class="peca-face"/>
+          <path d="M60 50 a40 14 0 1 1 0 1" class="giro"/>
+          <text x="40" y="40" class="rot">rotação da peça</text>
+          <polygon points="300,160 360,160 380,250 320,250" class="ferr"/>
+          <rect x="300" y="250" width="110" height="26" class="dina"/>
+          <text x="355" y="268" class="rot-c">dinamômetro</text>
+          <line x1="300" y1="160" x2="300" y2="236" class="vet vz"/><text x="230" y="212" class="rot vz-t">Fz = Fc</text>
+          <line x1="300" y1="160" x2="200" y2="160" class="vet vx"/><text x="190" y="185" class="rot vx-t">Fx = Ff</text>
+          <line x1="300" y1="160" x2="360" y2="110" class="vet vy"/><text x="366" y="106" class="rot vy-t">Fy = Fp</text>
+          <line x1="300" y1="40" x2="420" y2="40" class="avanco"/><text x="430" y="44" class="rot">avanço</text>
+        </svg>
+        <figcaption>Convenção usual no torneamento (DynoWare: “Ff (Fx) Fp (Fy) Fc (Fz)”).</figcaption>
+      </figure>
+      <div>
+        <p>Antes de cada ensaio, confira:</p>
+        <ol>
+          <li>Eixos do dinamômetro na convenção da figura: Fz = força de corte, Fx = força de avanço, Fy = força passiva.</li>
+          <li>Amplificador de carga zerado (reset) com a ferramenta sem contato.</li>
+          <li>Sensibilidade e faixa do amplificador iguais às do software de aquisição.</li>
+          <li>Arquivo exportado com tempo e as três forças, em N.</li>
+        </ol>
+        <p class="nota"><strong>CUIDADO:</strong> fixe a ferramenta no dinamômetro com o torque de aperto do fabricante. Uma fixação solta altera as forças medidas.</p>
+        <button id="btMontagem" class="prim" type="button">OK, montagem conferida</button>
+      </div>
+    </div>
+  </section>
 
-              <p class="hint" id="import-message">
-                Cabecalho permitido. Linhas sem quatro valores numericos sao
-                ignoradas. Use tab, espaco ou ponto e virgula; virgula decimal
-                e aceita.
-              </p>
-            </div>
-          </section>
-
-          <form class="panel controls is-hidden" id="cutting-form">
-            <div class="panel-header">
-              <h2>Parametros</h2>
-              <button type="button" class="icon-button" id="reset-button" title="Restaurar valores">R</button>
-            </div>
-
-            <label>
-              Material
-              <select id="material" name="material">
-                <option value="aluminio">Aluminio</option>
-                <option value="aco-baixo-carbono" selected>Aco baixo carbono</option>
-                <option value="aco-medio-carbono">Aco medio carbono</option>
-                <option value="ferro-fundido">Ferro fundido</option>
-                <option value="bronze">Bronze</option>
-              </select>
-            </label>
-
-            <label>
-              Pressao especifica kc (N/mm2)
-              <input id="kc" name="kc" type="number" min="100" max="5000" step="50" value="1800">
-            </label>
-
-            <label>
-              Avanco f (mm/rot)
-              <input id="feed" name="feed" type="number" min="0.01" max="2" step="0.01" value="0.25">
-            </label>
-
-            <label>
-              Profundidade ap (mm)
-              <input id="depth" name="depth" type="number" min="0.1" max="12" step="0.1" value="2">
-            </label>
-
-            <label>
-              Velocidade Vc (m/min)
-              <input id="speed" name="speed" type="number" min="10" max="600" step="5" value="120">
-            </label>
-          </form>
-
-          <section class="panel visual-panel is-hidden" aria-labelledby="visual-title">
-            <div class="panel-header">
-              <h2 id="visual-title">Corte ortogonal</h2>
-              <span id="chip-label">cavaco continuo</span>
-            </div>
-
-            <div class="cut-scene" aria-hidden="true">
-              <div class="workpiece"></div>
-              <div class="tool"></div>
-              <div class="chip" id="chip"></div>
-              <div class="force-arrow" id="force-arrow">Fc</div>
-              <div class="speed-arrow">Vc</div>
-            </div>
-          </section>
-
-          <section class="panel results is-hidden" aria-labelledby="results-title">
-            <div class="panel-header">
-              <h2 id="results-title">Resultados</h2>
-              <span id="regime">corte moderado</span>
-            </div>
-
-            <div class="metrics">
-              <article>
-                <span>Area de corte</span>
-                <strong id="area">0,50 mm2</strong>
-              </article>
-              <article>
-                <span>Forca Fc</span>
-                <strong id="force">900 N</strong>
-              </article>
-              <article>
-                <span>Potencia Pc</span>
-                <strong id="power">1,80 kW</strong>
-              </article>
-              <article>
-                <span>Remocao Q</span>
-                <strong id="removal">60.000 mm3/min</strong>
-              </article>
-            </div>
-
-            <p class="formula" id="formula">
-              Fc = kc x ap x f
-            </p>
-          </section>
-
-          <section class="panel data-panel" aria-labelledby="data-title">
-            <div class="panel-header">
-              <h2 id="data-title">Leitura do TXT</h2>
-              <div class="panel-actions">
-                <span id="sample-count">0 amostras</span>
-                <button type="button" class="text-button" id="open-analysis" disabled>Analisar faixa</button>
-              </div>
-            </div>
-
-            <div class="metrics force-metrics">
-              <article>
-                <span>Fx max</span>
-                <strong id="fx-max">-</strong>
-              </article>
-              <article>
-                <span>Fy max</span>
-                <strong id="fy-max">-</strong>
-              </article>
-              <article>
-                <span>Fz max</span>
-                <strong id="fz-max">-</strong>
-              </article>
-              <article>
-                <span>Resultante max</span>
-                <strong id="fr-max">-</strong>
-              </article>
-            </div>
-
-            <div class="preview-wrap">
-              <table class="preview-table">
-                <thead>
-                  <tr>
-                    <th>tempo</th>
-                    <th>Fx</th>
-                    <th>Fy</th>
-                    <th>Fz</th>
-                    <th>Fr</th>
-                  </tr>
-                </thead>
-                <tbody id="preview-body">
-                  <tr>
-                    <td colspan="5">Aguardando arquivo TXT.</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </section>
-        </div>
-      </section>
-    </main>
-
-    <div class="modal-overlay" id="analysis-modal" hidden>
-      <section class="analysis-modal" role="dialog" aria-modal="true" aria-labelledby="analysis-title">
-        <div class="modal-header">
-          <div>
-            <h2 id="analysis-title">Analise do sinal</h2>
-            <p id="selection-label">Arraste para selecionar. Clique na faixa destacada para baixar o CSV.</p>
-          </div>
-          <button type="button" class="icon-button" id="close-analysis" title="Fechar">X</button>
-        </div>
-
-        <div class="chart-toolbar">
-          <label>
-            Canal
-            <select id="chart-channel">
-              <option value="fx">Fx</option>
-              <option value="fy">Fy</option>
-              <option value="fz" selected>Fz</option>
-              <option value="fr">Fr</option>
-            </select>
-          </label>
-          <button type="button" class="text-button" id="reset-selection">Sinal inteiro</button>
-          <button type="button" class="text-button" id="download-csv" disabled>Baixar CSV</button>
-        </div>
-
-        <div class="chart-frame">
-          <canvas id="signal-chart" width="1100" height="360"></canvas>
-        </div>
-
-        <div class="stats-wrap">
-          <table class="stats-table">
-            <thead>
-              <tr>
-                <th>Canal</th>
-                <th>Media</th>
-                <th>RMS</th>
-                <th>Pico max</th>
-                <th>Desvio padrao</th>
-                <th>CV</th>
-                <th>Fator de crista</th>
-                <th>Curtose</th>
-                <th>Skewness</th>
-                <th>Freq. dominante</th>
-              </tr>
-            </thead>
-            <tbody id="stats-body">
-              <tr>
-                <td colspan="10">Aguardando selecao.</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </section>
+  <!-- 2. Configuracao -->
+  <section class="cartao" id="secConfig" aria-labelledby="h2cfg" hidden>
+    <h2 id="h2cfg"><span class="num">2</span>Configuração da análise</h2>
+    <div class="grade3">
+      <fieldset>
+        <legend>Colunas do arquivo</legend>
+        <div class="colunas" id="colunas"></div>
+        <p class="campo-erro" id="e-colunas"></p>
+        <p class="nota">Cada grandeza deve aparecer uma vez. O padrão é tempo, Fx, Fy, Fz.</p>
+      </fieldset>
+      <fieldset>
+        <legend>Calibração por canal</legend>
+        <div class="cal" id="calCampos"></div>
+        <p class="nota">Fator adimensional [-] que multiplica o sinal. Padrão 1,0: o arquivo já está em N.</p>
+        <button id="btCal1" class="lnk" type="button">Voltar todos para 1,0</button>
+      </fieldset>
+      <fieldset>
+        <legend>Faixas e saídas</legend>
+        <label class="lin">Faixas por ensaio <select id="nFaixas"></select></label>
+        <label class="chk"><input type="checkbox" id="zoom"> Delimitar antes uma região de interesse (zoom)</label>
+        <label class="chk"><input type="checkbox" id="opFFT" checked> Espectro de amplitude (FFT)</label>
+        <label class="chk"><input type="checkbox" id="opGraf" checked> Salvar gráficos (PNG)</label>
+      </fieldset>
     </div>
 
-    <script src="src/parser.js?v=20260706-analysis4"></script>
-    <script src="src/app.js?v=20260706-analysis4"></script>
-  </body>
+    <fieldset class="teorico">
+      <legend><label class="chk"><input type="checkbox" id="opTeo"> Força de corte teórica (opcional, torneamento)</label></legend>
+      <div id="blocoTeo" hidden>
+        <p class="nota">Modelo da Sandvik Coromant (Kienzle): hm = fn·sen κr; kc = kc1·hm<sup>−mc</sup>·(1 − γ0/100); Fc = kc·ap·fn; Pc = vc·ap·fn·kc/(60·10³). Referência: <a href="https://www.sandvik.coromant.com/pt-pt/knowledge/machining-formulas-definitions" rel="noopener noreferrer" target="_blank">Sandvik Coromant, fórmulas e definições de usinagem</a>.</p>
+        <div class="grade4">
+          <label class="lin">ap: profundidade de corte [mm]<input id="tAp" inputmode="decimal"><span class="campo-erro" id="e-tAp"></span></label>
+          <label class="lin">fn: avanço [mm/rot]<input id="tFn" inputmode="decimal"><span class="campo-erro" id="e-tFn"></span></label>
+          <label class="lin">vc: velocidade de corte [m/min]<input id="tVc" inputmode="decimal"><span class="campo-erro" id="e-tVc"></span></label>
+          <label class="lin">κr: ângulo de posição [°]<input id="tKr" inputmode="decimal"><span class="campo-erro" id="e-tKr"></span></label>
+          <label class="lin">γ0: ângulo de saída [°]<input id="tG0" inputmode="decimal"><span class="campo-erro" id="e-tG0"></span></label>
+          <label class="lin">kc1: força específica (hm = 1 mm) [N/mm²]<input id="tKc1" inputmode="decimal" placeholder="catálogo do material"><span class="campo-erro" id="e-tKc1"></span></label>
+          <label class="lin">mc: expoente [-]<input id="tMc" inputmode="decimal"><span class="campo-erro" id="e-tMc"></span></label>
+          <label class="lin">Canal comparado com Fc
+            <select id="tCanal"><option value="fz">Fz</option><option value="fx">Fx</option><option value="fy">Fy</option><option value="fr">Fr</option></select></label>
+        </div>
+        <details class="calc-vc">
+          <summary>Calcular vc pelo diâmetro e pela rotação</summary>
+          <div class="acoes">
+            <label class="lin">D [mm]<input id="tD" inputmode="decimal"></label>
+            <label class="lin">n [rpm]<input id="tN" inputmode="decimal"></label>
+            <button id="btVc" class="sec" type="button">Usar vc = π·D·n/1000</button>
+          </div>
+        </details>
+        <p class="nota">kc1 e mc dependem do material da peça: use os valores do catálogo do fabricante da ferramenta.</p>
+      </div>
+    </fieldset>
+
+    <details class="avancado">
+      <summary>Parâmetros avançados</summary>
+      <div class="grade3">
+        <label class="lin">Faixa mínima [s]<input id="pDur" inputmode="decimal"><span class="campo-erro" id="e-pDur"></span></label>
+      </div>
+      <p class="nota">A taxa de amostragem vem da coluna de tempo de cada arquivo. Não há parâmetro.</p>
+    </details>
+    <p id="erroConfig" class="erro" role="alert"></p>
+    <div class="acoes"><button id="btConfig" class="prim" type="button">Continuar</button></div>
+  </section>
+
+  <!-- 3. Arquivos e pasta -->
+  <section class="cartao" id="secArquivos" aria-labelledby="h3arq" hidden>
+    <h2 id="h3arq"><span class="num">3</span>Arquivos do ensaio e pasta de resultados</h2>
+    <div class="grade2">
+      <div>
+        <h3>Arquivos (.txt ou .csv)</h3>
+        <label class="soltar" id="soltar">
+          <input type="file" id="arquivos" accept=".txt,.csv,.dat,text/plain" multiple>
+          <span>Arraste os arquivos aqui ou <u>clique para escolher</u>. Um ou mais ensaios.</span>
+        </label>
+        <ul id="listaArq" class="lista"></ul>
+      </div>
+      <div>
+        <h3>Pasta de resultados</h3>
+        <div id="pastaDireta">
+          <p class="nota">Cada rodada cria <code>resultados_AAAAMMDD_hhmmss</code> dentro desta pasta. O navegador lembra a pasta.</p>
+          <div class="acoes">
+            <button id="btPasta" class="sec" type="button">Escolher pasta…</button>
+            <button id="btPastaLembrada" class="sec" type="button" hidden></button>
+          </div>
+          <p id="pastaAtual" class="ok"></p>
+        </div>
+        <div id="pastaZip" hidden>
+          <p class="nota">Este navegador não grava direto em pasta. Os resultados vão para um <code>.zip</code>, baixado no fim da rodada. Para gravar direto na pasta, use Chrome ou Edge no computador.</p>
+        </div>
+      </div>
+    </div>
+    <p id="erroArq" class="erro" role="alert"></p>
+    <div class="acoes"><button id="btIniciar" class="prim" type="button" disabled>Iniciar análise</button>
+      <span class="nota" id="faltaIniciar"></span></div>
+  </section>
+
+  <!-- 4. Faixas -->
+  <section class="cartao" id="secEnsaio" aria-labelledby="tituloEnsaio" hidden>
+    <h2 id="tituloEnsaio">Ensaio</h2>
+    <p id="infoEnsaio" class="info"></p>
+    <div id="avisosEnsaio"></div>
+    <p id="instrucao" class="instrucao" aria-live="polite"></p>
+    <div class="selecao">
+      <canvas id="cvSel" tabindex="0" aria-label="Forças Fx, Fy e Fz no tempo. Clique para marcar início e fim de cada faixa, ou digite os tempos na tabela abaixo."></canvas>
+      <div id="leitura" class="leitura" aria-hidden="true"></div>
+    </div>
+    <div class="tabela-rolar tab-faixas"><table id="tabFaixas" class="tabela"></table></div>
+    <p id="progEnsaio" class="progresso" role="status" hidden></p>
+    <div class="acoes">
+      <button id="btAnalisar" class="prim" type="button" disabled>Analisar faixas</button>
+      <button id="btDesfazer" class="sec" type="button" title="Ctrl+Z">Desfazer</button>
+      <button id="btReiniciar" class="sec" type="button">Limpar faixas</button>
+      <button id="btPular" class="sec" type="button">Pular este ensaio</button>
+    </div>
+  </section>
+
+  <!-- 5. Resultados -->
+  <section class="cartao" id="secResultados" aria-labelledby="h5res" hidden>
+    <h2 id="h5res"><span class="num">5</span>Resultados</h2>
+    <p id="destinoInfo" class="info"></p>
+    <div id="resFaixas"></div>
+    <details class="relatorio">
+      <summary>Relatório da rodada (relatorio.txt)</summary>
+      <pre id="log" class="log"></pre>
+    </details>
+    <div class="acoes">
+      <button id="btZip" class="sec" type="button">Baixar tudo em .zip</button>
+      <button id="btNova" class="prim" type="button" hidden>Nova análise</button>
+    </div>
+  </section>
+</main>
+
+<footer class="rodape">
+  <p>NUPEF, Laboratório de Usinagem do IFG Câmpus Goiânia. A força teórica é uma estimativa de catálogo; compare com a medição, não a substitua.</p>
+  <p id="versao"></p>
+</footer>
+<script type="module" src="js/app.js"></script>
+</body>
 </html>

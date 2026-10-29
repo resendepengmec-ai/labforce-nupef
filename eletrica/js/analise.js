@@ -7,13 +7,13 @@ import {
   lerArquivoESP32, media, detectaFs, mediaMovelCiclos, grandezasEletricas,
   espectroFFT, difFase, definirAviso,
 } from "./nucleo.js";
-import { sprintf, nv } from "./formato.js";
+import { sprintf, nv } from "../../comum/js/formato.js";
 import {
   analiseIEEE519, marcarFsInstavel, relatorioIEEE519, linhaResumoIEEE519,
 } from "./ieee519.js";
 import { analiseIEEE1459, relatorioIEEE1459, linhaIEEE1459 } from "./ieee1459.js";
 
-export const VERSAO = "web 1.0.0 (metodo v5.3.3)";
+export const VERSAO = "web 1.1.0 (metodo v5.3.3)";
 
 // Parametros padrao (os mesmos do .sce v5.3.3)
 export const PADRAO = {

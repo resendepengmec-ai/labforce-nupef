@@ -1,0 +1,37 @@
+/* forcas.css - especificos do modulo de forcas (o padrao vem de ../comum/css/modulo.css) */
+.montagem { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 22px; align-items: start; }
+.montagem figure { margin: 0; border: 1px solid var(--linha); border-radius: 8px; background: #fff; padding: 10px; }
+.montagem figcaption { color: #5e6a64; font-size: .85rem; margin-top: 4px; }
+.montagem svg { width: 100%; height: auto; display: block; font-family: var(--fonte); }
+.montagem ol { padding-left: 1.2rem; }
+.montagem li { margin-bottom: .35rem; }
+.peca { fill: #c9d1d6; stroke: #7d8a92; }
+.peca-face { fill: #aeb8bf; stroke: #7d8a92; }
+.giro { fill: none; stroke: #7d8a92; stroke-width: 2; marker-end: none; }
+.ferr { fill: #8f9aa3; stroke: #4a5258; }
+.dina { fill: #2e3a40; }
+.rot { font-size: 14px; fill: #2b3438; }
+.rot-c { font-size: 12px; fill: #fff; text-anchor: middle; }
+.vet { stroke-width: 4; }
+.vz { stroke: rgb(220,0,0); } .vz-t { fill: rgb(220,0,0); font-weight: 600; }
+.vx { stroke: rgb(0,0,205); } .vx-t { fill: rgb(0,0,205); font-weight: 600; }
+.vy { stroke: rgb(0,128,0); } .vy-t { fill: rgb(0,128,0); font-weight: 600; }
+.avanco { stroke: #2b3438; stroke-width: 2; stroke-dasharray: 6 4; }
+.colunas, .cal { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px 10px; }
+.cal { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.colunas label, .cal label { display: flex; flex-direction: column; font-size: .82rem; color: var(--cinza); }
+.teorico { margin-top: 16px; }
+.teorico legend { padding: 0 6px; }
+.teorico legend .chk { margin: 0; font-weight: 600; }
+.grade4 { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px 14px; }
+.calc-vc summary { cursor: pointer; min-height: 40px; display: flex; align-items: center; color: var(--acento); }
+.calc-vc .acoes { align-items: flex-end; margin-top: 0; }
+.calc-vc input { width: 9em; }
+.comparacao { display: flex; flex-wrap: wrap; gap: 8px 26px; margin: 10px 0; padding: 10px 14px; border-left: 3px solid var(--acento); background: color-mix(in srgb, var(--acento) 6%, transparent); }
+.comparacao div { display: flex; flex-direction: column; }
+.comparacao span { color: var(--cinza); font-size: .82rem; }
+.comparacao strong { font-size: 1.15rem; font-variant-numeric: tabular-nums; }
+@media (max-width: 860px) {
+  .montagem { grid-template-columns: minmax(0, 1fr); }
+  .grade4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}

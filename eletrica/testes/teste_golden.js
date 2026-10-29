@@ -3,7 +3,7 @@
 import { readFileSync, existsSync } from "node:fs";
 import { prepararEnsaio, analisarFaixa, PADRAO } from "../js/analise.js";
 import { mediaMovelCiclos, rnd } from "../js/nucleo.js";
-import { sprintf } from "../js/formato.js";
+import { sprintf } from "../../comum/js/formato.js";
 
 const dir = new URL(".", import.meta.url).pathname;
 const arqs = ["E1R1", "E8R1", "S800", "S1000_instavel", "S2000", "S333"];

@@ -12,7 +12,7 @@ export const temPastaDireta = typeof window !== "undefined" && "showDirectoryPic
 // ---- IndexedDB: lembrar a pasta escolhida -------------------------------
 function bd() {
   return new Promise((ok, erro) => {
-    const r = indexedDB.open("potencias-eletricas", 1);
+    const r = indexedDB.open("labforce-nupef", 1);
     r.onupgradeneeded = () => r.result.createObjectStore("cfg");
     r.onsuccess = () => ok(r.result);
     r.onerror = () => erro(r.error);
@@ -38,9 +38,9 @@ async function bdSet(chave, valor) {
 }
 
 // Pasta lembrada (sem pedir permissao ainda): devolve o handle ou null
-export async function pastaLembrada() {
+export async function pastaLembrada(chave = "pasta") {
   if (!temPastaDireta) return null;
-  const h = await bdGet("pasta");
+  const h = await bdGet(chave);
   return h && typeof h.queryPermission === "function" ? h : null;
 }
 
@@ -51,9 +51,9 @@ export async function garantirPermissao(h) {
   return (await h.requestPermission(o)) === "granted";
 }
 
-export async function escolherPasta() {
-  const h = await window.showDirectoryPicker({ id: "potencias-eletricas", mode: "readwrite", startIn: "documents" });
-  await bdSet("pasta", h);
+export async function escolherPasta(chave = "pasta") {
+  const h = await window.showDirectoryPicker({ id: chave.replace(/[^a-z0-9_-]/gi, "-"), mode: "readwrite", startIn: "documents" });
+  await bdSet(chave, h);
   return h;
 }
 
