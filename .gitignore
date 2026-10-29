@@ -6,3 +6,5 @@ server.err.log
 eletrica/testes/dados/E*.txt
 node_modules/
 eletrica/testes/golden/E*.txt
+ferramentas/video/dados.js
+ferramentas/video/quadros/
