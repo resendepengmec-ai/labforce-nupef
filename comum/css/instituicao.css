@@ -1,0 +1,19 @@
+/* instituicao.css - identificacao institucional comum a todas as paginas:
+   marca do IFG Campus Goiania no cabecalho e bloco de endereco no rodape. */
+.logo-ifg { display: inline-flex; align-items: center; text-decoration: none; flex: none; }
+.logo-ifg img { height: 52px; width: auto; display: block; }
+.logo-ifg-claro { background: #fff; border-radius: 6px; padding: 3px 5px; }
+@media (prefers-color-scheme: dark) { .logo-ifg img { background: #fff; border-radius: 6px; padding: 3px 5px; } }
+
+.inst { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 18px 26px; align-items: start; padding: 18px 0 4px; }
+.inst img { height: 72px; width: auto; display: block; }
+@media (prefers-color-scheme: dark) { .inst img { background: #fff; border-radius: 6px; padding: 4px 6px; } }
+.inst address { font-style: normal; line-height: 1.55; }
+.inst address strong { display: block; color: var(--tinta, #17201c); }
+.inst nav { display: flex; flex-direction: column; gap: 2px; text-align: right; }
+.inst nav a { padding: 6px 0; min-height: 32px; }
+@media (max-width: 720px) {
+  .inst { grid-template-columns: auto minmax(0, 1fr); }
+  .inst nav { grid-column: 1 / -1; flex-direction: row; flex-wrap: wrap; gap: 4px 18px; text-align: left; }
+  .logo-ifg img { height: 44px; }
+}

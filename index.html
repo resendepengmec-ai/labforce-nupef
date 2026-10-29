@@ -5,20 +5,24 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>LabForce NUPEF</title>
 <meta name="description" content="Análise de ensaios de usinagem no navegador: forças de corte (dinamômetro) e grandezas elétricas (aquisição ESP32 3F+N). NUPEF, IFG Câmpus Goiânia.">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self'; img-src 'self' data:; script-src 'none'; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self'; img-src 'self' data: https://www.ifg.edu.br; script-src 'none'; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
 <meta name="referrer" content="no-referrer">
 <link rel="icon" href="assets/icone.svg" type="image/svg+xml">
 <link rel="stylesheet" href="assets/inicio.css">
+<link rel="stylesheet" href="comum/css/instituicao.css">
 </head>
 <body>
 <header class="topo">
   <a class="marca" href="./" aria-label="LabForce NUPEF, início">LabForce <span>NUPEF</span></a>
-  <p class="org">IFG Câmpus Goiânia, em colaboração com a UFG</p>
+  <nav class="topo-nav" aria-label="Navegação principal">
+    <a href="quem-somos.html">Quem somos</a>
+    <a class="logo-ifg" href="https://www.ifg.edu.br/goiania" rel="noopener noreferrer"><img src="https://www.ifg.edu.br/images/ifg/campus/goiania/logo/logo-ifg-vertical-goiania.png" alt="Instituto Federal de Goiás, Câmpus Goiânia" width="37" height="52" referrerpolicy="no-referrer"></a>
+  </nav>
 </header>
 
 <main class="inicio">
   <h1>Análise de ensaios de usinagem</h1>
-  <p class="lead">Escolha o sinal do ensaio. Os arquivos são lidos e processados neste navegador; nada é enviado para servidor.</p>
+  <p class="lead">Escolha o sinal do ensaio. Os arquivos são lidos e processados neste navegador; nenhum dado de ensaio é enviado para servidor.</p>
 
   <nav class="escolha" aria-label="Tipo de análise">
     <a class="opcao opcao-forca" href="forcas/">
@@ -46,7 +50,11 @@
 
 <footer class="rodape">
   <p class="manuais">Manuais técnicos: <a href="forcas/manual.html">forças de usinagem</a> e <a href="eletrica/manual.html">grandezas elétricas</a>.</p>
-  <p>NUPEF, Laboratório de Usinagem do IFG Câmpus Goiânia. Resultados de apoio a estudos e validação de máquinas; confira as hipóteses de cada análise na respectiva página.</p>
+  <div class="inst">
+    <a class="logo-ifg" href="https://www.ifg.edu.br/goiania" rel="noopener noreferrer"><img src="https://www.ifg.edu.br/images/ifg/campus/goiania/logo/logo-ifg-vertical-goiania.png" alt="Instituto Federal de Goiás, Câmpus Goiânia" width="51" height="72" loading="lazy" referrerpolicy="no-referrer"></a>
+    <address><strong>Instituto Federal de Goiás · Câmpus Goiânia</strong>NUPEF, Núcleo de Pesquisa em Fabricação<br>Rua 75, nº 46, Centro, Goiânia-GO, CEP 74055-110<br>Telefone (62) 3227-2700</address>
+    <nav aria-label="Links institucionais"><a href="quem-somos.html">Quem somos</a><a href="https://www.ifg.edu.br/goiania" rel="noopener noreferrer">ifg.edu.br/goiania</a><a href="https://ifgproduz.ifg.edu.br/informacoes-grupo/70" rel="noopener noreferrer">NUPEF no IFG Produz</a></nav>
+  </div>
 </footer>
 </body>
 </html>

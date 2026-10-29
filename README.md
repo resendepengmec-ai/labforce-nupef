@@ -1,6 +1,6 @@
 # LabForce NUPEF
 
-Análise de ensaios de usinagem no navegador, do NUPEF (Laboratório de Usinagem, IFG Câmpus Goiânia, em colaboração com a UFG). Os arquivos de ensaio são lidos e processados localmente: não há servidor nem envio de dados.
+Análise de ensaios de usinagem no navegador, do NUPEF, Núcleo de Pesquisa em Fabricação do IFG Câmpus Goiânia. Os arquivos de ensaio são lidos e processados localmente: não há servidor nem envio de dados.
 
 | Página | Pasta | Conteúdo |
 |---|---|---|

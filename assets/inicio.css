@@ -21,7 +21,7 @@
 * { box-sizing: border-box; }
 body { margin: 0; min-height: 100vh; display: flex; flex-direction: column;
   background: var(--papel); color: var(--tinta); font: 400 17px/1.5 var(--fonte); }
-.topo, .inicio, .rodape { width: 100%; max-width: 1040px; margin: 0 auto; padding-left: 24px; padding-right: 24px; }
+.topo, .inicio, .qs, .rodape { width: 100%; max-width: 1040px; margin: 0 auto; padding-left: 24px; padding-right: 24px; }
 .topo { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap;
   padding-top: 28px; padding-bottom: 18px; border-bottom: 1px solid var(--linha); }
 .marca { color: var(--tinta); text-decoration: none; font-weight: 700; font-size: 1.3rem; letter-spacing: .01em; }
@@ -61,3 +61,39 @@ h1 { margin: 0; font-weight: 600; font-stretch: 87.5%; font-size: clamp(2.1rem, 
   .traco { height: 110px; }
   .inicio { padding-top: 40px; }
 }
+
+/* navegacao do topo e marca do IFG (pagina inicial e quem somos) */
+.topo { align-items: center; }
+.topo-nav { display: flex; align-items: center; gap: 18px; }
+.topo-nav > a:not(.logo-ifg) { color: var(--tinta); text-decoration: none; padding: 10px 4px; min-height: 44px; display: inline-flex; align-items: center; border-bottom: 2px solid transparent; }
+.topo-nav > a:not(.logo-ifg):hover, .topo-nav > a[aria-current="page"] { border-bottom-color: var(--tinta); }
+.topo-nav a:focus-visible, .rodape a:focus-visible { outline: 2px solid var(--eletrica); outline-offset: 3px; }
+.rodape .inst { color: var(--cinza); }
+
+/* quem somos */
+.qs { flex: 1; padding-top: 6vh; padding-bottom: 48px; }
+.qs h1 { max-width: 20ch; }
+.qs .lead { margin-bottom: 30px; }
+.fatos { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0; margin: 0 0 40px; border-top: 1px solid var(--linha); border-bottom: 1px solid var(--linha); }
+.fatos div { padding: 14px 18px 14px 0; }
+.fatos div + div { padding-left: 18px; border-left: 1px solid var(--linha); }
+.fatos dt { color: var(--cinza); font-size: .9rem; }
+.fatos dd { margin: 2px 0 0; font-size: 1.25rem; font-weight: 600; }
+.qs-grade { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 40px; }
+.qs h2 { font-size: 1.3rem; font-weight: 600; margin: 0 0 10px; }
+.qs ul { margin: 0 0 26px; padding-left: 1.1rem; }
+.qs li { margin: 4px 0; }
+.qs .linhas li::marker { color: var(--forca); }
+.qs .pessoas { list-style: none; padding: 0; }
+.qs .pessoas li { padding: 7px 0; border-bottom: 1px solid var(--linha); display: flex; justify-content: space-between; gap: 12px; }
+.qs .pessoas span { color: var(--cinza); font-size: .9rem; }
+.qs .fonte { color: var(--cinza); font-size: .9rem; }
+.qs .fonte a { color: var(--tinta); }
+@media (max-width: 720px) {
+  .fatos { grid-template-columns: minmax(0, 1fr); }
+  .fatos div + div { padding-left: 0; border-left: 0; border-top: 1px solid var(--linha); }
+  .qs-grade { grid-template-columns: minmax(0, 1fr); gap: 10px; }
+  .topo-nav { gap: 10px; }
+}
+.qs a { color: var(--tinta); }
+.qs a:hover { color: var(--forca); }
