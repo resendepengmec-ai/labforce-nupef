@@ -1,276 +1,51 @@
 <!doctype html>
 <html lang="pt-BR">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>ForceLab</title>
-    <link rel="stylesheet" href="src/styles.css">
-  </head>
-  <body>
-    <main class="app-shell">
-      <section class="workspace" aria-labelledby="app-title">
-        <div class="intro">
-          <p class="eyebrow">Usinagem didatica</p>
-          <h1 id="app-title">ForceLab</h1>
-          <p>
-            Leia arquivos de forca em TXT, mapeie as quatro colunas medidas e
-            compare os dados com estimativas simples de usinagem.
-          </p>
-        </div>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LabForce NUPEF</title>
+<meta name="description" content="Análise de ensaios de usinagem no navegador: forças de corte (dinamômetro) e grandezas elétricas (aquisição ESP32 3F+N). NUPEF, IFG Câmpus Goiânia.">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self'; img-src 'self' data:; script-src 'none'; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
+<link rel="icon" href="assets/icone.svg" type="image/svg+xml">
+<link rel="stylesheet" href="assets/inicio.css">
+</head>
+<body>
+<header class="topo">
+  <a class="marca" href="./" aria-label="LabForce NUPEF, início">LabForce <span>NUPEF</span></a>
+  <p class="org">IFG Câmpus Goiânia, em colaboração com a UFG</p>
+</header>
 
-        <div class="tool-layout">
-          <section class="panel import-panel" aria-labelledby="import-title">
-            <div class="panel-header">
-              <h2 id="import-title">Arquivo TXT</h2>
-              <span id="file-status">nenhum arquivo</span>
-            </div>
+<main class="inicio">
+  <h1>Análise de ensaios de usinagem</h1>
+  <p class="lead">Escolha o sinal do ensaio. Os arquivos são lidos e processados neste navegador; nada é enviado para servidor.</p>
 
-            <div class="import-body">
-              <label class="file-picker">
-                <span>Selecionar arquivo</span>
-                <input id="txt-file" type="file" accept=".txt,.csv,text/plain">
-              </label>
+  <nav class="escolha" aria-label="Tipo de análise">
+    <a class="opcao opcao-forca" href="forcas/">
+      <svg class="traco" viewBox="0 0 480 150" preserveAspectRatio="none" aria-hidden="true">
+        <line class="eixo" x1="0" y1="138" x2="480" y2="138"/>
+        <path class="s1" pathLength="1" d="M0.0 138.0 L2.0 138.0 L4.0 138.0 L6.0 138.0 L8.0 138.0 L10.0 138.0 L12.0 138.0 L14.0 138.0 L16.0 138.0 L18.0 138.0 L20.0 138.0 L22.0 138.0 L24.0 138.0 L26.0 138.0 L28.0 138.0 L30.0 138.0 L32.0 138.0 L34.0 138.0 L36.0 138.0 L38.0 138.0 L40.0 138.0 L42.0 138.0 L44.0 138.0 L46.0 138.0 L48.0 138.0 L50.0 138.0 L52.0 138.0 L54.0 138.0 L56.0 138.0 L58.0 136.6 L60.0 129.4 L62.0 122.5 L64.0 114.9 L66.0 108.5 L68.0 101.0 L70.0 93.0 L72.0 83.6 L74.0 76.9 L76.0 69.9 L78.0 61.3 L80.0 55.1 L82.0 49.4 L84.0 39.9 L86.0 34.2 L88.0 37.0 L90.0 35.2 L92.0 35.8 L94.0 33.1 L96.0 33.6 L98.0 35.9 L100.0 29.8 L102.0 34.9 L104.0 31.8 L106.0 28.6 L108.0 32.5 L110.0 30.1 L112.0 33.8 L114.0 30.1 L116.0 30.4 L118.0 32.9 L120.0 31.8 L122.0 36.7 L124.0 34.4 L126.0 35.3 L128.0 35.1 L130.0 35.4 L132.0 31.7 L134.0 29.8 L136.0 32.1 L138.0 29.8 L140.0 33.5 L142.0 28.6 L144.0 29.1 L146.0 27.1 L148.0 29.2 L150.0 34.1 L152.0 34.5 L154.0 33.5 L156.0 38.9 L158.0 36.2 L160.0 38.4 L162.0 38.3 L164.0 38.0 L166.0 31.9 L168.0 35.4 L170.0 33.5 L172.0 31.6 L174.0 27.5 L176.0 33.0 L178.0 30.6 L180.0 30.5 L182.0 29.0 L184.0 30.5 L186.0 31.3 L188.0 36.5 L190.0 36.2 L192.0 37.0 L194.0 33.1 L196.0 32.1 L198.0 37.1 L200.0 35.9 L202.0 34.4 L204.0 33.3 L206.0 30.7 L208.0 29.5 L210.0 31.7 L212.0 33.9 L214.0 31.6 L216.0 32.9 L218.0 32.6 L220.0 30.9 L222.0 33.7 L224.0 35.6 L226.0 35.2 L228.0 34.6 L230.0 38.5 L232.0 31.5 L234.0 31.3 L236.0 29.5 L238.0 29.1 L240.0 31.2 L242.0 30.8 L244.0 32.9 L246.0 29.5 L248.0 34.4 L250.0 35.4 L252.0 35.5 L254.0 36.9 L256.0 36.5 L258.0 39.1 L260.0 39.6 L262.0 38.2 L264.0 37.9 L266.0 35.1 L268.0 36.5 L270.0 29.2 L272.0 30.2 L274.0 32.8 L276.0 31.8 L278.0 31.2 L280.0 31.6 L282.0 34.2 L284.0 30.0 L286.0 30.1 L288.0 34.9 L290.0 35.6 L292.0 38.9 L294.0 38.8 L296.0 36.7 L298.0 36.6 L300.0 31.5 L302.0 35.2 L304.0 35.1 L306.0 27.5 L308.0 30.0 L310.0 32.5 L312.0 29.9 L314.0 34.2 L316.0 31.5 L318.0 29.4 L320.0 31.3 L322.0 33.5 L324.0 37.3 L326.0 36.9 L328.0 38.3 L330.0 33.5 L332.0 34.4 L334.0 31.6 L336.0 33.7 L338.0 33.4 L340.0 28.4 L342.0 26.6 L344.0 27.5 L346.0 28.1 L348.0 28.7 L350.0 30.2 L352.0 35.0 L354.0 34.0 L356.0 36.1 L358.0 39.1 L360.0 39.4 L362.0 37.4 L364.0 37.0 L366.0 33.0 L368.0 30.1 L370.0 32.6 L372.0 28.1 L374.0 26.9 L376.0 26.8 L378.0 31.0 L380.0 32.5 L382.0 33.2 L384.0 34.4 L386.0 35.5 L388.0 33.5 L390.0 32.4 L392.0 33.4 L394.0 37.8 L396.0 45.0 L398.0 52.2 L400.0 64.0 L402.0 69.0 L404.0 76.2 L406.0 85.3 L408.0 94.2 L410.0 103.9 L412.0 113.4 L414.0 121.6 L416.0 131.0 L418.0 138.0 L420.0 138.0 L422.0 138.0 L424.0 138.0 L426.0 138.0 L428.0 138.0 L430.0 138.0 L432.0 138.0 L434.0 138.0 L436.0 138.0 L438.0 138.0 L440.0 138.0 L442.0 138.0 L444.0 138.0 L446.0 138.0 L448.0 138.0 L450.0 138.0 L452.0 138.0 L454.0 138.0 L456.0 138.0 L458.0 138.0 L460.0 138.0 L462.0 138.0 L464.0 138.0 L466.0 138.0 L468.0 138.0 L470.0 138.0 L472.0 138.0 L474.0 138.0 L476.0 138.0 L478.0 138.0 L480.0 138.0"/>
+        <path class="s2" pathLength="1" d="M0.0 138.0 L2.0 138.0 L4.0 138.0 L6.0 138.0 L8.0 138.0 L10.0 138.0 L12.0 138.0 L14.0 138.0 L16.0 138.0 L18.0 138.0 L20.0 138.0 L22.0 138.0 L24.0 138.0 L26.0 138.0 L28.0 138.0 L30.0 138.0 L32.0 138.0 L34.0 138.0 L36.0 138.0 L38.0 138.0 L40.0 138.0 L42.0 138.0 L44.0 138.0 L46.0 138.0 L48.0 138.0 L50.0 138.0 L52.0 138.0 L54.0 138.0 L56.0 138.0 L58.0 137.2 L60.0 133.0 L62.0 128.8 L64.0 124.2 L66.0 119.3 L68.0 115.6 L70.0 110.4 L72.0 106.0 L74.0 101.3 L76.0 96.1 L78.0 92.7 L80.0 88.4 L82.0 84.9 L84.0 78.8 L86.0 76.7 L88.0 75.5 L90.0 75.6 L92.0 79.9 L94.0 78.0 L96.0 75.2 L98.0 75.1 L100.0 78.4 L102.0 77.6 L104.0 74.8 L106.0 76.4 L108.0 75.1 L110.0 76.1 L112.0 72.9 L114.0 72.9 L116.0 73.0 L118.0 78.4 L120.0 75.9 L122.0 77.0 L124.0 80.5 L126.0 76.2 L128.0 75.5 L130.0 79.4 L132.0 74.2 L134.0 76.6 L136.0 75.2 L138.0 71.4 L140.0 71.8 L142.0 75.5 L144.0 74.0 L146.0 73.9 L148.0 75.7 L150.0 77.5 L152.0 77.6 L154.0 76.1 L156.0 81.0 L158.0 78.1 L160.0 78.8 L162.0 81.0 L164.0 78.6 L166.0 76.0 L168.0 75.7 L170.0 77.5 L172.0 71.2 L174.0 71.9 L176.0 70.7 L178.0 76.1 L180.0 75.6 L182.0 77.7 L184.0 74.2 L186.0 78.2 L188.0 79.8 L190.0 78.7 L192.0 76.0 L194.0 76.5 L196.0 79.5 L198.0 79.5 L200.0 74.0 L202.0 75.1 L204.0 73.5 L206.0 76.5 L208.0 76.2 L210.0 72.4 L212.0 74.2 L214.0 76.9 L216.0 72.5 L218.0 75.3 L220.0 75.2 L222.0 80.3 L224.0 76.2 L226.0 81.1 L228.0 76.2 L230.0 78.2 L232.0 78.1 L234.0 75.9 L236.0 72.8 L238.0 75.9 L240.0 76.1 L242.0 73.4 L244.0 75.1 L246.0 76.2 L248.0 76.6 L250.0 78.1 L252.0 78.1 L254.0 78.3 L256.0 79.1 L258.0 76.8 L260.0 79.8 L262.0 78.3 L264.0 79.7 L266.0 77.9 L268.0 78.9 L270.0 76.6 L272.0 77.2 L274.0 72.4 L276.0 73.2 L278.0 75.5 L280.0 74.2 L282.0 72.1 L284.0 78.0 L286.0 74.6 L288.0 77.8 L290.0 78.1 L292.0 76.4 L294.0 79.1 L296.0 78.1 L298.0 76.4 L300.0 73.8 L302.0 76.8 L304.0 72.9 L306.0 72.9 L308.0 72.9 L310.0 74.1 L312.0 74.6 L314.0 76.9 L316.0 77.2 L318.0 78.4 L320.0 75.3 L322.0 79.0 L324.0 80.2 L326.0 81.0 L328.0 76.4 L330.0 75.8 L332.0 76.4 L334.0 77.8 L336.0 77.1 L338.0 75.9 L340.0 74.3 L342.0 75.7 L344.0 73.8 L346.0 75.2 L348.0 71.6 L350.0 72.3 L352.0 75.8 L354.0 78.5 L356.0 75.0 L358.0 79.4 L360.0 79.4 L362.0 81.4 L364.0 78.6 L366.0 77.3 L368.0 76.3 L370.0 77.2 L372.0 74.5 L374.0 76.9 L376.0 75.0 L378.0 76.0 L380.0 74.5 L382.0 77.3 L384.0 78.2 L386.0 77.5 L388.0 78.8 L390.0 77.4 L392.0 78.2 L394.0 78.0 L396.0 83.4 L398.0 87.7 L400.0 91.6 L402.0 98.2 L404.0 103.0 L406.0 105.8 L408.0 113.1 L410.0 117.2 L412.0 122.8 L414.0 128.8 L416.0 133.6 L418.0 138.0 L420.0 138.0 L422.0 138.0 L424.0 138.0 L426.0 138.0 L428.0 138.0 L430.0 138.0 L432.0 138.0 L434.0 138.0 L436.0 138.0 L438.0 138.0 L440.0 138.0 L442.0 138.0 L444.0 138.0 L446.0 138.0 L448.0 138.0 L450.0 138.0 L452.0 138.0 L454.0 138.0 L456.0 138.0 L458.0 138.0 L460.0 138.0 L462.0 138.0 L464.0 138.0 L466.0 138.0 L468.0 138.0 L470.0 138.0 L472.0 138.0 L474.0 138.0 L476.0 138.0 L478.0 138.0 L480.0 138.0"/>
+        <path class="s3" pathLength="1" d="M0.0 138.0 L2.0 138.0 L4.0 138.0 L6.0 138.0 L8.0 138.0 L10.0 138.0 L12.0 138.0 L14.0 138.0 L16.0 138.0 L18.0 138.0 L20.0 138.0 L22.0 138.0 L24.0 138.0 L26.0 138.0 L28.0 138.0 L30.0 138.0 L32.0 138.0 L34.0 138.0 L36.0 138.0 L38.0 138.0 L40.0 138.0 L42.0 138.0 L44.0 138.0 L46.0 138.0 L48.0 138.0 L50.0 138.0 L52.0 138.0 L54.0 138.0 L56.0 138.0 L58.0 137.6 L60.0 135.7 L62.0 133.9 L64.0 131.2 L66.0 129.8 L68.0 126.2 L70.0 123.7 L72.0 123.4 L74.0 119.9 L76.0 116.6 L78.0 113.9 L80.0 113.8 L82.0 113.0 L84.0 111.9 L86.0 107.1 L88.0 110.8 L90.0 109.4 L92.0 111.7 L94.0 109.8 L96.0 107.3 L98.0 110.7 L100.0 106.7 L102.0 107.4 L104.0 104.9 L106.0 105.3 L108.0 107.3 L110.0 104.1 L112.0 106.4 L114.0 109.1 L116.0 109.9 L118.0 108.3 L120.0 109.2 L122.0 110.5 L124.0 111.6 L126.0 110.7 L128.0 110.7 L130.0 107.7 L132.0 111.1 L134.0 106.8 L136.0 105.7 L138.0 108.5 L140.0 104.2 L142.0 105.0 L144.0 104.2 L146.0 107.4 L148.0 107.6 L150.0 108.2 L152.0 106.1 L154.0 108.7 L156.0 110.3 L158.0 110.3 L160.0 111.1 L162.0 111.9 L164.0 111.1 L166.0 107.0 L168.0 108.9 L170.0 105.0 L172.0 107.7 L174.0 107.3 L176.0 105.9 L178.0 107.6 L180.0 107.2 L182.0 105.0 L184.0 106.0 L186.0 107.1 L188.0 108.6 L190.0 107.8 L192.0 107.9 L194.0 109.7 L196.0 108.6 L198.0 111.2 L200.0 107.3 L202.0 107.9 L204.0 105.7 L206.0 105.7 L208.0 107.1 L210.0 108.2 L212.0 104.2 L214.0 108.5 L216.0 107.5 L218.0 108.8 L220.0 109.8 L222.0 108.3 L224.0 107.5 L226.0 111.1 L228.0 109.1 L230.0 110.5 L232.0 108.7 L234.0 108.7 L236.0 109.1 L238.0 108.4 L240.0 107.7 L242.0 104.1 L244.0 106.1 L246.0 107.7 L248.0 104.9 L250.0 105.1 L252.0 108.5 L254.0 110.7 L256.0 111.0 L258.0 111.9 L260.0 110.8 L262.0 111.8 L264.0 110.6 L266.0 109.9 L268.0 107.7 L270.0 105.4 L272.0 105.5 L274.0 106.6 L276.0 106.4 L278.0 106.0 L280.0 107.0 L282.0 107.8 L284.0 109.8 L286.0 109.5 L288.0 106.9 L290.0 111.4 L292.0 109.9 L294.0 109.4 L296.0 108.0 L298.0 110.6 L300.0 109.7 L302.0 109.1 L304.0 107.6 L306.0 106.8 L308.0 104.0 L310.0 104.3 L312.0 104.4 L314.0 108.8 L316.0 109.4 L318.0 106.9 L320.0 106.7 L322.0 109.4 L324.0 109.3 L326.0 112.4 L328.0 110.5 L330.0 107.6 L332.0 107.5 L334.0 106.7 L336.0 105.4 L338.0 108.2 L340.0 108.3 L342.0 107.7 L344.0 105.9 L346.0 105.3 L348.0 104.6 L350.0 106.3 L352.0 107.3 L354.0 107.5 L356.0 109.6 L358.0 109.6 L360.0 112.2 L362.0 108.5 L364.0 110.8 L366.0 106.9 L368.0 107.5 L370.0 108.4 L372.0 108.6 L374.0 107.5 L376.0 105.4 L378.0 105.1 L380.0 108.2 L382.0 108.9 L384.0 107.4 L386.0 107.8 L388.0 109.5 L390.0 110.9 L392.0 109.4 L394.0 112.8 L396.0 113.5 L398.0 114.8 L400.0 115.0 L402.0 118.1 L404.0 119.6 L406.0 122.9 L408.0 125.8 L410.0 128.3 L412.0 130.0 L414.0 133.1 L416.0 136.0 L418.0 138.0 L420.0 138.0 L422.0 138.0 L424.0 138.0 L426.0 138.0 L428.0 138.0 L430.0 138.0 L432.0 138.0 L434.0 138.0 L436.0 138.0 L438.0 138.0 L440.0 138.0 L442.0 138.0 L444.0 138.0 L446.0 138.0 L448.0 138.0 L450.0 138.0 L452.0 138.0 L454.0 138.0 L456.0 138.0 L458.0 138.0 L460.0 138.0 L462.0 138.0 L464.0 138.0 L466.0 138.0 L468.0 138.0 L470.0 138.0 L472.0 138.0 L474.0 138.0 L476.0 138.0 L478.0 138.0 L480.0 138.0"/>
+      </svg>
+      <span class="rotulo">Análise de forças de usinagem</span>
+      <span class="desc">Sinais do dinamômetro (Fx, Fy, Fz): faixa do corte, média, RMS, picos, estatística e frequência dominante.</span>
+    </a>
+    <a class="opcao opcao-eletrica" href="eletrica/">
+      <svg class="traco" viewBox="0 0 480 150" preserveAspectRatio="none" aria-hidden="true">
+        <line class="eixo" x1="0" y1="75" x2="480" y2="75"/>
+        <path class="s1" pathLength="1" d="M0.0 75.0 L2.0 70.6 L4.0 66.3 L6.0 62.1 L8.0 57.9 L10.0 53.8 L12.0 49.9 L14.0 46.2 L16.0 42.7 L18.0 39.4 L20.0 36.4 L22.0 33.6 L24.0 31.1 L26.0 28.9 L28.0 27.1 L30.0 25.5 L32.0 24.4 L34.0 23.6 L36.0 23.1 L38.0 23.0 L40.0 23.3 L42.0 23.9 L44.0 24.9 L46.0 26.3 L48.0 27.9 L50.0 30.0 L52.0 32.3 L54.0 34.9 L56.0 37.8 L58.0 41.0 L60.0 44.4 L62.0 48.1 L64.0 51.9 L66.0 55.9 L68.0 60.0 L70.0 64.2 L72.0 68.5 L74.0 72.8 L76.0 77.2 L78.0 81.5 L80.0 85.8 L82.0 90.0 L84.0 94.1 L86.0 98.1 L88.0 101.9 L90.0 105.6 L92.0 109.0 L94.0 112.2 L96.0 115.1 L98.0 117.7 L100.0 120.0 L102.0 122.1 L104.0 123.7 L106.0 125.1 L108.0 126.1 L110.0 126.7 L112.0 127.0 L114.0 126.9 L116.0 126.4 L118.0 125.6 L120.0 124.5 L122.0 122.9 L124.0 121.1 L126.0 118.9 L128.0 116.4 L130.0 113.6 L132.0 110.6 L134.0 107.3 L136.0 103.8 L138.0 100.1 L140.0 96.2 L142.0 92.1 L144.0 87.9 L146.0 83.7 L148.0 79.4 L150.0 75.0 L152.0 70.6 L154.0 66.3 L156.0 62.1 L158.0 57.9 L160.0 53.8 L162.0 49.9 L164.0 46.2 L166.0 42.7 L168.0 39.4 L170.0 36.4 L172.0 33.6 L174.0 31.1 L176.0 28.9 L178.0 27.1 L180.0 25.5 L182.0 24.4 L184.0 23.6 L186.0 23.1 L188.0 23.0 L190.0 23.3 L192.0 23.9 L194.0 24.9 L196.0 26.3 L198.0 27.9 L200.0 30.0 L202.0 32.3 L204.0 34.9 L206.0 37.8 L208.0 41.0 L210.0 44.4 L212.0 48.1 L214.0 51.9 L216.0 55.9 L218.0 60.0 L220.0 64.2 L222.0 68.5 L224.0 72.8 L226.0 77.2 L228.0 81.5 L230.0 85.8 L232.0 90.0 L234.0 94.1 L236.0 98.1 L238.0 101.9 L240.0 105.6 L242.0 109.0 L244.0 112.2 L246.0 115.1 L248.0 117.7 L250.0 120.0 L252.0 122.1 L254.0 123.7 L256.0 125.1 L258.0 126.1 L260.0 126.7 L262.0 127.0 L264.0 126.9 L266.0 126.4 L268.0 125.6 L270.0 124.5 L272.0 122.9 L274.0 121.1 L276.0 118.9 L278.0 116.4 L280.0 113.6 L282.0 110.6 L284.0 107.3 L286.0 103.8 L288.0 100.1 L290.0 96.2 L292.0 92.1 L294.0 87.9 L296.0 83.7 L298.0 79.4 L300.0 75.0 L302.0 70.6 L304.0 66.3 L306.0 62.1 L308.0 57.9 L310.0 53.8 L312.0 49.9 L314.0 46.2 L316.0 42.7 L318.0 39.4 L320.0 36.4 L322.0 33.6 L324.0 31.1 L326.0 28.9 L328.0 27.1 L330.0 25.5 L332.0 24.4 L334.0 23.6 L336.0 23.1 L338.0 23.0 L340.0 23.3 L342.0 23.9 L344.0 24.9 L346.0 26.3 L348.0 27.9 L350.0 30.0 L352.0 32.3 L354.0 34.9 L356.0 37.8 L358.0 41.0 L360.0 44.4 L362.0 48.1 L364.0 51.9 L366.0 55.9 L368.0 60.0 L370.0 64.2 L372.0 68.5 L374.0 72.8 L376.0 77.2 L378.0 81.5 L380.0 85.8 L382.0 90.0 L384.0 94.1 L386.0 98.1 L388.0 101.9 L390.0 105.6 L392.0 109.0 L394.0 112.2 L396.0 115.1 L398.0 117.7 L400.0 120.0 L402.0 122.1 L404.0 123.7 L406.0 125.1 L408.0 126.1 L410.0 126.7 L412.0 127.0 L414.0 126.9 L416.0 126.4 L418.0 125.6 L420.0 124.5 L422.0 122.9 L424.0 121.1 L426.0 118.9 L428.0 116.4 L430.0 113.6 L432.0 110.6 L434.0 107.3 L436.0 103.8 L438.0 100.1 L440.0 96.2 L442.0 92.1 L444.0 87.9 L446.0 83.7 L448.0 79.4 L450.0 75.0 L452.0 70.6 L454.0 66.3 L456.0 62.1 L458.0 57.9 L460.0 53.8 L462.0 49.9 L464.0 46.2 L466.0 42.7 L468.0 39.4 L470.0 36.4 L472.0 33.6 L474.0 31.1 L476.0 28.9 L478.0 27.1 L480.0 25.5"/>
+        <path class="s2" pathLength="1" d="M0.0 120.0 L2.0 122.1 L4.0 123.7 L6.0 125.1 L8.0 126.1 L10.0 126.7 L12.0 127.0 L14.0 126.9 L16.0 126.4 L18.0 125.6 L20.0 124.5 L22.0 122.9 L24.0 121.1 L26.0 118.9 L28.0 116.4 L30.0 113.6 L32.0 110.6 L34.0 107.3 L36.0 103.8 L38.0 100.1 L40.0 96.2 L42.0 92.1 L44.0 87.9 L46.0 83.7 L48.0 79.4 L50.0 75.0 L52.0 70.6 L54.0 66.3 L56.0 62.1 L58.0 57.9 L60.0 53.8 L62.0 49.9 L64.0 46.2 L66.0 42.7 L68.0 39.4 L70.0 36.4 L72.0 33.6 L74.0 31.1 L76.0 28.9 L78.0 27.1 L80.0 25.5 L82.0 24.4 L84.0 23.6 L86.0 23.1 L88.0 23.0 L90.0 23.3 L92.0 23.9 L94.0 24.9 L96.0 26.3 L98.0 27.9 L100.0 30.0 L102.0 32.3 L104.0 34.9 L106.0 37.8 L108.0 41.0 L110.0 44.4 L112.0 48.1 L114.0 51.9 L116.0 55.9 L118.0 60.0 L120.0 64.2 L122.0 68.5 L124.0 72.8 L126.0 77.2 L128.0 81.5 L130.0 85.8 L132.0 90.0 L134.0 94.1 L136.0 98.1 L138.0 101.9 L140.0 105.6 L142.0 109.0 L144.0 112.2 L146.0 115.1 L148.0 117.7 L150.0 120.0 L152.0 122.1 L154.0 123.7 L156.0 125.1 L158.0 126.1 L160.0 126.7 L162.0 127.0 L164.0 126.9 L166.0 126.4 L168.0 125.6 L170.0 124.5 L172.0 122.9 L174.0 121.1 L176.0 118.9 L178.0 116.4 L180.0 113.6 L182.0 110.6 L184.0 107.3 L186.0 103.8 L188.0 100.1 L190.0 96.2 L192.0 92.1 L194.0 87.9 L196.0 83.7 L198.0 79.4 L200.0 75.0 L202.0 70.6 L204.0 66.3 L206.0 62.1 L208.0 57.9 L210.0 53.8 L212.0 49.9 L214.0 46.2 L216.0 42.7 L218.0 39.4 L220.0 36.4 L222.0 33.6 L224.0 31.1 L226.0 28.9 L228.0 27.1 L230.0 25.5 L232.0 24.4 L234.0 23.6 L236.0 23.1 L238.0 23.0 L240.0 23.3 L242.0 23.9 L244.0 24.9 L246.0 26.3 L248.0 27.9 L250.0 30.0 L252.0 32.3 L254.0 34.9 L256.0 37.8 L258.0 41.0 L260.0 44.4 L262.0 48.1 L264.0 51.9 L266.0 55.9 L268.0 60.0 L270.0 64.2 L272.0 68.5 L274.0 72.8 L276.0 77.2 L278.0 81.5 L280.0 85.8 L282.0 90.0 L284.0 94.1 L286.0 98.1 L288.0 101.9 L290.0 105.6 L292.0 109.0 L294.0 112.2 L296.0 115.1 L298.0 117.7 L300.0 120.0 L302.0 122.1 L304.0 123.7 L306.0 125.1 L308.0 126.1 L310.0 126.7 L312.0 127.0 L314.0 126.9 L316.0 126.4 L318.0 125.6 L320.0 124.5 L322.0 122.9 L324.0 121.1 L326.0 118.9 L328.0 116.4 L330.0 113.6 L332.0 110.6 L334.0 107.3 L336.0 103.8 L338.0 100.1 L340.0 96.2 L342.0 92.1 L344.0 87.9 L346.0 83.7 L348.0 79.4 L350.0 75.0 L352.0 70.6 L354.0 66.3 L356.0 62.1 L358.0 57.9 L360.0 53.8 L362.0 49.9 L364.0 46.2 L366.0 42.7 L368.0 39.4 L370.0 36.4 L372.0 33.6 L374.0 31.1 L376.0 28.9 L378.0 27.1 L380.0 25.5 L382.0 24.4 L384.0 23.6 L386.0 23.1 L388.0 23.0 L390.0 23.3 L392.0 23.9 L394.0 24.9 L396.0 26.3 L398.0 27.9 L400.0 30.0 L402.0 32.3 L404.0 34.9 L406.0 37.8 L408.0 41.0 L410.0 44.4 L412.0 48.1 L414.0 51.9 L416.0 55.9 L418.0 60.0 L420.0 64.2 L422.0 68.5 L424.0 72.8 L426.0 77.2 L428.0 81.5 L430.0 85.8 L432.0 90.0 L434.0 94.1 L436.0 98.1 L438.0 101.9 L440.0 105.6 L442.0 109.0 L444.0 112.2 L446.0 115.1 L448.0 117.7 L450.0 120.0 L452.0 122.1 L454.0 123.7 L456.0 125.1 L458.0 126.1 L460.0 126.7 L462.0 127.0 L464.0 126.9 L466.0 126.4 L468.0 125.6 L470.0 124.5 L472.0 122.9 L474.0 121.1 L476.0 118.9 L478.0 116.4 L480.0 113.6"/>
+        <path class="s3" pathLength="1" d="M0.0 30.0 L2.0 32.3 L4.0 34.9 L6.0 37.8 L8.0 41.0 L10.0 44.4 L12.0 48.1 L14.0 51.9 L16.0 55.9 L18.0 60.0 L20.0 64.2 L22.0 68.5 L24.0 72.8 L26.0 77.2 L28.0 81.5 L30.0 85.8 L32.0 90.0 L34.0 94.1 L36.0 98.1 L38.0 101.9 L40.0 105.6 L42.0 109.0 L44.0 112.2 L46.0 115.1 L48.0 117.7 L50.0 120.0 L52.0 122.1 L54.0 123.7 L56.0 125.1 L58.0 126.1 L60.0 126.7 L62.0 127.0 L64.0 126.9 L66.0 126.4 L68.0 125.6 L70.0 124.5 L72.0 122.9 L74.0 121.1 L76.0 118.9 L78.0 116.4 L80.0 113.6 L82.0 110.6 L84.0 107.3 L86.0 103.8 L88.0 100.1 L90.0 96.2 L92.0 92.1 L94.0 87.9 L96.0 83.7 L98.0 79.4 L100.0 75.0 L102.0 70.6 L104.0 66.3 L106.0 62.1 L108.0 57.9 L110.0 53.8 L112.0 49.9 L114.0 46.2 L116.0 42.7 L118.0 39.4 L120.0 36.4 L122.0 33.6 L124.0 31.1 L126.0 28.9 L128.0 27.1 L130.0 25.5 L132.0 24.4 L134.0 23.6 L136.0 23.1 L138.0 23.0 L140.0 23.3 L142.0 23.9 L144.0 24.9 L146.0 26.3 L148.0 27.9 L150.0 30.0 L152.0 32.3 L154.0 34.9 L156.0 37.8 L158.0 41.0 L160.0 44.4 L162.0 48.1 L164.0 51.9 L166.0 55.9 L168.0 60.0 L170.0 64.2 L172.0 68.5 L174.0 72.8 L176.0 77.2 L178.0 81.5 L180.0 85.8 L182.0 90.0 L184.0 94.1 L186.0 98.1 L188.0 101.9 L190.0 105.6 L192.0 109.0 L194.0 112.2 L196.0 115.1 L198.0 117.7 L200.0 120.0 L202.0 122.1 L204.0 123.7 L206.0 125.1 L208.0 126.1 L210.0 126.7 L212.0 127.0 L214.0 126.9 L216.0 126.4 L218.0 125.6 L220.0 124.5 L222.0 122.9 L224.0 121.1 L226.0 118.9 L228.0 116.4 L230.0 113.6 L232.0 110.6 L234.0 107.3 L236.0 103.8 L238.0 100.1 L240.0 96.2 L242.0 92.1 L244.0 87.9 L246.0 83.7 L248.0 79.4 L250.0 75.0 L252.0 70.6 L254.0 66.3 L256.0 62.1 L258.0 57.9 L260.0 53.8 L262.0 49.9 L264.0 46.2 L266.0 42.7 L268.0 39.4 L270.0 36.4 L272.0 33.6 L274.0 31.1 L276.0 28.9 L278.0 27.1 L280.0 25.5 L282.0 24.4 L284.0 23.6 L286.0 23.1 L288.0 23.0 L290.0 23.3 L292.0 23.9 L294.0 24.9 L296.0 26.3 L298.0 27.9 L300.0 30.0 L302.0 32.3 L304.0 34.9 L306.0 37.8 L308.0 41.0 L310.0 44.4 L312.0 48.1 L314.0 51.9 L316.0 55.9 L318.0 60.0 L320.0 64.2 L322.0 68.5 L324.0 72.8 L326.0 77.2 L328.0 81.5 L330.0 85.8 L332.0 90.0 L334.0 94.1 L336.0 98.1 L338.0 101.9 L340.0 105.6 L342.0 109.0 L344.0 112.2 L346.0 115.1 L348.0 117.7 L350.0 120.0 L352.0 122.1 L354.0 123.7 L356.0 125.1 L358.0 126.1 L360.0 126.7 L362.0 127.0 L364.0 126.9 L366.0 126.4 L368.0 125.6 L370.0 124.5 L372.0 122.9 L374.0 121.1 L376.0 118.9 L378.0 116.4 L380.0 113.6 L382.0 110.6 L384.0 107.3 L386.0 103.8 L388.0 100.1 L390.0 96.2 L392.0 92.1 L394.0 87.9 L396.0 83.7 L398.0 79.4 L400.0 75.0 L402.0 70.6 L404.0 66.3 L406.0 62.1 L408.0 57.9 L410.0 53.8 L412.0 49.9 L414.0 46.2 L416.0 42.7 L418.0 39.4 L420.0 36.4 L422.0 33.6 L424.0 31.1 L426.0 28.9 L428.0 27.1 L430.0 25.5 L432.0 24.4 L434.0 23.6 L436.0 23.1 L438.0 23.0 L440.0 23.3 L442.0 23.9 L444.0 24.9 L446.0 26.3 L448.0 27.9 L450.0 30.0 L452.0 32.3 L454.0 34.9 L456.0 37.8 L458.0 41.0 L460.0 44.4 L462.0 48.1 L464.0 51.9 L466.0 55.9 L468.0 60.0 L470.0 64.2 L472.0 68.5 L474.0 72.8 L476.0 77.2 L478.0 81.5 L480.0 85.8"/>
+      </svg>
+      <span class="rotulo">Análise de grandezas elétricas</span>
+      <span class="desc">Aquisição ESP32 trifásica 3F+N: potências, fator de potência, FFT, IEEE 519-2022 e IEEE 1459-2010.</span>
+    </a>
+  </nav>
+</main>
 
-              <div class="mapping-grid" aria-label="Mapeamento das colunas">
-                <label>
-                  Coluna 1
-                  <select id="column-1" data-column-map>
-                    <option value="tempo" selected>tempo</option>
-                    <option value="fx">Fx</option>
-                    <option value="fy">Fy</option>
-                    <option value="fz">Fz</option>
-                    <option value="ignorar">ignorar</option>
-                  </select>
-                </label>
-                <label>
-                  Coluna 2
-                  <select id="column-2" data-column-map>
-                    <option value="tempo">tempo</option>
-                    <option value="fx" selected>Fx</option>
-                    <option value="fy">Fy</option>
-                    <option value="fz">Fz</option>
-                    <option value="ignorar">ignorar</option>
-                  </select>
-                </label>
-                <label>
-                  Coluna 3
-                  <select id="column-3" data-column-map>
-                    <option value="tempo">tempo</option>
-                    <option value="fx">Fx</option>
-                    <option value="fy" selected>Fy</option>
-                    <option value="fz">Fz</option>
-                    <option value="ignorar">ignorar</option>
-                  </select>
-                </label>
-                <label>
-                  Coluna 4
-                  <select id="column-4" data-column-map>
-                    <option value="tempo">tempo</option>
-                    <option value="fx">Fx</option>
-                    <option value="fy">Fy</option>
-                    <option value="fz" selected>Fz</option>
-                    <option value="ignorar">ignorar</option>
-                  </select>
-                </label>
-              </div>
-
-              <p class="hint" id="import-message">
-                Cabecalho permitido. Linhas sem quatro valores numericos sao
-                ignoradas. Use tab, espaco ou ponto e virgula; virgula decimal
-                e aceita.
-              </p>
-            </div>
-          </section>
-
-          <form class="panel controls is-hidden" id="cutting-form">
-            <div class="panel-header">
-              <h2>Parametros</h2>
-              <button type="button" class="icon-button" id="reset-button" title="Restaurar valores">R</button>
-            </div>
-
-            <label>
-              Material
-              <select id="material" name="material">
-                <option value="aluminio">Aluminio</option>
-                <option value="aco-baixo-carbono" selected>Aco baixo carbono</option>
-                <option value="aco-medio-carbono">Aco medio carbono</option>
-                <option value="ferro-fundido">Ferro fundido</option>
-                <option value="bronze">Bronze</option>
-              </select>
-            </label>
-
-            <label>
-              Pressao especifica kc (N/mm2)
-              <input id="kc" name="kc" type="number" min="100" max="5000" step="50" value="1800">
-            </label>
-
-            <label>
-              Avanco f (mm/rot)
-              <input id="feed" name="feed" type="number" min="0.01" max="2" step="0.01" value="0.25">
-            </label>
-
-            <label>
-              Profundidade ap (mm)
-              <input id="depth" name="depth" type="number" min="0.1" max="12" step="0.1" value="2">
-            </label>
-
-            <label>
-              Velocidade Vc (m/min)
-              <input id="speed" name="speed" type="number" min="10" max="600" step="5" value="120">
-            </label>
-          </form>
-
-          <section class="panel visual-panel is-hidden" aria-labelledby="visual-title">
-            <div class="panel-header">
-              <h2 id="visual-title">Corte ortogonal</h2>
-              <span id="chip-label">cavaco continuo</span>
-            </div>
-
-            <div class="cut-scene" aria-hidden="true">
-              <div class="workpiece"></div>
-              <div class="tool"></div>
-              <div class="chip" id="chip"></div>
-              <div class="force-arrow" id="force-arrow">Fc</div>
-              <div class="speed-arrow">Vc</div>
-            </div>
-          </section>
-
-          <section class="panel results is-hidden" aria-labelledby="results-title">
-            <div class="panel-header">
-              <h2 id="results-title">Resultados</h2>
-              <span id="regime">corte moderado</span>
-            </div>
-
-            <div class="metrics">
-              <article>
-                <span>Area de corte</span>
-                <strong id="area">0,50 mm2</strong>
-              </article>
-              <article>
-                <span>Forca Fc</span>
-                <strong id="force">900 N</strong>
-              </article>
-              <article>
-                <span>Potencia Pc</span>
-                <strong id="power">1,80 kW</strong>
-              </article>
-              <article>
-                <span>Remocao Q</span>
-                <strong id="removal">60.000 mm3/min</strong>
-              </article>
-            </div>
-
-            <p class="formula" id="formula">
-              Fc = kc x ap x f
-            </p>
-          </section>
-
-          <section class="panel data-panel" aria-labelledby="data-title">
-            <div class="panel-header">
-              <h2 id="data-title">Leitura do TXT</h2>
-              <div class="panel-actions">
-                <span id="sample-count">0 amostras</span>
-                <button type="button" class="text-button" id="open-analysis" disabled>Analisar faixa</button>
-              </div>
-            </div>
-
-            <div class="metrics force-metrics">
-              <article>
-                <span>Fx max</span>
-                <strong id="fx-max">-</strong>
-              </article>
-              <article>
-                <span>Fy max</span>
-                <strong id="fy-max">-</strong>
-              </article>
-              <article>
-                <span>Fz max</span>
-                <strong id="fz-max">-</strong>
-              </article>
-              <article>
-                <span>Resultante max</span>
-                <strong id="fr-max">-</strong>
-              </article>
-            </div>
-
-            <div class="preview-wrap">
-              <table class="preview-table">
-                <thead>
-                  <tr>
-                    <th>tempo</th>
-                    <th>Fx</th>
-                    <th>Fy</th>
-                    <th>Fz</th>
-                    <th>Fr</th>
-                  </tr>
-                </thead>
-                <tbody id="preview-body">
-                  <tr>
-                    <td colspan="5">Aguardando arquivo TXT.</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </section>
-        </div>
-      </section>
-    </main>
-
-    <div class="modal-overlay" id="analysis-modal" hidden>
-      <section class="analysis-modal" role="dialog" aria-modal="true" aria-labelledby="analysis-title">
-        <div class="modal-header">
-          <div>
-            <h2 id="analysis-title">Analise do sinal</h2>
-            <p id="selection-label">Arraste para selecionar. Clique na faixa destacada para baixar o CSV.</p>
-          </div>
-          <button type="button" class="icon-button" id="close-analysis" title="Fechar">X</button>
-        </div>
-
-        <div class="chart-toolbar">
-          <label>
-            Canal
-            <select id="chart-channel">
-              <option value="fx">Fx</option>
-              <option value="fy">Fy</option>
-              <option value="fz" selected>Fz</option>
-              <option value="fr">Fr</option>
-            </select>
-          </label>
-          <button type="button" class="text-button" id="reset-selection">Sinal inteiro</button>
-          <button type="button" class="text-button" id="download-csv" disabled>Baixar CSV</button>
-        </div>
-
-        <div class="chart-frame">
-          <canvas id="signal-chart" width="1100" height="360"></canvas>
-        </div>
-
-        <div class="stats-wrap">
-          <table class="stats-table">
-            <thead>
-              <tr>
-                <th>Canal</th>
-                <th>Media</th>
-                <th>RMS</th>
-                <th>Pico max</th>
-                <th>Desvio padrao</th>
-                <th>CV</th>
-                <th>Fator de crista</th>
-                <th>Curtose</th>
-                <th>Skewness</th>
-                <th>Freq. dominante</th>
-              </tr>
-            </thead>
-            <tbody id="stats-body">
-              <tr>
-                <td colspan="10">Aguardando selecao.</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </section>
-    </div>
-
-    <script src="src/parser.js?v=20260706-analysis4"></script>
-    <script src="src/app.js?v=20260706-analysis4"></script>
-  </body>
+<footer class="rodape">
+  <p>NUPEF, Laboratório de Usinagem do IFG Câmpus Goiânia. Resultados de apoio a estudos e validação de máquinas; confira as hipóteses de cada análise na respectiva página.</p>
+</footer>
+</body>
 </html>

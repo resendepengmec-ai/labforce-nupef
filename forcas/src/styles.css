@@ -50,6 +50,19 @@ button:disabled {
   margin-bottom: 24px;
 }
 
+.voltar {
+  display: inline-block;
+  margin-bottom: 10px;
+  color: var(--muted);
+  font-size: 0.9rem;
+  text-decoration: none;
+}
+
+.voltar:hover {
+  color: var(--accent);
+  text-decoration: underline;
+}
+
 .eyebrow {
   margin: 0 0 8px;
   color: var(--accent);

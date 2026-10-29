@@ -1,0 +1,61 @@
+/* Pagina inicial LabForce NUPEF. Tipografia DIN (Bahnschrift, presente no
+   Windows 10+), sem fontes externas: a pagina nao faz requisicoes de terceiros. */
+:root {
+  --papel: #f5f7f6;
+  --tinta: #17201c;
+  --cinza: #5e6a64;
+  --linha: #d3dbd7;
+  --forca: #196f64;      /* mesma cor do ForceLab */
+  --forca-2: #c43b2f;
+  --forca-3: #8f9aa3;
+  --eletrica: #0b5cad;   /* mesma cor da pagina eletrica */
+  --fase-a: #0000cd; --fase-b: #008000; --fase-c: #dc0000;
+  --fonte: "Bahnschrift", "DIN Alternate", "D-DIN", "Barlow", "Roboto", system-ui, sans-serif;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root { --papel: #131816; --tinta: #e4ebe7; --cinza: #9aa7a0; --linha: #2c3531;
+    --forca: #4fb3a5; --forca-2: #ef6f62; --forca-3: #9aa6ae; --eletrica: #5aa5f0;
+    --fase-a: #6f8dff; --fase-b: #4cc46a; --fase-c: #ff6b6b; color-scheme: dark; }
+}
+* { box-sizing: border-box; }
+body { margin: 0; min-height: 100vh; display: flex; flex-direction: column;
+  background: var(--papel); color: var(--tinta); font: 400 17px/1.5 var(--fonte); }
+.topo, .inicio, .rodape { width: 100%; max-width: 1040px; margin: 0 auto; padding-left: 24px; padding-right: 24px; }
+.topo { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap;
+  padding-top: 28px; padding-bottom: 18px; border-bottom: 1px solid var(--linha); }
+.marca { color: var(--tinta); text-decoration: none; font-weight: 700; font-size: 1.3rem; letter-spacing: .01em; }
+.marca span { color: var(--cinza); font-weight: 400; }
+.org { margin: 0; color: var(--cinza); font-size: .92rem; }
+.inicio { flex: 1; padding-top: 9vh; padding-bottom: 48px; }
+h1 { margin: 0; font-weight: 600; font-stretch: 87.5%; font-size: clamp(2.1rem, 5.2vw, 3.6rem); line-height: 1.05; letter-spacing: -.01em; max-width: 16ch; }
+.lead { margin: 18px 0 44px; color: var(--cinza); max-width: 58ch; font-size: 1.06rem; }
+.escolha { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 28px; }
+.opcao { --c: var(--forca); display: flex; flex-direction: column; gap: 10px; color: inherit; text-decoration: none;
+  padding: 0 0 22px; border-bottom: 3px solid var(--linha); transition: border-color .2s; }
+.opcao-eletrica { --c: var(--eletrica); }
+.traco { width: 100%; height: 150px; display: block; overflow: visible; margin-bottom: 8px; }
+.traco .eixo { stroke: var(--linha); stroke-width: 1; vector-effect: non-scaling-stroke; }
+.traco path { fill: none; stroke-width: 1.8; stroke-linejoin: round; vector-effect: non-scaling-stroke;
+  stroke-dasharray: 1; stroke-dashoffset: 0; }
+.opcao-forca .s1 { stroke: var(--forca); } .opcao-forca .s2 { stroke: var(--forca-2); } .opcao-forca .s3 { stroke: var(--forca-3); }
+.opcao-eletrica .s1 { stroke: var(--fase-a); } .opcao-eletrica .s2 { stroke: var(--fase-b); } .opcao-eletrica .s3 { stroke: var(--fase-c); }
+.rotulo { font-weight: 600; font-size: clamp(1.3rem, 2.4vw, 1.65rem); line-height: 1.2; color: var(--c); }
+.desc { color: var(--cinza); max-width: 46ch; }
+.opcao:hover, .opcao:focus-visible { border-bottom-color: var(--c); }
+.opcao:focus-visible { outline: 2px solid var(--c); outline-offset: 6px; border-radius: 2px; }
+.rodape { padding-top: 18px; padding-bottom: 28px; border-top: 1px solid var(--linha); color: var(--cinza); font-size: .85rem; }
+.rodape p { margin: 0; max-width: 80ch; }
+/* unico movimento: os tracos sao desenhados uma vez ao abrir a pagina */
+@media (prefers-reduced-motion: no-preference) {
+  .traco path { animation: desenha 1.4s cubic-bezier(.3, .6, .2, 1) both; }
+  .traco .s2 { animation-delay: .15s; } .traco .s3 { animation-delay: .3s; }
+  .opcao-eletrica .traco path { animation-delay: .25s; }
+  .opcao-eletrica .traco .s2 { animation-delay: .4s; } .opcao-eletrica .traco .s3 { animation-delay: .55s; }
+}
+@keyframes desenha { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
+@media (max-width: 720px) {
+  .escolha { grid-template-columns: minmax(0, 1fr); gap: 36px; }
+  .traco { height: 110px; }
+  .inicio { padding-top: 40px; }
+}

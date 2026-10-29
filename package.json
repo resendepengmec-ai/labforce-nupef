@@ -1,0 +1,9 @@
+{
+  "name": "labforce-nupef",
+  "private": true,
+  "type": "module",
+  "description": "LabForce NUPEF - analise de ensaios de usinagem no navegador (forcas e grandezas eletricas)",
+  "scripts": {
+    "test": "node eletrica/testes/teste_unidades.js && node eletrica/testes/teste_golden.js"
+  }
+}

@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Potências Elétricas · IFG</title>
+<meta name="description" content="Análise de ensaios de potência elétrica (aquisição ESP32, 3F+N) no navegador: potências, FFT, IEEE 519-2022 e IEEE 1459-2010. Os dados não saem do computador.">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: blob:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
+<link rel="icon" href="img/icone.svg" type="image/svg+xml">
+<link rel="stylesheet" href="css/estilo.css">
+</head>
+<body>
+<header class="topo">
+  <div class="topo-in">
+    <div>
+      <a class="voltar" href="../">LabForce NUPEF</a>
+      <h1>Potências Elétricas</h1>
+      <p class="sub">Ensaios de potência em máquinas-ferramenta · aquisição ESP32 3F+N · IFG Câmpus Goiânia</p>
+    </div>
+    <div class="selo" title="O processamento é feito neste navegador. Nenhum dado é enviado pela rede.">
+      Processado no seu computador · nada é enviado
+    </div>
+  </div>
+</header>
+
+<main id="app">
+  <noscript><p class="alerta">Esta página precisa de JavaScript.</p></noscript>
+  <p id="avisoNavegador" class="alerta" hidden></p>
+
+  <!-- 1. Ligacao -->
+  <section class="cartao" id="secLigacao">
+    <h2><span class="num">1</span>Ligação 3F+N</h2>
+    <div class="ligacao">
+      <img src="img/ligacao_3F_N.png" alt="Esquemático: sensores de corrente Ia, Ib, Ic nas fases A, B, C, com a seta no sentido rede para carga; tensões Va, Vb, Vc medidas em relação ao neutro; aquisição ESP32 com 6 canais." width="743" height="515">
+      <div>
+        <p>Sistema trifásico a 4 fios (3F+N), tensões medidas fase-neutro. Confira a ligação dos sensores:</p>
+        <ol>
+          <li>Seta do sensor de corrente no sentido rede → carga.</li>
+          <li>Mesma fase nos dois canais: Ia com Va, Ib com Vb, Ic com Vc.</li>
+          <li>Neutro = referência das tensões. In não é medida (é calculada).</li>
+          <li>Sequência de fases A-B-C (positiva).</li>
+        </ol>
+        <button id="btLigacao" class="prim">OK, estou ciente da aplicação</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2. Configuracao -->
+  <section class="cartao" id="secConfig" hidden>
+    <h2><span class="num">2</span>Configuração da análise</h2>
+    <div class="grade3">
+      <fieldset>
+        <legend>Etapa 1 · Calibração por canal</legend>
+        <label class="lin">Sensores
+          <select id="calPreset">
+            <option value="amarela">Posição Amarela (In = 17,5 A)</option>
+            <option value="vermelha">Posição Vermelha (In = 10,5 A)</option>
+            <option value="pers">Personalizada</option>
+          </select>
+        </label>
+        <div class="cal" id="calCampos"></div>
+        <p class="nota">Fator adimensional [-]. Aceita vírgula ou ponto.</p>
+      </fieldset>
+      <fieldset>
+        <legend>Etapa 2 · Faixas por ensaio</legend>
+        <label class="lin">Quantidade de faixas
+          <select id="nFaixas"></select>
+        </label>
+        <label class="chk"><input type="checkbox" id="zoom"> Delimitar antes uma região de interesse (zoom)</label>
+        <p class="nota">Com zoom: 2 cliques delimitam a região; depois 2 cliques por faixa dentro dela.</p>
+      </fieldset>
+      <fieldset>
+        <legend>Etapa 3 · Grandezas</legend>
+        <p class="nota">P, U, Ief, St e FP: sempre calculadas.</p>
+        <label class="chk"><input type="checkbox" id="opFFT" checked> Frequência, defasagens e espectro (FFT)</label>
+        <label class="chk"><input type="checkbox" id="op519" checked> Harmônicos e limites IEEE 519-2022</label>
+        <label class="chk"><input type="checkbox" id="op1459" checked> Potências IEEE 1459-2010 (4 fios)</label>
+        <label class="chk"><input type="checkbox" id="opGraf" checked> Salvar gráficos (PNG)</label>
+      </fieldset>
+    </div>
+    <details class="avancado">
+      <summary>Parâmetros avançados</summary>
+      <div class="grade3">
+        <label class="lin">Frequência da rede [Hz]<input id="pRede" inputmode="decimal"></label>
+        <label class="lin">Média móvel do gráfico [ciclos]<input id="pCic" inputmode="numeric"></label>
+        <label class="lin">Faixa mínima [s]<input id="pDur" inputmode="decimal"></label>
+        <label class="lin">Isc/IL no PCC (IEEE 519) [-]<input id="pIsc" inputmode="decimal"></label>
+        <label class="lin">IL (IEEE 519) [A], vazio = automático<input id="pIL" inputmode="decimal" placeholder="automático"></label>
+        <label class="lin">Atraso dos canais Va Vb Vc Ia Ib Ic [µs]<input id="pAtraso" placeholder="0 0 0 0 0 0"></label>
+      </div>
+      <p class="nota">Taxa de amostragem: detectada em cada ensaio pela rede e arredondada ao valor ajustado no firmware. Não há parâmetro.</p>
+      <button id="btPadrao" class="sec">Restaurar padrões</button>
+    </details>
+    <p id="erroConfig" class="erro" role="alert"></p>
+    <button id="btConfig" class="prim">Continuar</button>
+  </section>
+
+  <!-- 3. Arquivos e pasta -->
+  <section class="cartao" id="secArquivos" hidden>
+    <h2><span class="num">3</span>Arquivos do ensaio e pasta de resultados</h2>
+    <div class="grade2">
+      <div>
+        <h3>Pasta de resultados</h3>
+        <div id="pastaDireta">
+          <p class="nota">Cada rodada cria <code>resultados_AAAAMMDD_hhmmss</code> dentro desta pasta. O navegador lembra a pasta.</p>
+          <div class="acoes">
+            <button id="btPasta" class="sec">Escolher pasta…</button>
+            <button id="btPastaLembrada" class="sec" hidden></button>
+          </div>
+          <p id="pastaAtual" class="ok"></p>
+        </div>
+        <div id="pastaZip" hidden>
+          <p class="nota">Este navegador não grava direto em pasta. Os resultados são baixados num <code>.zip</code> ao fim de cada ensaio. Para gravar direto na pasta, use Chrome ou Edge no computador.</p>
+        </div>
+      </div>
+      <div>
+        <h3>Arquivos (.txt do ESP32)</h3>
+        <label class="soltar" id="soltar">
+          <input type="file" id="arquivos" accept=".txt,.csv,.dat,text/plain" multiple>
+          <span>Arraste os arquivos aqui ou <u>clique para escolher</u></span>
+        </label>
+        <ul id="listaArq" class="lista"></ul>
+      </div>
+    </div>
+    <p id="erroArq" class="erro" role="alert"></p>
+    <button id="btIniciar" class="prim" disabled>Iniciar análise</button>
+  </section>
+
+  <!-- 4. Ensaio: selecao das faixas -->
+  <section class="cartao" id="secEnsaio" hidden>
+    <h2><span class="num">4</span><span id="tituloEnsaio">Ensaio</span></h2>
+    <p id="infoEnsaio" class="info"></p>
+    <div id="avisosEnsaio"></div>
+    <p id="instrucao" class="instrucao" aria-live="polite"></p>
+    <div class="selecao">
+      <canvas id="cvSel" tabindex="0" aria-label="Potência suavizada no tempo; clique para marcar início e fim das faixas"></canvas>
+      <div id="leitura" class="leitura"></div>
+    </div>
+    <div class="acoes">
+      <button id="btDesfazer" class="sec" title="Ctrl+Z">Desfazer clique</button>
+      <button id="btReiniciar" class="sec">Reiniciar seleção</button>
+      <button id="btPular" class="sec">Pular este ensaio</button>
+      <button id="btAnalisar" class="prim" disabled>Analisar faixas</button>
+    </div>
+  </section>
+
+  <!-- 5. Resultados -->
+  <section class="cartao" id="secResultados" hidden>
+    <h2><span class="num">5</span>Resultados</h2>
+    <p id="destinoInfo" class="info"></p>
+    <div class="tabela-rolar"><table id="tabResumo" class="tabela"></table></div>
+    <div id="resFaixas"></div>
+    <details class="relatorio" open>
+      <summary>Relatório (relatorio.txt)</summary>
+      <pre id="log"></pre>
+    </details>
+    <div class="acoes">
+      <button id="btZip" class="sec">Baixar tudo em .zip</button>
+      <button id="btNova" class="sec" hidden>Nova análise</button>
+    </div>
+  </section>
+</main>
+
+<footer class="rodape">
+  <p>Método: Potencias_Eletricas v5.3.3 (Scilab), autores: Prof. Dr. Ildeu L. Siqueira, Prof. Me. Sebastião G. L. Junior,
+     Eng. Leonardo R. C. Cambuim, Me. Eng. Paulo V. S. Resende · IFG Câmpus Goiânia. IEEE 519 e 1459: resultado indicativo, medido no quadro da máquina (não no PCC).</p>
+  <p id="versao"></p>
+</footer>
+<script type="module" src="js/app.js"></script>
+</body>
+</html>
