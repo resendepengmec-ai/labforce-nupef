@@ -17,3 +17,10 @@
   .inst nav { grid-column: 1 / -1; flex-direction: row; flex-wrap: wrap; gap: 4px 18px; text-align: left; }
   .logo-ifg img { height: 44px; }
 }
+
+/* cabecalho: simbolo do IFG + nome do campus (o logo vertical completo fica no rodape) */
+.marca-ifg { display: inline-flex; align-items: center; gap: 9px; text-decoration: none; color: var(--tinta, #17201c); flex: none; padding: 4px 0; }
+.marca-ifg img { display: block; height: 36px; width: auto; }
+.marca-ifg span { display: flex; flex-direction: column; font-size: .8rem; line-height: 1.2; font-weight: 600; }
+.marca-ifg small { font-weight: 400; color: var(--cinza, #5e6a64); font-size: .78rem; }
+@media (max-width: 720px) { .marca-ifg span { display: none; } }

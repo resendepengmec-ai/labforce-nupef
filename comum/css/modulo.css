@@ -142,3 +142,10 @@ pre.log { font-family: var(--mono); font-size: .78rem; background: var(--papel);
   .modulo { border-left: 0; padding-left: 0; }
   .barra nav { margin-left: 0; width: 100%; }
 }
+
+/* botao do manual tecnico, visivel no titulo da pagina */
+.titulo-pag { display: flex; justify-content: space-between; align-items: flex-end; gap: 14px 24px; flex-wrap: wrap; }
+.bt-manual { display: inline-flex; align-items: center; gap: 9px; min-height: 46px; padding: 10px 18px; border: 1.5px solid var(--acento); border-radius: 8px;
+  color: var(--acento); background: var(--painel); text-decoration: none; font-weight: 600; white-space: nowrap; }
+.bt-manual svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linejoin: round; stroke-linecap: round; }
+.bt-manual:hover { background: var(--acento); color: var(--acento-t); }

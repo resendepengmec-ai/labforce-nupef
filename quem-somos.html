@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Quem somos · LabForce NUPEF</title>
 <meta name="description" content="NUPEF, Núcleo de Pesquisa em Fabricação do Instituto Federal de Goiás, Câmpus Goiânia: linhas de pesquisa e integrantes.">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self'; img-src 'self' data: https://www.ifg.edu.br; script-src 'none'; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self'; img-src 'self' data:; script-src 'none'; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
 <meta name="referrer" content="no-referrer">
 <link rel="icon" href="assets/icone.svg" type="image/svg+xml">
 <link rel="stylesheet" href="assets/inicio.css">
@@ -17,13 +17,18 @@
   <nav class="topo-nav" aria-label="Navegação principal">
     <a href="./">Início</a>
     <a href="quem-somos.html" aria-current="page">Quem somos</a>
-    <a class="logo-ifg" href="https://www.ifg.edu.br/goiania" rel="noopener noreferrer"><img src="https://www.ifg.edu.br/images/ifg/campus/goiania/logo/logo-ifg-vertical-goiania.png" alt="Instituto Federal de Goiás, Câmpus Goiânia" width="37" height="52" referrerpolicy="no-referrer"></a>
+    <a class="marca-ifg" href="https://www.ifg.edu.br/goiania" rel="noopener noreferrer"><img src="assets/simbolo-ifg.png" alt="" width="30" height="40"><span>Instituto Federal de Goiás<small>Câmpus Goiânia</small></span></a>
   </nav>
 </header>
 
 <main class="qs">
-  <h1>Núcleo de Pesquisa em Fabricação</h1>
-  <p class="lead">O NUPEF é o grupo de pesquisa do Instituto Federal de Goiás, Câmpus Goiânia, que mantém o LabForce. O grupo atua em processos de usinagem e em planejamento experimental.</p>
+  <div class="qs-topo">
+    <div>
+      <h1>Núcleo de Pesquisa em Fabricação</h1>
+      <p class="lead">O NUPEF é o grupo de pesquisa do Instituto Federal de Goiás, Câmpus Goiânia, que mantém o LabForce. O grupo atua em processos de usinagem e em planejamento experimental.</p>
+    </div>
+    <img class="qs-logo" src="assets/logo-ifg-goiania.png" alt="Instituto Federal de Goiás, Câmpus Goiânia" width="129" height="180">
+  </div>
 
   <dl class="fatos">
     <div><dt>Criado em</dt><dd>2012</dd></div>
@@ -31,39 +36,72 @@
     <div><dt>Líder</dt><dd>Sebastião Gonçalves Lima Júnior</dd></div>
   </dl>
 
-  <div class="qs-grade">
-    <section aria-labelledby="hLinhas">
-      <h2 id="hLinhas">Linhas de pesquisa</h2>
-      <ul class="linhas">
-        <li>Processos de usinagem</li>
-        <li>Planejamento experimental</li>
-      </ul>
-      <h2>O que o LabForce faz</h2>
-      <p>Reúne as ferramentas de análise dos ensaios do laboratório, no navegador e sem servidor:</p>
-      <ul>
-        <li><a href="forcas/">Análise de forças de usinagem</a>: sinais do dinamômetro, estatística por faixa e força de corte teórica.</li>
-        <li><a href="eletrica/">Análise de grandezas elétricas</a>: potências, harmônicos (IEEE 519) e potências da IEEE 1459 em ensaios com aquisição ESP32.</li>
-      </ul>
-    </section>
-    <section aria-labelledby="hInt">
-      <h2 id="hInt">Integrantes</h2>
-      <ul class="pessoas">
-        <li>Sebastião Gonçalves Lima Júnior <span>líder</span></li>
-        <li>Ildeu Lucio Siqueira <span>pesquisador</span></li>
-        <li>Julio Cezar Pedrosa da Silva <span>pesquisador</span></li>
-        <li>Manoel Ivany de Queiroz Junior <span>pesquisador</span></li>
-        <li>Paulo Vinicius da Silva Resende <span>pesquisador</span></li>
-        <li>Efraim França Oliveira Pires de Jesus <span>estudante</span></li>
-      </ul>
-      <p class="fonte">Fonte: <a href="https://ifgproduz.ifg.edu.br/informacoes-grupo/70" rel="noopener noreferrer">página do NUPEF no IFG Produz</a>, consultada em 29 out. 2026. A produção bibliográfica do grupo está nessa página.</p>
-    </section>
-  </div>
+  <section class="bloco" aria-labelledby="hLinhas">
+    <h2 id="hLinhas">Linhas de pesquisa</h2>
+    <div class="linhas">
+      <article class="linha linha-usin">
+        <svg viewBox="0 0 120 80" aria-hidden="true">
+          <rect x="6" y="22" width="70" height="30" rx="4" class="l-peca"/>
+          <ellipse cx="6" cy="37" rx="5" ry="15" class="l-peca2"/>
+          <polygon points="74,52 96,52 104,76 82,76" class="l-ferr"/>
+          <path d="M76 52 q-8 -10 -2 -20 q6 -8 14 -4" class="l-cavaco"/>
+          <path d="M20 14 a14 5 0 1 1 0 1" class="l-giro"/>
+        </svg>
+        <h3>Processos de usinagem</h3>
+        <p>Forças de corte, potência consumida e comportamento das máquinas-ferramenta em ensaios de laboratório.</p>
+      </article>
+      <article class="linha linha-plan">
+        <svg viewBox="0 0 120 80" aria-hidden="true">
+          <path d="M20 66 L20 14 M20 66 L104 66" class="l-eixo"/>
+          <g class="l-pontos"><circle cx="34" cy="54" r="5"/><circle cx="62" cy="54" r="5"/><circle cx="90" cy="54" r="5"/>
+          <circle cx="34" cy="34" r="5"/><circle cx="62" cy="34" r="5"/><circle cx="90" cy="34" r="5"/></g>
+          <path d="M34 54 L62 40 L90 22" class="l-resp"/>
+        </svg>
+        <h3>Planejamento experimental</h3>
+        <p>Escolha de fatores e níveis, repetições e análise estatística dos resultados dos ensaios.</p>
+      </article>
+    </div>
+  </section>
+
+  <section class="bloco" aria-labelledby="hTempo">
+    <h2 id="hTempo">Linha do tempo</h2>
+    <ol class="tempo">
+      <li class="m-grupo"><time datetime="2012">2012</time><h3>Criação do NUPEF</h3><p>Grupo de pesquisa do IFG Câmpus Goiânia.</p></li>
+      <li class="m-elet"><time datetime="2017">2017</time><h3>Primeiros ensaios de potência</h3><p>Potência elétrica em tornos durante o corte.</p></li>
+      <li class="m-elet"><time datetime="2019">2019</time><h3>Vazio × corte</h3><p>Faixas do ensaio separadas; aquisição com Arduino.</p></li>
+      <li class="m-elet"><time datetime="2020">2020</time><h3>Aquisição trifásica ESP32</h3><p>Tensões e correntes nas 3 fases, defasagens e potências.</p></li>
+      <li class="m-forca"><time datetime="2022">2022</time><h3>Rendimento de tornos</h3><p>Ensaios em tornos convencionais e na disciplina de Fundamentos de Usinagem.</p></li>
+      <li class="m-lab"><time datetime="2026">2026</time><h3>LabForce</h3><p>Forças e grandezas elétricas analisadas no navegador, com IEEE 519 e IEEE 1459.</p></li>
+    </ol>
+    <ul class="legenda" aria-label="Legenda"><li><span class="sw sw-grupo"></span>grupo</li><li><span class="sw sw-elet"></span>ensaios elétricos</li><li><span class="sw sw-forca"></span>usinagem</li><li><span class="sw sw-lab"></span>LabForce</li></ul>
+    <p class="fonte">Datas de 2017 a 2022: versões da rotina Potencias_Eletricas do laboratório.</p>
+  </section>
+
+  <section class="bloco" aria-labelledby="hInt">
+    <h2 id="hInt">Integrantes</h2>
+    <ul class="pessoas">
+      <li class="lider"><span class="ini" aria-hidden="true">SG</span><span class="nome">Sebastião Gonçalves Lima Júnior<small>líder</small></span></li>
+      <li><span class="ini" aria-hidden="true">IS</span><span class="nome">Ildeu Lucio Siqueira<small>pesquisador</small></span></li>
+      <li><span class="ini" aria-hidden="true">JS</span><span class="nome">Julio Cezar Pedrosa da Silva<small>pesquisador</small></span></li>
+      <li><span class="ini" aria-hidden="true">MQ</span><span class="nome">Manoel Ivany de Queiroz Junior<small>pesquisador</small></span></li>
+      <li><span class="ini" aria-hidden="true">PR</span><span class="nome">Paulo Vinicius da Silva Resende<small>pesquisador</small></span></li>
+      <li class="estud"><span class="ini" aria-hidden="true">EJ</span><span class="nome">Efraim França Oliveira Pires de Jesus<small>estudante</small></span></li>
+    </ul>
+    <p class="fonte">Fonte dos dados do grupo: <a href="https://ifgproduz.ifg.edu.br/informacoes-grupo/70" rel="noopener noreferrer">página do NUPEF no IFG Produz</a>, consultada em 29 out. 2026. A produção bibliográfica do grupo está nessa página.</p>
+  </section>
+
+  <section class="bloco" aria-labelledby="hLab">
+    <h2 id="hLab">Ferramentas do laboratório</h2>
+    <div class="atalhos">
+      <a class="atalho at-forca" href="forcas/"><strong>Análise de forças de usinagem</strong><span>Dinamômetro: estatística por faixa, espectro e força de corte teórica.</span></a>
+      <a class="atalho at-elet" href="eletrica/"><strong>Análise de grandezas elétricas</strong><span>ESP32 3F+N: potências, IEEE 519 e IEEE 1459.</span></a>
+    </div>
+  </section>
 </main>
 
 <footer class="rodape">
-  <p class="manuais">Manuais técnicos: <a href="forcas/manual.html">forças de usinagem</a> e <a href="eletrica/manual.html">grandezas elétricas</a>.</p>
   <div class="inst">
-    <a class="logo-ifg" href="https://www.ifg.edu.br/goiania" rel="noopener noreferrer"><img src="https://www.ifg.edu.br/images/ifg/campus/goiania/logo/logo-ifg-vertical-goiania.png" alt="Instituto Federal de Goiás, Câmpus Goiânia" width="51" height="72" loading="lazy" referrerpolicy="no-referrer"></a>
+    <a class="logo-ifg" href="https://www.ifg.edu.br/goiania" rel="noopener noreferrer"><img src="assets/logo-ifg-goiania.png" alt="Instituto Federal de Goiás, Câmpus Goiânia" width="52" height="72" loading="lazy"></a>
     <address><strong>Instituto Federal de Goiás · Câmpus Goiânia</strong>NUPEF, Núcleo de Pesquisa em Fabricação<br>Rua 75, nº 46, Centro, Goiânia-GO, CEP 74055-110<br>Telefone (62) 3227-2700</address>
     <nav aria-label="Links institucionais"><a href="quem-somos.html">Quem somos</a><a href="https://www.ifg.edu.br/goiania" rel="noopener noreferrer">ifg.edu.br/goiania</a><a href="https://ifgproduz.ifg.edu.br/informacoes-grupo/70" rel="noopener noreferrer">NUPEF no IFG Produz</a></nav>
   </div>

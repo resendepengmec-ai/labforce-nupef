@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Grandezas elétricas · LabForce NUPEF</title>
 <meta name="description" content="Análise de ensaios de potência elétrica (aquisição ESP32, 3F+N) no navegador: potências, FFT, IEEE 519-2022 e IEEE 1459-2010. Os dados não saem do computador.">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: https://www.ifg.edu.br blob:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: blob:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
 <meta name="referrer" content="no-referrer">
 <link rel="icon" href="../assets/icone.svg" type="image/svg+xml">
 <link rel="stylesheet" href="../comum/css/modulo.css">
@@ -23,14 +23,17 @@
       <a href="../quem-somos.html">Quem somos</a>
       <a href="../">Início</a>
     </nav>
-    <a class="logo-ifg" href="https://www.ifg.edu.br/goiania" rel="noopener noreferrer"><img src="https://www.ifg.edu.br/images/ifg/campus/goiania/logo/logo-ifg-vertical-goiania.png" alt="Instituto Federal de Goiás, Câmpus Goiânia" width="31" height="44" referrerpolicy="no-referrer"></a>
+    <a class="marca-ifg" href="https://www.ifg.edu.br/goiania" rel="noopener noreferrer"><img src="../assets/simbolo-ifg.png" alt="" width="27" height="36"><span>Instituto Federal de Goiás<small>Câmpus Goiânia</small></span></a>
   </div>
 </header>
 
 <main id="app">
   <div class="titulo-pag">
-    <h1>Análise de grandezas elétricas</h1>
-    <p>Ensaios trifásicos 3F+N adquiridos com o ESP32. Os arquivos são processados neste navegador; nenhum dado de ensaio é enviado para servidor.</p>
+    <div>
+      <h1>Análise de grandezas elétricas</h1>
+      <p>Ensaios trifásicos 3F+N adquiridos com o ESP32. Os arquivos são processados neste navegador; nenhum dado de ensaio é enviado para servidor.</p>
+    </div>
+    <a class="bt-manual" href="manual.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v17H6.5A2.5 2.5 0 0 0 4 21.5zM4 21.5A2.5 2.5 0 0 1 6.5 19H20v3H6.5A2.5 2.5 0 0 1 4 21.5zM8 6h8M8 9.5h6"/></svg>Manual técnico</a>
   </div>
   <noscript><p class="aviso">Esta página precisa de JavaScript.</p></noscript>
   <p id="avisoNavegador" class="aviso" hidden></p>
@@ -181,7 +184,7 @@
   <p>Método: Potencias_Eletricas v5.3.3 (Scilab), IFG Câmpus Goiânia: Prof. Dr. Ildeu L. Siqueira, Prof. Me. Sebastião G. L. Junior, Eng. Leonardo R. C. Cambuim, Me. Eng. Paulo V. S. Resende. IEEE 519 e 1459: resultado indicativo, medido no quadro da máquina (não no PCC).</p>
   <p id="versao"></p>
   <div class="inst">
-    <a class="logo-ifg" href="https://www.ifg.edu.br/goiania" rel="noopener noreferrer"><img src="https://www.ifg.edu.br/images/ifg/campus/goiania/logo/logo-ifg-vertical-goiania.png" alt="Instituto Federal de Goiás, Câmpus Goiânia" width="51" height="72" loading="lazy" referrerpolicy="no-referrer"></a>
+    <a class="logo-ifg" href="https://www.ifg.edu.br/goiania" rel="noopener noreferrer"><img src="../assets/logo-ifg-goiania.png" alt="Instituto Federal de Goiás, Câmpus Goiânia" width="52" height="72" loading="lazy"></a>
     <address><strong>Instituto Federal de Goiás · Câmpus Goiânia</strong>NUPEF, Núcleo de Pesquisa em Fabricação<br>Rua 75, nº 46, Centro, Goiânia-GO, CEP 74055-110<br>Telefone (62) 3227-2700</address>
     <nav aria-label="Links institucionais"><a href="../quem-somos.html">Quem somos</a><a href="https://www.ifg.edu.br/goiania" rel="noopener noreferrer">ifg.edu.br/goiania</a><a href="https://ifgproduz.ifg.edu.br/informacoes-grupo/70" rel="noopener noreferrer">NUPEF no IFG Produz</a></nav>
   </div>
