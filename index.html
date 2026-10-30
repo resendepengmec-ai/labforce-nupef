@@ -21,10 +21,16 @@
 </header>
 
 <main class="inicio">
-  <h1>Análise de ensaios de usinagem</h1>
-  <p class="lead">Escolha o sinal do ensaio. Os arquivos são lidos e processados neste navegador; nenhum dado de ensaio é enviado para servidor.</p>
+  <h1>Análise de experimentos de usinagem e processos de fabricação</h1>
+  <ol class="passos-lab" aria-label="Como usar o LabForce">
+    <li><strong>Monte</strong> o seu sistema de aquisição</li>
+    <li><strong>Colete</strong> os dados</li>
+    <li><strong>Analise</strong> na plataforma LabForce</li>
+    <li><strong>Chegue</strong> às conclusões</li>
+  </ol>
 
-  <nav class="escolha" aria-label="Tipo de análise">
+  <h2 class="sec-mod">Módulos</h2>
+  <nav class="escolha" aria-label="Módulos de análise">
     <a class="opcao opcao-forca" href="forcas/">
       <svg class="traco" viewBox="0 0 480 150" preserveAspectRatio="none" aria-hidden="true">
         <line class="eixo" x1="0" y1="138" x2="480" y2="138"/>
@@ -45,6 +51,27 @@
       <span class="rotulo">Análise de grandezas elétricas</span>
       <span class="desc">Aquisição ESP32 trifásica 3F+N: potências, fator de potência, FFT, IEEE 519-2022 e IEEE 1459-2010.</span>
     </a>
+    <div class="opcao opcao-breve opcao-doe" aria-disabled="true">
+      <svg class="traco" viewBox="0 0 480 150" preserveAspectRatio="none" aria-hidden="true">
+        <line class="eixo" x1="0" y1="138" x2="480" y2="138"/>
+        <g class="pontos"><circle cx="70" cy="110" r="7"/><circle cx="70" cy="82" r="7"/><circle cx="190" cy="96" r="7"/><circle cx="190" cy="66" r="7"/>
+        <circle cx="310" cy="70" r="7"/><circle cx="310" cy="44" r="7"/><circle cx="430" cy="40" r="7"/><circle cx="430" cy="18" r="7"/></g>
+        <path class="s1" pathLength="1" d="M40 108 L460 20"/>
+      </svg>
+      <span class="rotulo">Planejamento de experimentos <span class="selo-breve">em construção</span></span>
+      <span class="desc">Módulo de estatística: planejamento fatorial, análise de variância e efeitos dos parâmetros de corte.</span>
+    </div>
+    <div class="opcao opcao-breve opcao-desg" aria-disabled="true">
+      <svg class="traco" viewBox="0 0 480 150" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+        <line class="eixo" x1="0" y1="138" x2="480" y2="138"/>
+        <polygon class="inserto" points="140,18 340,18 380,130 100,130"/>
+        <path class="desgaste" d="M100 130 L120 102 Q240 92 360 102 L380 130 Z"/>
+        <path class="s1" pathLength="1" d="M120 102 Q240 92 360 102"/>
+        <line class="cota" x1="400" y1="102" x2="400" y2="130"/><text x="410" y="122" class="vb">VB</text>
+      </svg>
+      <span class="rotulo">Desgaste de ferramentas por imagens <span class="selo-breve">em construção</span></span>
+      <span class="desc">Medição do desgaste de flanco (VB) e da cratera em imagens de microscópio das arestas de corte.</span>
+    </div>
   </nav>
 
   <section class="video" aria-labelledby="hVideo">

@@ -3,6 +3,7 @@
 //   analisarFaixa  : estatistica por canal, CSV da faixa e forca teorica
 import { lerArquivo, taxaDoTempo, estatistica, corteTeorico } from "./nucleo.js";
 import { sprintf, nv } from "../../comum/js/formato.js";
+import { DINAMOMETROS, verificarFaixa } from "./dinamometros.js";
 
 export const VERSAO = "web 2.0.0";
 export const CANAIS = [
@@ -27,6 +28,11 @@ export function prepararEnsaio(texto, nome, p, log) {
     nome, L.N, tx.fs, L.t[L.N - 1] - L.t[0], L.ignoradas));
   if (L.cabecalho) log.push("  cabecalho: " + L.cabecalho);
   if (tx.desvio > 1) log.push(sprintf("AVISO %s: o passo de tempo variou ate %.1f %% do passo medio. Estatisticas validas; frequencia dominante com erro.", nome, tx.desvio));
+  if (p.modelo && DINAMOMETROS[p.modelo]) {
+    const mn = {}, mx = {};
+    for (const c of ["fx", "fy", "fz"]) { let a = Infinity, b = -Infinity; for (const v of L.F[c]) { if (v < a) a = v; if (v > b) b = v; } mn[c] = a; mx[c] = b; }
+    for (const a of verificarFaixa(p.modelo, mn, mx)) log.push(`AVISO ${nome}: ${a}. Confira a faixa do amplificador e se houve sobrecarga.`);
+  }
   return { nome, ...L, fs: tx.fs, desvio: tx.desvio };
 }
 
@@ -42,6 +48,13 @@ export function analisarFaixa(E, c1, c2, rotulo, p, op, log) {
   for (const { k, rot } of CANAIS) {
     const s = est[k];
     log.push(sprintf("  %-4s %10.2f %9.2f %9.2f %9.2f %6.3f %7.3f %8.3f %7.3f %9.2f", rot, s.media, s.rms, s.pico, s.dp, s.cv, s.crista, s.curtose, s.assimetria, s.fdom));
+  }
+  const d = p.modelo && DINAMOMETROS[p.modelo];
+  if (d) {
+    const fnMin = 1000 * Math.min(d.fn.x, d.fn.y, d.fn.z);
+    for (const { k, rot } of CANAIS.slice(0, 3)) {
+      if (est[k].fdom > 0.5 * fnMin) log.push(sprintf("  AVISO: frequencia dominante de %s (%.0f Hz) acima de metade da frequencia natural do %s (%.0f Hz); amplitude pode estar amplificada.", rot, est[k].fdom, d.nome, fnMin));
+    }
   }
   R.linhasResumo = CANAIS.map(({ k, rot }) => {
     const s = est[k];

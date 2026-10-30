@@ -7,7 +7,7 @@
 .montagem li { margin-bottom: .35rem; }
 .peca { fill: #c9d1d6; stroke: #7d8a92; }
 .peca-face { fill: #aeb8bf; stroke: #7d8a92; }
-.giro { fill: none; stroke: #7d8a92; stroke-width: 2; marker-end: none; }
+.giro { fill: none; stroke: #7d8a92; stroke-width: 2; }
 .ferr { fill: #8f9aa3; stroke: #4a5258; }
 .dina { fill: #2e3a40; }
 .rot { font-size: 14px; fill: #2b3438; }
@@ -35,3 +35,39 @@
   .montagem { grid-template-columns: minmax(0, 1fr); }
   .grade4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
+
+/* tipo de ensaio (controle segmentado) */
+.tipo-ensaio { border: 0; padding: 0; margin: 0 0 16px; }
+.tipo-ensaio legend { font-weight: 600; padding: 0; margin-bottom: 8px; }
+.segmentado { display: inline-flex; flex-wrap: wrap; border: 1.5px solid var(--acento); border-radius: 10px; overflow: hidden; }
+.segmentado label { position: relative; cursor: pointer; }
+.segmentado input { position: absolute; opacity: 0; inset: 0; cursor: pointer; }
+.segmentado span { display: flex; align-items: center; min-height: 46px; padding: 10px 20px; font-weight: 600; color: var(--acento); }
+.segmentado label + label span { border-left: 1.5px solid var(--acento); }
+.segmentado input:checked + span { background: var(--acento); color: var(--acento-t); }
+.segmentado input:focus-visible + span { outline: 3px solid var(--acento); outline-offset: -5px; }
+.comp { padding-left: 1.1rem; }
+.comp li { margin-bottom: .35rem; }
+.comp b.cz { color: rgb(220,0,0); } .comp b.cx { color: rgb(0,0,205); } .comp b.cy { color: rgb(0,128,0); }
+.fonte-tipo { color: var(--cinza); font-size: .82rem; margin: 10px 0 0; }
+.torre { fill: #5c6870; }
+.rot-p { font-size: 13px; fill: #4a5258; text-anchor: middle; }
+.rot-c-l { font-size: 12px; fill: #fff; }
+.mesa { fill: #5c6870; }
+.peca-r { fill: #c9d1d6; stroke: #7d8a92; }
+.fuso { fill: #8f9aa3; stroke: #4a5258; }
+.fresa { fill: #b8c4cc; stroke: #4a5258; }
+.hel { stroke: #4a5258; stroke-width: 1.5; fill: none; }
+.vet-c { fill: #fff; stroke-width: 3; }
+.vet-c.vz { stroke: rgb(220,0,0); } .vet-c.vy { stroke: rgb(0,128,0); }
+.vet { fill: none; }
+
+/* tipo de ensaio + modelo do dinamometro */
+.escolhas-ensaio { display: flex; flex-wrap: wrap; gap: 8px 32px; align-items: flex-end; margin-bottom: 6px; }
+.escolhas-ensaio .tipo-ensaio { margin: 0; }
+.modelo { margin: 0; min-width: 240px; }
+.ficha { margin: 6px 0 16px; }
+.ficha summary { cursor: pointer; min-height: 44px; display: flex; align-items: center; color: var(--acento); font-weight: 600; }
+.ficha .tabela td:first-child { color: var(--cinza); white-space: normal; }
+.ficha .tabela td { text-align: left; white-space: normal; }
+.ficha .tabela th { text-align: left; }

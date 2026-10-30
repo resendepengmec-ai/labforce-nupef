@@ -185,7 +185,7 @@
 <ol class="passos">
   <li>Clique em <strong>Executar a verificação</strong>.</li>
   <li>Aguarde o fim do teste. O tempo é menor que 5 s.</li>
-  <li>Confirme que a mensagem mostra <code>Forças de usinagem: 31 verificações OK</code>.</li>
+  <li>Confirme que a mensagem mostra <code>Forças de usinagem: 35 verificações OK</code>.</li>
 </ol>
 <div class="verif">
   <button id="btVerificar" class="prim" type="button" data-modulo="js/autoteste.js" data-nome="Forças de usinagem">Executar a verificação</button>
@@ -197,11 +197,20 @@
 
 <section id="s7">
 <h2>7 Montagem do dinamômetro</h2>
-<p>O módulo considera a convenção usual do torneamento: Fz é a força de corte, Fx é a força de avanço e Fy é a força passiva. O DynoWare escreve esta convenção no cabeçalho do arquivo: <code>Time Ff (Fx) Fp (Fy) Fc (Fz)</code>. A figura 1 mostra a convenção.</p>
+<p>Na etapa 1, escolha o tipo de ensaio e o dinamômetro. O tipo de ensaio muda a figura, as componentes de força e a lista de conferência. O dinamômetro padrão é o Kistler 9257B.</p>
+<div class="tabela-rolar"><table>
+  <thead><tr><th>Tipo de ensaio</th><th>Montagem</th><th>Componentes medidas</th></tr></thead>
+  <tbody>
+    <tr><td>Torneamento</td><td>Dinamômetro estacionário entre a ferramenta e a torre (no 9257B, com o porta-ferramenta Tipo 9403).</td><td>Fc: força de corte (Fz); Ff: força de avanço (Fx); Fp: força passiva (Fy). Cabeçalho do DynoWare: <code>Time Ff (Fx) Fp (Fy) Fc (Fz)</code>.</td></tr>
+    <tr><td>Fresamento, furação e rosqueamento</td><td>Peça presa diretamente sobre o dinamômetro estacionário, na mesa da máquina.</td><td>Ff: força de avanço; FfN: força normal ao avanço, no plano de trabalho; Fp: força passiva (axial). Na furação, a força axial é a força de avanço; Fx e Fy são forças de deflexão.</td></tr>
+  </tbody>
+</table></div>
 <figure>
-  <img src="img/manual/montagem.png" alt="Etapa 1 da tela: esquema do torneamento com a peça, a ferramenta sobre o dinamômetro e os vetores Fz = Fc vertical, Fx = Ff ao longo do eixo da peça e Fy = Fp radial; lista de conferência ao lado." loading="lazy">
-  <figcaption>Figura 1 — Etapa 1 da tela: convenção dos eixos e lista de conferência da montagem.</figcaption>
+  <img src="img/manual/montagem.png" alt="Etapa 1 da tela: seletor do tipo de ensaio, seletor do dinamômetro, esquema do torneamento com os vetores Fc, Ff e Fp e lista de conferência." loading="lazy">
+  <figcaption>Figura 1 — Etapa 1 da tela: tipo de ensaio, dinamômetro, convenção dos eixos e lista de conferência.</figcaption>
 </figure>
+<p class="seg seg-nota"><strong>NOTA:</strong> Um dinamômetro estacionário de 3 componentes não mede o momento. Na furação, o momento Mc e a força de corte Fc = Mc / d (broca de 2 gumes, diâmetro d) exigem o 9272 (4 componentes) ou um dinamômetro rotativo. Este módulo lê o tempo e 3 forças.</p>
+<p class="seg seg-nota"><strong>NOTA:</strong> <strong>Dados técnicos do dinamômetro</strong> mostra a faixa de medição, a sensibilidade, a frequência natural, as dimensões e a massa do modelo escolhido (catálogo Kistler 960-002e, traduzido).</p>
 <h3 id="s7-1">7.1 Procedimento de montagem</h3>
 <p class="seg seg-adv"><strong>ADVERTÊNCIA:</strong> Pare a máquina e bloqueie o comando antes de montar o dinamômetro.</p>
 <ol class="passos">
@@ -215,6 +224,7 @@
   <li>Zere o amplificador (reset) com a ferramenta sem contato com a peça.</li>
   <li>Exporte o ensaio com o tempo e as 3 forças, em N.</li>
 </ol>
+<p class="seg seg-nota"><strong>NOTA:</strong> No fresamento, na furação e no rosqueamento, faça os passos 1, 5 a 9 e: fixe a peça diretamente sobre o dinamômetro, sem morsa pesada; alinhe o eixo x com o avanço; confirme que o eixo z é o eixo da ferramenta.</p>
 <p class="seg seg-cui"><strong>CUIDADO:</strong> Uma fixação solta altera as forças medidas e pode criar vibração.</p>
 <p class="seg seg-nota"><strong>NOTA:</strong> Com outra montagem, as direções podem mudar. Use o mapeamento das colunas (seção 8) para associar cada coluna do arquivo a Fx, Fy e Fz. Um fator de calibração negativo inverte o sentido de um canal.</p>
 <p class="seg seg-nota"><strong>NOTA:</strong> Os amplificadores de carga têm deriva. Grave o ensaio logo após o reset e faça ensaios curtos.</p>
@@ -226,6 +236,8 @@
 <div class="tabela-rolar"><table>
   <thead><tr><th>Campo</th><th>Valor padrão</th><th>Unidade</th><th>Quando alterar</th></tr></thead>
   <tbody>
+    <tr><td>Tipo de ensaio</td><td>Torneamento</td><td>-</td><td>Para fresamento, furação ou rosqueamento. A força de corte teórica fica desabilitada nesses processos.</td></tr>
+    <tr><td>Dinamômetro</td><td>Kistler 9257B</td><td>-</td><td>Quando outro modelo estiver montado. O modelo define a faixa usada no aviso de sobrecarga.</td></tr>
     <tr><td>Colunas 1 a 4</td><td>tempo, Fx, Fy, Fz</td><td>-</td><td>Quando o arquivo tiver outra ordem de colunas. Cada grandeza deve aparecer uma vez. Use <strong>ignorar</strong> para uma coluna sem uso.</td></tr>
     <tr><td>Fatores Fx, Fy, Fz</td><td>1,0</td><td>-</td><td>Quando o arquivo não estiver em N ou quando houver um ganho conhecido a corrigir. Um fator negativo inverte o sentido do canal. O fator não pode ser 0.</td></tr>
     <tr><td>Faixas por ensaio</td><td>1</td><td>-</td><td>Para analisar mais trechos do mesmo ensaio (1 a 8).</td></tr>
@@ -277,7 +289,9 @@
 <h3 id="s10-1">10.1 Confirmar a montagem</h3>
 <ol class="passos">
   <li>Abra o módulo (seção 5.1).</li>
-  <li>Compare a montagem real com a convenção da etapa 1.</li>
+  <li>Em <strong>Tipo de ensaio</strong>, clique em <strong>Torneamento</strong> ou em <strong>Fresamento, furação e rosqueamento</strong>.</li>
+  <li>Em <strong>Dinamômetro</strong>, escolha o modelo em uso (padrão: 9257B).</li>
+  <li>Compare a montagem real com a figura da etapa 1.</li>
   <li>Faça a conferência da lista da etapa 1.</li>
   <li>Clique em <strong>OK, montagem conferida</strong>.</li>
 </ol>
@@ -390,7 +404,8 @@ vc = π · D · n / 1000                      [m/min]</p>
 <h3 id="s12-3">12.3 Limites de medição</h3>
 <ol class="passos">
   <li><strong>Zero e deriva.</strong> O módulo não remove o offset. Um reset fora de hora ou a deriva do amplificador somam um erro constante à média. Confira se a força é próxima de zero antes da entrada da ferramenta.</li>
-  <li><strong>Frequência natural.</strong> O conjunto dinamômetro e ferramenta tem uma frequência natural. Componentes do sinal perto dela ficam amplificadas. Não interprete a amplitude do espectro perto da frequência natural.</li>
+  <li><strong>Frequência natural.</strong> O conjunto dinamômetro e ferramenta tem uma frequência natural (9257B: fn(x), fn(y) ≈ 2,3 kHz; fn(z) ≈ 3,5 kHz, sem massa adicional). Componentes do sinal perto dela ficam amplificadas. A massa da peça ou do porta-ferramenta reduz a frequência natural. O relatório mostra um aviso quando a frequência dominante passa da metade da menor frequência natural do modelo.</li>
+  <li><strong>Faixa de medição.</strong> O relatório mostra um aviso quando uma força passa de 90 % da faixa de medição do modelo (9257B: Fx, Fy −5 … 5 kN; Fz −5 … 10 kN).</li>
   <li><strong>Filtro e taxa.</strong> Componentes acima de fs/2 aparecem rebatidas no espectro se o filtro do amplificador não as remover.</li>
   <li><strong>Escolha da faixa.</strong> A entrada e a saída da ferramenta alteram a média e o DP. Use só o trecho de corte estável.</li>
   <li><strong>Resultante.</strong> Fr é calculada em cada amostra. A média de Fr não é igual à resultante das médias.</li>
@@ -410,6 +425,8 @@ vc = π · D · n / 1000                      [m/min]</p>
     <tr><td>Aviso: “Este navegador não grava direto em pasta”</td><td>O navegador não tem gravação em pasta (Firefox, Safari, celular).</td><td>Use o <code>.zip</code>, ou use Chrome ou Edge no computador.</td></tr>
     <tr><td>“Permissão de escrita negada” ou “Não foi possível acessar a pasta lembrada”</td><td>O navegador não deu permissão, ou a pasta mudou de lugar.</td><td>Clique em <strong>Escolher pasta…</strong> e escolha a pasta outra vez.</td></tr>
     <tr><td><strong>Analisar faixas</strong> desabilitado</td><td>Falta um limite, ou todas as faixas são curtas.</td><td>Siga a linha de instrução acima do gráfico.</td></tr>
+    <tr><td><code>AVISO ... acima de 90 % da faixa</code></td><td>Força perto do limite do dinamômetro, modelo errado na etapa 1 ou fator de calibração errado.</td><td>Confira o modelo e o fator. Reduza ap ou fn, ou use um dinamômetro de faixa maior.</td></tr>
+    <tr><td><code>AVISO ... metade da frequencia natural</code></td><td>Vibração ou componente do processo perto da ressonância do conjunto.</td><td>Não use a amplitude do espectro nessa frequência. Reduza a massa sobre o dinamômetro.</td></tr>
     <tr><td>Força antes do corte diferente de zero</td><td>O amplificador não foi zerado, ou houve deriva.</td><td>Faça o reset antes de cada ensaio (seção 7.1).</td></tr>
     <tr><td>Força com sinal invertido</td><td>Eixo do dinamômetro em sentido oposto à convenção.</td><td>Use o fator de calibração −1,0 no canal.</td></tr>
     <tr><td>Diferença com a força teórica maior que 30 %</td><td>kc1 ou mc de outro material, parâmetros de corte errados ou ferramenta desgastada.</td><td>Confira ap, fn, vc e os dados do catálogo. Inspecione a aresta da ferramenta.</td></tr>
@@ -422,6 +439,7 @@ vc = π · D · n / 1000                      [m/min]</p>
 <h2>14 Referências</h2>
 <ul class="ref">
   <li>AEROSPACE, SECURITY AND DEFENCE INDUSTRIES ASSOCIATION OF EUROPE (ASD). <em>ASD-STE100</em>: Simplified Technical English. Issue 9. Bruxelas: ASD, 2025. Disponível em: <a href="https://www.asd-ste100.org" rel="noopener noreferrer">https://www.asd-ste100.org</a>. Acesso em: 29 out. 2026.</li>
+  <li>KISTLER GROUP. <em>Analyzing and optimizing cutting processes</em>: sensors and solutions for cutting force measurements. Catálogo 960-002e-02.26. Winterthur: Kistler, 2026.</li>
   <li>KIENZLE, O. Die Bestimmung von Kräften und Leistungen an spanenden Werkzeugen und Werkzeugmaschinen. <em>VDI-Zeitschrift</em>, Düsseldorf, v. 94, n. 11/12, p. 299-305, 1952.</li>
   <li>SANDVIK COROMANT. <em>Fórmulas e definições de usinagem</em>. Sandviken: Sandvik Coromant, [2026]. Disponível em: <a href="https://www.sandvik.coromant.com/pt-pt/knowledge/machining-formulas-definitions" rel="noopener noreferrer">https://www.sandvik.coromant.com/pt-pt/knowledge/machining-formulas-definitions</a>. Acesso em: 29 out. 2026.</li>
   <li>SANDVIK COROMANT. <em>Specific cutting force</em>. Sandviken: Sandvik Coromant, [2026]. Disponível em: <a href="https://www.sandvik.coromant.com/pt-pt/knowledge/materials/specific-cutting-force" rel="noopener noreferrer">https://www.sandvik.coromant.com/pt-pt/knowledge/materials/specific-cutting-force</a>. Acesso em: 29 out. 2026.</li>

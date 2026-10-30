@@ -3,6 +3,7 @@
 import { lerArquivo, taxaDoTempo, estatistica, freqDominante, corteTeorico, vcDeDn, mapaValido } from "./nucleo.js";
 import { prepararEnsaio, analisarFaixa, PADRAO } from "./analise.js";
 import { fft } from "../../comum/js/fft.js";
+import { DINAMOMETROS, verificarFaixa, PADRAO_DINAMOMETRO } from "./dinamometros.js";
 
 export async function autoteste() {
   let nOK = 0;
@@ -76,6 +77,13 @@ export async function autoteste() {
   ok(R.linhasResumo.length === 4 && R.arquivos["SINT_faixa.csv"].length === 3001, "ensaio: CSV da faixa e resumo");
   perto(R.teorico.Fc, 800, 1e-3, "ensaio: Fc teorica 800 N (kc1 escolhido)");
   ok(Math.abs(R.teorico.dif) < 0.01, "ensaio: diferenca medida x teorica ~ 0");
+
+  // dinamometro: padrao 9257B; aviso de faixa acima de 90 %
+  ok(PADRAO_DINAMOMETRO === "9257B" && DINAMOMETROS["9257B"].faixa.fz[1] === 10, "dinamometro padrao 9257B (Fz ate 10 kN)");
+  ok(verificarFaixa("9257B", { fx: -10, fy: -10, fz: -10 }, { fx: 300, fy: 150, fz: 800 }).length === 0, "faixa: 800 N sem aviso");
+  ok(verificarFaixa("9257B", { fx: -10, fy: -10, fz: -10 }, { fx: 4600, fy: 150, fz: 800 }).length === 1, "faixa: Fx 4600 N (> 90 % de 5 kN) com aviso");
+  const log2 = []; prepararEnsaio(lin.join("\n"), "S2", { ...PADRAO, modelo: "9109AA" }, log2);
+  ok(log2.some((l) => /AVISO S2: Fz/.test(l)), "faixa: 800 N no 9109AA (500 N) gera aviso no relatorio");
 
   return { nOK, falhas };
 }

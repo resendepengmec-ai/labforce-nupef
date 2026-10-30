@@ -2,6 +2,7 @@
 // gravacao dos resultados na pasta do usuario (ou .zip). Mesmo padrao do modulo eletrico.
 import { ROT, PADRAO, CANAIS, CAB_RESUMO, CAB_TEORICO, VERSAO, prepararEnsaio, analisarFaixa } from "./analise.js";
 import { mapaValido, vcDeDn } from "./nucleo.js";
+import { DINAMOMETROS, PADRAO_DINAMOMETRO } from "./dinamometros.js";
 import { CORES, figuraSinal, figuraEspectro } from "./figuras.js";
 import { sprintf } from "../../comum/js/formato.js";
 import { figuraFaixas, paraPNG } from "../../comum/js/graficos.js";
@@ -45,8 +46,23 @@ function montarConfig() {
   for (const [id, c] of TEO) $(id).value = txt(t[c]);
   $("tCanal").value = t.canal;
   $("pDur").value = txt(s.duracaoMin ?? PADRAO.duracaoMin);
-  const mostraTeo = () => { $("blocoTeo").hidden = !$("opTeo").checked; };
-  $("opTeo").addEventListener("change", mostraTeo); mostraTeo();
+  const mostraTeo = () => { $("blocoTeo").hidden = !$("opTeo").checked || $("opTeo").disabled; };
+  $("opTeo").addEventListener("change", mostraTeo);
+  // tipo de ensaio e dinamometro (etapa 1)
+  for (const [k, d] of Object.entries(DINAMOMETROS)) $("modelo").add(new Option(`${d.nome} · ${d.familia}`, k));
+  $("modelo").value = DINAMOMETROS[s.modelo] ? s.modelo : PADRAO_DINAMOMETRO;
+  const tipo = s.tipo === "fresamento" ? "fresamento" : "torneamento";
+  document.querySelector(`input[name="tipo"][value="${tipo}"]`).checked = true;
+  const aplicaTipo = () => {
+    const t = tipoEnsaio();
+    document.querySelectorAll(".montagem[data-tipo]").forEach((el) => { el.hidden = el.dataset.tipo !== t; });
+    $("opTeo").disabled = t !== "torneamento";
+    $("opTeo").closest("label").title = t === "torneamento" ? "" : "A força de corte teórica deste módulo vale só para torneamento.";
+    mostraTeo(); mostrarFicha();
+  };
+  document.querySelectorAll('input[name="tipo"]').forEach((r) => r.addEventListener("change", aplicaTipo));
+  $("modelo").addEventListener("change", mostrarFicha);
+  aplicaTipo();
   $("btVc").addEventListener("click", () => {
     const D = numero($("tD").value), n = numero($("tN").value);
     if (D > 0 && n > 0) { $("tVc").value = txt(Math.round(vcDeDn(D, n) * 100) / 100); $("tVc").removeAttribute("aria-invalid"); $("e-tVc").textContent = ""; }
@@ -93,8 +109,32 @@ function validarConfig() {
   $("erroConfig").textContent = erros.length ? `Corrija ${erros.length} campo(s) marcado(s) em vermelho.` : "";
   if (erros.length) { document.querySelector("#secConfig [aria-invalid]")?.focus(); return null; }
   const op = { fft: $("opFFT").checked, graficos: $("opGraf").checked, teorico: opTeo };
-  salvar({ mapa, k, nFaixas: Number($("nFaixas").value), zoom: $("zoom").checked, op, teorico: teo, duracaoMin: dur });
-  return { nFaixas: Number($("nFaixas").value), zoom: $("zoom").checked, op, p: { mapa, k, duracaoMin: dur, teorico: teo } };
+  const tipo = tipoEnsaio(), modelo = $("modelo").value;
+  if (tipo !== "torneamento") op.teorico = false;
+  salvar({ mapa, k, nFaixas: Number($("nFaixas").value), zoom: $("zoom").checked, op, teorico: teo, duracaoMin: dur, tipo, modelo });
+  return { nFaixas: Number($("nFaixas").value), zoom: $("zoom").checked, op, tipo, modelo, p: { mapa, k, duracaoMin: dur, teorico: teo, modelo } };
+}
+
+function tipoEnsaio() { return document.querySelector('input[name="tipo"]:checked').value; }
+function resumoMontagem() {
+  return `${tipoEnsaio() === "torneamento" ? "torneamento" : "fresamento, furação ou rosqueamento"}; dinamômetro ${$("modelo").value}`;
+}
+
+// Ficha tecnica do dinamometro escolhido (catalogo Kistler, traduzido)
+function mostrarFicha() {
+  const d = DINAMOMETROS[$("modelo").value]; if (!d) return;
+  const fx = (c) => d.faixa[c].map((v) => String(v).replace(".", ",")).join(" … ");
+  const fn = d.fn.x === d.fn.y ? `fn(x), fn(y) ≈ ${String(d.fn.x).replace(".", ",")} kHz; fn(z) ≈ ${String(d.fn.z).replace(".", ",")} kHz`
+    : `fn(x) ≈ ${String(d.fn.x).replace(".", ",")}; fn(y) ≈ ${String(d.fn.y).replace(".", ",")}; fn(z) ≈ ${String(d.fn.z).replace(".", ",")} kHz`;
+  $("fichaTit").textContent = `Dados técnicos do dinamômetro ${d.nome}`;
+  tabelaHTML($("fichaTab"), ["Grandeza", "Valor"], [
+    ["Faixa de medição Fx [kN]", fx("fx")], ["Faixa de medição Fy [kN]", fx("fy")], ["Faixa de medição Fz [kN]", fx("fz")],
+    ["Sensibilidade", d.sens], ["Frequência natural", fn], ["Temperatura de operação", d.temp],
+    ["Dimensões", d.dim], ["Massa", d.massa],
+    ["Indicado para", d.usos.includes("torneamento") ? "torneamento e usinagem na mesa (fresamento, furação, rosqueamento)" : "usinagem na mesa (fresamento, furação, rosqueamento)"],
+  ]);
+  const aviso = tipoEnsaio() === "torneamento" && !d.usos.includes("torneamento") ? " ATENÇÃO: este modelo não é indicado para torneamento." : "";
+  $("fichaObs").textContent = d.obs + aviso + " Fonte: catálogo Kistler 960-002e (traduzido).";
 }
 
 function resumoConfig(c) {
@@ -121,6 +161,7 @@ async function iniciarRodada() {
   const c = cfg, log = [];
   log.push(sprintf("Forcas de usinagem (LabForce NUPEF) %s | %d arquivo(s) | resultados em %s", VERSAO, arquivos.length,
     destino.modo === "pasta" ? `${pasta.name}/${nome}` : `${nome}.zip`));
+  log.push(`Ensaio: ${c.tipo === "torneamento" ? "torneamento" : "fresamento, furacao ou rosqueamento"} | dinamometro Kistler ${c.modelo}`);
   log.push(`Colunas: ${c.p.mapa.join(" ")} | calibracao [Fx Fy Fz]: ${[c.p.k.fx, c.p.k.fy, c.p.k.fz].join(" ")}`);
   log.push(sprintf("Faixas por ensaio: %d (%s zoom) | faixa minima %g s | FFT: %s | graficos: %s | forca teorica: %s",
     c.nFaixas, c.zoom ? "com" : "sem", c.p.duracaoMin, c.op.fft ? "sim" : "nao", c.op.graficos ? "sim" : "nao", c.op.teorico ? "sim" : "nao"));
@@ -135,7 +176,7 @@ async function iniciarRodada() {
     ? `Gravando em ${pasta.name}/${nome}. Cada ensaio é gravado assim que termina.`
     : `Os arquivos vão para ${nome}.zip, baixado no fim. Não feche esta aba antes disso.`;
   mostrarLog();
-  recolher($("secMontagem"), "conferida"); recolher($("secConfig"), resumoConfig(c));
+  recolher($("secMontagem"), resumoMontagem()); recolher($("secConfig"), resumoConfig(c));
   recolher($("secArquivos"), `${arquivos.length} arquivo(s) → ${destino.modo === "pasta" ? pasta.name : ".zip"}`);
   $("secResultados").hidden = false;
   await proximoEnsaio();
@@ -278,7 +319,7 @@ function iniciar() {
     btLembrada: $("btPastaLembrada"), rotulo: $("pastaAtual"), erro: $("erroArq"), aoDefinir: (h) => { pasta = h; atualizarIniciar(); } });
   atualizarIniciar();
   $("btMontagem").addEventListener("click", () => {
-    recolher($("secMontagem"), "conferida", () => marcarEtapa(1));
+    recolher($("secMontagem"), resumoMontagem(), () => marcarEtapa(1));
     marcarEtapa(2); mostrar($("secConfig"));
   });
   $("btConfig").addEventListener("click", () => {
