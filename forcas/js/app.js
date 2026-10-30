@@ -127,6 +127,11 @@ function mostrarFicha() {
   const fn = d.fn.x === d.fn.y ? `fn(x), fn(y) ≈ ${String(d.fn.x).replace(".", ",")} kHz; fn(z) ≈ ${String(d.fn.z).replace(".", ",")} kHz`
     : `fn(x) ≈ ${String(d.fn.x).replace(".", ",")}; fn(y) ≈ ${String(d.fn.y).replace(".", ",")}; fn(z) ≈ ${String(d.fn.z).replace(".", ",")} kHz`;
   $("fichaTit").textContent = `Dados técnicos do dinamômetro ${d.nome}`;
+  const img = $("fotoDina");
+  img.src = d.foto; img.alt = `Dinamômetro Kistler ${d.nome}, com os eixos Fx, Fy e Fz${d.nome.startsWith("9272") ? " e o momento Mz" : ""} e as cotas de dimensão.`;
+  $("fotoTit").textContent = `Kistler ${d.nome}`;
+  $("fotoFam").textContent = d.familia.charAt(0).toUpperCase() + d.familia.slice(1) + ".";
+  $("fotoCotas").textContent = `Letras das cotas: ${d.cotas}. Dimensões: ${d.dim}.`;
   tabelaHTML($("fichaTab"), ["Grandeza", "Valor"], [
     ["Faixa de medição Fx [kN]", fx("fx")], ["Faixa de medição Fy [kN]", fx("fy")], ["Faixa de medição Fz [kN]", fx("fz")],
     ["Sensibilidade", d.sens], ["Frequência natural", fn], ["Temperatura de operação", d.temp],

@@ -81,3 +81,10 @@
 .termos td:nth-child(2) { color: var(--cinza, #5e6a64); white-space: nowrap; }
 .fig-kistler figcaption p { margin: 8px 0 0; }
 @media (max-width: 520px) { .termos td:nth-child(2) { display: none; } }
+
+/* foto do dinamometro escolhido (figura do catalogo Kistler) */
+.foto-dina { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 22px; margin: 14px 0 4px; padding: 12px 16px; border: 1px solid var(--linha); border-radius: 8px; background: #fff; }
+.foto-dina img { display: block; width: 300px; max-width: 100%; height: auto; max-height: 190px; object-fit: contain; }
+.foto-dina figcaption { flex: 1 1 240px; display: flex; flex-direction: column; gap: 4px; color: #2b3438; font-size: .9rem; }
+.foto-dina strong { font-size: 1.05rem; }
+.foto-dina small { color: #5e6a64; }
