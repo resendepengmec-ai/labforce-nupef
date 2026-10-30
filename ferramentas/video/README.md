@@ -13,13 +13,16 @@ Paleta das séries validada para daltonismo (skill de visualização de dados): 
 
 As legendas do vídeo são o próprio texto da narração: `anim.js` lê `narracao.tsv` e desenha cada frase na faixa inferior, do seu início até 0,2 s antes da frase seguinte. Para alterar uma legenda, edite o `.tsv` e renderize de novo. `node legendas.mjs` gera também `apresentacao.vtt`, com as mesmas frases e tempos, para publicar o vídeo em outra plataforma (YouTube, por exemplo).
 
-## Narração (opcional, Runway)
+## Narração (gratuita)
 
-`narracao.tsv` tem o texto de cada cena com o instante de início, e cada trecho cabe na sua cena. `narrar.sh` gera os trechos com o TTS da Runway (skill `rw-generate-audio`) e os junta ao vídeo:
+`narrar.py` gera um áudio por frase de `narracao.tsv`, coloca cada um no seu instante (os mesmos das legendas), normaliza o volume e junta ao vídeo. Requisitos: Python 3 e ffmpeg no PATH.
 
-```bash
-export RUNWAYML_API_SECRET=...   # chave da Runway: só em variável de ambiente
-bash ferramentas/video/narrar.sh <pasta da skill rw-generate-audio> Maya
-```
+| Motor | Instalação | Comando |
+|---|---|---|
+| edge-tts (padrão, vozes neurais, precisa de internet) | `pip install edge-tts` | `python ferramentas/video/narrar.py` |
+| Piper (offline, código aberto) | `pip install piper-tts` e `python -m piper.download_voices pt_BR-faber-medium` | `python ferramentas/video/narrar.py --motor piper --modelo pt_BR-faber-medium.onnx` |
+| Sua voz | grave `ferramentas/video/narracao/trecho_00.mp3` … `trecho_12.mp3`, uma frase por arquivo | `python ferramentas/video/narrar.py --motor gravacao` |
 
-O script mostra a duração de cada trecho. Se algum passar do início do trecho seguinte, encurte o texto no `.tsv` e rode de novo; os trechos já gerados são reaproveitados.
+Vozes do edge-tts: `pt-BR-FranciscaNeural` (padrão), `pt-BR-AntonioNeural`, `pt-BR-ThalitaNeural`; troque com `--voz` e ajuste o ritmo com `--velocidade +5%`. O edge-tts usa o serviço de leitura em voz alta do Edge de forma não oficial: é gratuito, mas sem garantia de continuidade.
+
+O script mostra a duração de cada trecho e a janela da sua cena. Um trecho que passe da janela é acelerado até 20 %; acima disso, encurte a frase no `.tsv` e rode de novo com `--refazer` (os trechos já gerados são reaproveitados sem essa opção). O resultado é `apresentacao_narrada.mp4`: confira, copie para `assets/apresentacao.mp4` e troque "Sem áudio" no texto da seção do vídeo em `index.html`.
