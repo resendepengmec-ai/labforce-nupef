@@ -8,3 +8,14 @@ Animação em canvas, desenhada quadro a quadro com os dados reais dos módulos.
 4. `ffmpeg -framerate 30 -i quadros/q%05d.jpg -c:v libx264 -preset veryfast -crf 20 -pix_fmt yuv420p -movflags +faststart apresentacao.mp4`
 
 Paleta das séries validada para daltonismo (skill de visualização de dados): `#3b74e0`, `#1f9e8a` e `#d26a00` sobre `#0f1722`.
+
+## Narração (opcional, Runway)
+
+`narracao.tsv` tem o texto de cada cena com o instante de início, e cada trecho cabe na sua cena. `narrar.sh` gera os trechos com o TTS da Runway (skill `rw-generate-audio`) e os junta ao vídeo:
+
+```bash
+export RUNWAYML_API_SECRET=...   # chave da Runway: só em variável de ambiente
+bash ferramentas/video/narrar.sh <pasta da skill rw-generate-audio> Maya
+```
+
+O script mostra a duração de cada trecho. Se algum passar do início do trecho seguinte, encurte o texto no `.tsv` e rode de novo; os trechos já gerados são reaproveitados.

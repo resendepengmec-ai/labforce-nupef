@@ -1,0 +1,13 @@
+inicio_s	texto
+0.6	LabForce NUPEF: ensaios de usinagem analisados no navegador.
+6.3	Dois sinais, duas análises: forças e grandezas elétricas.
+11.3	Confira o dinamômetro: Fz é o corte, Fx o avanço, Fy a passiva.
+16.8	Abra o arquivo. Cada canal tem fator de calibração.
+22.9	Marque o início e o fim do corte estável.
+28.8	O módulo calcula a estatística e compara a força medida com a teórica.
+37.3	No módulo elétrico, confira a ligação trifásica com neutro.
+42.8	A taxa de amostragem vem da rede.
+46.8	Marque as faixas: vazio, corte, cada condição.
+52.8	Potências, fator de potência e frequência de cada faixa.
+58.8	Harmônicos com a IEEE 519 e potências da IEEE 1459.
+65.3	O mesmo fluxo nos dois módulos. Os resultados ficam na sua pasta; nada sai do computador.

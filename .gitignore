@@ -8,3 +8,5 @@ node_modules/
 eletrica/testes/golden/E*.txt
 ferramentas/video/dados.js
 ferramentas/video/quadros/
+ferramentas/video/narracao/
+ferramentas/video/apresentacao_narrada.mp4
