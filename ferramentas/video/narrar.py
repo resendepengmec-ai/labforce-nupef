@@ -80,7 +80,10 @@ def gerar_piper(cues, a):
     for i, (_, txt) in enumerate(cues):
         if existente(i) is None:
             print(f"  gerando trecho {i:02d} (piper)")
-            sh(sys.executable, "-m", "piper", "-m", a.modelo, "-f", str(OUT / f"trecho_{i:02d}.wav"), "--", txt)
+            r = subprocess.run([sys.executable, "-m", "piper", "-m", a.modelo, "-f", str(OUT / f"trecho_{i:02d}.wav")],
+                               input=txt, capture_output=True, text=True, encoding="utf-8")
+            if r.returncode:
+                sys.exit(f"ERRO no piper:\n{r.stderr.strip()[-800:]}")
 
 
 def main():

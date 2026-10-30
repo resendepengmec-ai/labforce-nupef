@@ -1,0 +1,49 @@
+# Gera a narracao do video com o Piper (offline, codigo aberto) e publica.
+# Roda quando o roteiro ou o script mudam, ou manualmente (Actions > Narracao do video > Run workflow).
+name: Narracao do video
+on:
+  workflow_dispatch:
+    inputs:
+      voz:
+        description: "Voz do Piper (pt_BR-faber-medium, pt_BR-cadu-medium, pt_BR-jeff-medium)"
+        default: pt_BR-faber-medium
+  push:
+    branches: [main]
+    paths:
+      - ferramentas/video/narracao.tsv
+      - ferramentas/video/narrar.py
+      - .github/workflows/narracao.yml
+permissions:
+  contents: write
+concurrency:
+  group: narracao
+  cancel-in-progress: true
+jobs:
+  narrar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      VOZ: ${{ inputs.voz || 'pt_BR-faber-medium' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Instala ffmpeg e Piper
+        run: |
+          sudo apt-get update -q && sudo apt-get install -y -q ffmpeg
+          pip install -q piper-tts
+      - name: Baixa a voz
+        run: python -m piper.download_voices --data-dir "$RUNNER_TEMP/vozes" "$VOZ"
+      - name: Gera a narracao e junta ao video
+        run: python ferramentas/video/narrar.py --motor piper --modelo "$RUNNER_TEMP/vozes/$VOZ.onnx" --refazer
+      - name: Publica o video narrado
+        run: |
+          cp ferramentas/video/apresentacao_narrada.mp4 assets/apresentacao.mp4
+          sed -i 's/Sem áudio, com legendas na imagem\./Narrado, com legendas na imagem./' index.html
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/apresentacao.mp4 index.html
+          git diff --cached --quiet && { echo "sem mudancas"; exit 0; }
+          git commit -m "chore: narração do vídeo gerada com Piper ($VOZ)"
+          git push
