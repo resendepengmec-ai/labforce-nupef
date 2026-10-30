@@ -20,13 +20,16 @@ concurrency:
   cancel-in-progress: true
 jobs:
   narrar:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     env:
       VOZ: ${{ inputs.voz || 'pt_BR-faber-medium' }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      # sempre a ponta da main: um "Re-run" de execucao antiga nao fica desatualizado
+      - uses: actions/checkout@v5
+        with:
+          ref: main
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
       - name: Instala ffmpeg e Piper
@@ -46,4 +49,5 @@ jobs:
           git add assets/apresentacao.mp4 index.html
           git diff --cached --quiet && { echo "sem mudancas"; exit 0; }
           git commit -m "chore: narração do vídeo gerada com Piper ($VOZ)"
-          git push
+          git pull --rebase origin main
+          git push origin HEAD:main
