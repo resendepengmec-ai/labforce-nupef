@@ -1,5 +1,6 @@
 # Gera a narracao do video com o Piper (offline, codigo aberto) e publica.
-# Roda quando o roteiro ou o script mudam, ou manualmente (Actions > Narracao do video > Run workflow).
+# Roda so manualmente: Actions > Narracao do video > Run workflow.
+# Versoes fixas (actions por hash, piper-tts por versao): o job tem permissao de escrita no repositorio.
 name: Narracao do video
 on:
   workflow_dispatch:
@@ -7,12 +8,6 @@ on:
       voz:
         description: "Voz do Piper (pt_BR-faber-medium, pt_BR-cadu-medium, pt_BR-jeff-medium)"
         default: pt_BR-faber-medium
-  push:
-    branches: [main]
-    paths:
-      - ferramentas/video/narracao.tsv
-      - ferramentas/video/narrar.py
-      - .github/workflows/narracao.yml
 permissions:
   contents: write
 concurrency:
@@ -26,18 +21,20 @@ jobs:
       VOZ: ${{ inputs.voz || 'pt_BR-faber-medium' }}
     steps:
       # sempre a ponta da main: um "Re-run" de execucao antiga nao fica desatualizado
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5.1.0
         with:
           ref: main
-      - uses: actions/setup-python@v6
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1  # v6.3.0
         with:
           python-version: "3.12"
       - name: Instala ffmpeg e Piper
         run: |
           sudo apt-get update -q && sudo apt-get install -y -q ffmpeg
-          pip install -q piper-tts
+          pip install -q "piper-tts==1.8.0"
       - name: Baixa a voz
-        run: python -m piper.download_voices --data-dir "$RUNNER_TEMP/vozes" "$VOZ"
+        run: |
+          [[ "$VOZ" =~ ^[a-z]{2}_[A-Z]{2}-[a-z0-9_]+-(x_low|low|medium|high)$ ]] || { echo "nome de voz invalido: $VOZ"; exit 1; }
+          python -m piper.download_voices --data-dir "$RUNNER_TEMP/vozes" "$VOZ"
       - name: Gera a narracao e junta ao video
         run: python ferramentas/video/narrar.py --motor piper --modelo "$RUNNER_TEMP/vozes/$VOZ.onnx" --refazer
       - name: Publica o video narrado

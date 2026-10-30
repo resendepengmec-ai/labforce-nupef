@@ -26,3 +26,7 @@ As legendas do vídeo são o próprio texto da narração: `anim.js` lê `narrac
 Vozes do edge-tts: `pt-BR-FranciscaNeural` (padrão), `pt-BR-AntonioNeural`, `pt-BR-ThalitaNeural`; troque com `--voz` e ajuste o ritmo com `--velocidade +5%`. O edge-tts usa o serviço de leitura em voz alta do Edge de forma não oficial: é gratuito, mas sem garantia de continuidade.
 
 O script mostra a duração de cada trecho e a janela da sua cena. Um trecho que passe da janela é acelerado até 20 %; acima disso, encurte a frase no `.tsv` e rode de novo com `--refazer` (os trechos já gerados são reaproveitados sem essa opção). O resultado é `apresentacao_narrada.mp4`: confira, copie para `assets/apresentacao.mp4` e troque "Sem áudio" no texto da seção do vídeo em `index.html`.
+
+### No GitHub (sem instalar nada)
+
+Actions > **Narracao do video** > **Run workflow**: o GitHub baixa a voz do Piper escolhida, roda `narrar.py` e publica `assets/apresentacao.mp4`. O workflow só roda manualmente; as versões das actions (por hash) e do `piper-tts` são fixas porque o job tem permissão de escrita no repositório. Cada execução cria um commit de ~3 MB: rode só quando quiser trocar o áudio.
