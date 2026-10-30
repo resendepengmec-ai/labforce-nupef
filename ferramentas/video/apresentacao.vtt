@@ -1,0 +1,54 @@
+WEBVTT
+Language: pt-BR
+
+1
+00:00:00.600 --> 00:00:06.100
+LabForce NUPEF: ensaios de usinagem analisados no navegador.
+
+2
+00:00:06.300 --> 00:00:11.100
+Dois sinais, duas análises: forças e grandezas elétricas.
+
+3
+00:00:11.300 --> 00:00:16.600
+Confira o dinamômetro: Fz é o corte, Fx o avanço, Fy a passiva.
+
+4
+00:00:16.800 --> 00:00:22.700
+Abra o arquivo. Cada canal tem fator de calibração.
+
+5
+00:00:22.900 --> 00:00:28.600
+Marque o início e o fim do corte estável.
+
+6
+00:00:28.800 --> 00:00:37.100
+O módulo calcula a estatística e compara a força medida com a teórica.
+
+7
+00:00:37.300 --> 00:00:42.600
+No módulo elétrico, confira a ligação trifásica com neutro.
+
+8
+00:00:42.800 --> 00:00:46.600
+A taxa de amostragem vem da rede.
+
+9
+00:00:46.800 --> 00:00:52.600
+Marque as faixas: vazio, corte, cada condição.
+
+10
+00:00:52.800 --> 00:00:58.600
+Potências, fator de potência e frequência de cada faixa.
+
+11
+00:00:58.800 --> 00:01:05.100
+Harmônicos com a IEEE 519 e potências da IEEE 1459.
+
+12
+00:01:05.300 --> 00:01:08.400
+O mesmo fluxo nos dois módulos.
+
+13
+00:01:08.600 --> 00:01:15.700
+Os resultados ficam na sua pasta; nada sai do computador.

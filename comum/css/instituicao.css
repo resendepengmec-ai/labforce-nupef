@@ -24,3 +24,12 @@
 .marca-ifg span { display: flex; flex-direction: column; font-size: .8rem; line-height: 1.2; font-weight: 600; }
 .marca-ifg small { font-weight: 400; color: var(--cinza, #5e6a64); font-size: .78rem; }
 @media (max-width: 720px) { .marca-ifg span { display: none; } }
+
+/* logo do NUPEF: cabecalho (junto da marca LabForce) e rodape (ao lado do IFG) */
+.marca { display: inline-flex; align-items: center; gap: 10px; }
+.marca .logo-nupef { display: block; height: 46px; width: auto; flex: none; }
+.logos-inst { display: flex; align-items: center; gap: 14px; }
+.logo-nupef-rod { display: block; flex: none; }
+.logo-nupef-rod img { height: 80px; width: auto; display: block; }
+@media (prefers-color-scheme: dark) { .marca .logo-nupef { background: #fff; border-radius: 6px; padding: 2px 3px; } }
+@media (max-width: 720px) { .logo-nupef-rod img { height: 44px; } .marca .logo-nupef { height: 32px; } }

@@ -15,7 +15,7 @@
 <body class="mod-forcas">
 <header class="barra">
   <div class="barra-in">
-    <a class="marca" href="../">LabForce <span>NUPEF</span></a>
+    <a class="marca" href="../"><img class="logo-nupef" src="../assets/logo-nupef.png" alt="" width="40" height="38">LabForce <span>NUPEF</span></a>
     <span class="modulo">Forças de usinagem</span>
     <nav aria-label="Navegação do módulo">
       <a href="./" aria-current="page">Análise</a>
@@ -64,27 +64,19 @@
     </details>
 
     <div class="montagem" data-tipo="torneamento">
-      <figure>
-        <svg viewBox="0 0 560 330" role="img" aria-labelledby="svgTor">
-          <title id="svgTor">Torneamento longitudinal com dinamômetro estacionário entre a ferramenta e a torre. Fc é a força de corte, na direção da velocidade de corte; Ff é a força de avanço, na direção do avanço f; Fp é a força passiva, radial.</title>
-          <defs><marker id="pt" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="context-stroke"/></marker></defs>
-          <rect x="20" y="180" width="300" height="100" rx="10" class="peca"/>
-          <ellipse cx="20" cy="230" rx="16" ry="50" class="peca-face"/>
-          <path d="M70 165 a50 13 0 1 1 1 0" class="giro" marker-end="url(#pt)"/>
-          <text x="40" y="150" class="rot">peça em rotação (vc)</text>
-          <rect x="360" y="40" width="150" height="120" rx="6" class="dina"/>
-          <text x="435" y="92" class="rot-c">dinamômetro</text>
-          <text x="435" y="112" class="rot-c">estacionário</text>
-          <rect x="520" y="30" width="30" height="140" class="torre"/>
-          <text x="535" y="190" class="rot-p">torre</text>
-          <polygon points="360,150 400,150 352,196 332,196" class="ferr"/>
-          <line x1="420" y1="20" x2="300" y2="20" class="avanco" marker-end="url(#pt)"/><text x="430" y="25" class="rot">avanço f</text>
-          <circle cx="335" cy="196" r="13" class="vet-c vz"/><path d="M326 187 l18 18 M344 187 l-18 18" class="vet vz"/>
-          <text x="262" y="232" class="rot vz-t">Fc (Fz)</text>
-          <line x1="335" y1="196" x2="470" y2="196" class="vet vx" marker-end="url(#pt)"/><text x="440" y="222" class="rot vx-t">Ff (Fx)</text>
-          <line x1="335" y1="196" x2="300" y2="96" class="vet vy" marker-end="url(#pt)"/><text x="236" y="96" class="rot vy-t">Fp (Fy)</text>
-        </svg>
-        <figcaption>Torneamento longitudinal visto de cima; forças que a peça aplica na ferramenta. ⊗ = força para dentro do plano do desenho. Convenção do DynoWare: “Ff (Fx) Fp (Fy) Fc (Fz)”.</figcaption>
+      <figure class="fig-kistler">
+        <img src="img/kistler-torneamento.png" width="560" height="375" alt="Figura Kistler: peça cilíndrica girando e ferramenta de torneamento; a força resultante R se decompõe em força de corte Fc (vertical, para baixo), força de avanço Ff (ao longo do eixo da peça) e força passiva Fp (radial); Fa é a força ativa, soma de Fc e Ff.">
+        <figcaption>
+          <table class="termos">
+            <caption>Termos da figura (original em inglês)</caption>
+            <tr><th>Fc</th><td><i>Cutting force</i></td><td>Força de corte</td></tr>
+            <tr><th>Ff</th><td><i>Feed force</i></td><td>Força de avanço</td></tr>
+            <tr><th>Fp</th><td><i>Passive force</i></td><td>Força passiva (radial)</td></tr>
+            <tr><th>Fa</th><td><i>Active force</i></td><td>Força ativa: F<sub>a</sub> = √(F<sub>c</sub>² + F<sub>f</sub>²)</td></tr>
+            <tr><th>R</th><td><i>Resultant force</i></td><td>Força resultante: R = √(F<sub>c</sub>² + F<sub>f</sub>² + F<sub>p</sub>²)</td></tr>
+          </table>
+          <p>As setas pretas indicam o giro da peça e o avanço da ferramenta. O triedro Fx, Fy, Fz no canto é ilustrativo: a correspondência com os canais do dinamômetro é a da lista ao lado (convenção DynoWare: Ff → Fx, Fp → Fy, Fc → Fz).</p>
+        </figcaption>
       </figure>
       <div>
         <p>O dinamômetro estacionário fica entre a ferramenta e a torre, preso por um adaptador. Ele divide a força de usinagem em 3 componentes:</p>
@@ -105,22 +97,19 @@
     </div>
 
     <div class="montagem" data-tipo="fresamento" hidden>
-      <figure>
-        <svg viewBox="0 0 560 330" role="img" aria-labelledby="svgFre">
-          <title id="svgFre">Fresamento com dinamômetro estacionário sobre a mesa e a peça presa sobre ele. A ferramenta gira com o momento Mz. Ff é a força de avanço, na direção do avanço f; FfN é a força normal ao avanço, no plano de trabalho; Fp é a força passiva, axial.</title>
-          <defs><marker id="pf" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="context-stroke"/></marker></defs>
-          <rect x="20" y="290" width="520" height="30" class="mesa"/><text x="30" y="311" class="rot-c-l">mesa da máquina</text>
-          <rect x="90" y="220" width="380" height="70" rx="6" class="dina"/><text x="280" y="262" class="rot-c">dinamômetro estacionário</text>
-          <rect x="170" y="150" width="220" height="70" class="peca-r"/><text x="372" y="210" class="rot-p" text-anchor="end">peça</text>
-          <rect x="250" y="20" width="60" height="50" rx="6" class="fuso"/>
-          <path d="M268 70 h24 v80 h-24 z" class="fresa"/><path d="M268 85 l24 12 M268 105 l24 12 M268 125 l24 12" class="hel"/>
-          <path d="M235 92 a45 12 0 1 0 90 0" class="giro" marker-end="url(#pf)"/><text x="200" y="88" class="rot">Mz</text>
-          <line x1="330" y1="40" x2="420" y2="40" class="avanco" marker-start="url(#pf)"/><text x="430" y="45" class="rot">avanço f</text>
-          <line x1="280" y1="150" x2="400" y2="150" class="vet vx" marker-end="url(#pf)"/><text x="406" y="142" class="rot vx-t">Ff</text>
-          <circle cx="280" cy="150" r="12" class="vet-c vy"/><path d="M272 142 l16 16 M288 142 l-16 16" class="vet vy"/><text x="230" y="140" class="rot vy-t">FfN</text>
-          <line x1="280" y1="150" x2="280" y2="210" class="vet vz" marker-end="url(#pf)"/><text x="290" y="200" class="rot vz-t">Fp</text>
-        </svg>
-        <figcaption>Fresamento de topo visto de lado; forças medidas na peça. ⊗ = força para dentro do plano do desenho. Na furação e no rosqueamento, Fp é a força axial (de avanço).</figcaption>
+      <figure class="fig-kistler">
+        <img src="img/kistler-fresamento.png" width="460" height="287" alt="Figura Kistler: fresamento de topo com a peça presa sobre um dinamômetro estacionário; a fresa gira (torque) e avança para a esquerda; na peça atuam a força de avanço Ff (eixo y), a força normal de avanço FfN (eixo x, para dentro do plano) e a força passiva Fp (eixo z, para baixo).">
+        <figcaption>
+          <table class="termos">
+            <caption>Termos da figura (original em inglês)</caption>
+            <tr><th>f</th><td><i>Feed</i></td><td>Avanço</td></tr>
+            <tr><th>M<sub>z</sub></th><td><i>Torque</i></td><td>Momento (torque) da ferramenta</td></tr>
+            <tr><th>F<sub>f</sub></th><td><i>Feed force</i></td><td>Força de avanço, na direção do avanço (eixo y)</td></tr>
+            <tr><th>F<sub>fN</sub></th><td><i>Normal feed force</i></td><td>Força normal de avanço, perpendicular a F<sub>f</sub> no plano de trabalho (eixo x)</td></tr>
+            <tr><th>F<sub>p</sub></th><td><i>Passive force</i></td><td>Força passiva, axial (eixo z)</td></tr>
+          </table>
+          <p>Fresamento de topo (<i>face milling</i>), visto de lado. ⊗ = força ou eixo para dentro do plano do desenho. Na furação e no rosqueamento, F<sub>p</sub> é a força axial (de avanço).</p>
+        </figcaption>
       </figure>
       <div>
         <p>Nestes processos, a peça fica presa sobre um dinamômetro estacionário, ou a ferramenta gira com um dinamômetro rotativo no fuso.</p>
@@ -133,7 +122,7 @@
         <p class="nota"><strong>NOTA:</strong> este módulo lê o tempo e 3 forças. Associe as colunas do arquivo a Fx, Fy e Fz na etapa 2. O momento Mz não é lido nesta versão. A força de corte teórica vale só para torneamento.</p>
       </div>
     </div>
-    <p class="fonte-tipo">Componentes conforme Kistler, <em>Analyzing and optimizing cutting processes</em> (catálogo 960-002e), traduzido e adaptado. Figuras: desenho do LabForce.</p>
+    <p class="fonte-tipo">Componentes conforme Kistler, <em>Analyzing and optimizing cutting processes</em> (catálogo 960-002e), traduzido. Figuras: © Kistler Group, reproduzidas do catálogo com indicação da fonte; termos traduzidos na tabela abaixo de cada figura.</p>
     <div class="acoes"><button id="btMontagem" class="prim" type="button">OK, montagem conferida</button></div>
   </section>
 
@@ -272,7 +261,10 @@
   <p>NUPEF, Laboratório de Usinagem do IFG Câmpus Goiânia. A força teórica é uma estimativa de catálogo; compare com a medição, não a substitua.</p>
   <p id="versao"></p>
   <div class="inst">
-    <a class="logo-ifg" href="https://www.ifg.edu.br/goiania" rel="noopener noreferrer"><img src="../assets/logo-ifg-goiania.png" alt="Instituto Federal de Goiás, Câmpus Goiânia" width="52" height="72" loading="lazy"></a>
+    <div class="logos-inst">
+      <a class="logo-ifg" href="https://www.ifg.edu.br/goiania" rel="noopener noreferrer"><img src="../assets/logo-ifg-goiania.png" alt="Instituto Federal de Goiás, Câmpus Goiânia" width="52" height="72" loading="lazy"></a>
+      <a class="logo-nupef-rod" href="../quem-somos.html"><img src="../assets/logo-nupef.png" alt="NUPEF, Núcleo de Pesquisas em Processos de Fabricação" width="76" height="72" loading="lazy"></a>
+    </div>
     <address><strong>Instituto Federal de Goiás · Câmpus Goiânia</strong>NUPEF, Núcleo de Pesquisa em Fabricação<br>Rua 75, nº 46, Centro, Goiânia-GO, CEP 74055-110<br>Telefone (62) 3227-2700</address>
     <nav aria-label="Links institucionais"><a href="../quem-somos.html">Quem somos</a><a href="https://www.ifg.edu.br/goiania" rel="noopener noreferrer">ifg.edu.br/goiania</a><a href="https://ifgproduz.ifg.edu.br/informacoes-grupo/70" rel="noopener noreferrer">NUPEF no IFG Produz</a></nav>
   </div>

@@ -71,3 +71,13 @@
 .ficha .tabela td:first-child { color: var(--cinza); white-space: normal; }
 .ficha .tabela td { text-align: left; white-space: normal; }
 .ficha .tabela th { text-align: left; }
+
+/* figuras originais da Kistler + tabela de termos traduzidos */
+.fig-kistler img { display: block; width: 100%; height: auto; }
+.termos { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: .85rem; color: var(--tinta, #17201c); }
+.termos caption { text-align: left; font-weight: 600; padding-bottom: 4px; }
+.termos th, .termos td { text-align: left; padding: 4px 6px; border-top: 1px solid var(--linha); vertical-align: top; }
+.termos th { white-space: nowrap; width: 3em; }
+.termos td:nth-child(2) { color: var(--cinza, #5e6a64); white-space: nowrap; }
+.fig-kistler figcaption p { margin: 8px 0 0; }
+@media (max-width: 520px) { .termos td:nth-child(2) { display: none; } }

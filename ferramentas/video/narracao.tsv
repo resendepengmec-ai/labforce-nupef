@@ -10,4 +10,5 @@ inicio_s	texto
 46.8	Marque as faixas: vazio, corte, cada condição.
 52.8	Potências, fator de potência e frequência de cada faixa.
 58.8	Harmônicos com a IEEE 519 e potências da IEEE 1459.
-65.3	O mesmo fluxo nos dois módulos. Os resultados ficam na sua pasta; nada sai do computador.
+65.3	O mesmo fluxo nos dois módulos.
+68.6	Os resultados ficam na sua pasta; nada sai do computador.

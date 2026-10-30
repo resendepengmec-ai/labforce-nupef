@@ -4,6 +4,8 @@ const W = 1920, H = 1080;
 const cv = document.getElementById("c"), ctx = cv.getContext("2d");
 const D = window.DADOS;
 const logo = new Image(); logo.src = "../../assets/logo-ifg-goiania.png";
+const logoN = new Image(); logoN.src = "../../assets/logo-nupef.png";   // 200 x 192
+let CUES = [];   // legendas = texto da narracao (narracao.tsv)
 const C = {
   fundo: "#0f1722", fundo2: "#16212f", tinta: "#eef3f6", cinza: "#9fb0bd", linha: "#2a3a4b",
   forca: "#4fb3a5", elet: "#5aa5f0", ifg: "#3f9e3c", verm: "#e0453a",
@@ -47,13 +49,19 @@ function rotulo(mod, cor, passo, alfa) {
   if (passo) texto(passo, 142, 150, { tam: 44, peso: 600 });
   ctx.restore();
 }
-function legenda(s, alfa) {          // legenda inferior (o video nao tem audio)
+function legenda(s, alfa) {          // legenda inferior = texto da narracao
   if (alfa <= 0) return;
-  ctx.save(); ctx.globalAlpha = alfa; ctx.font = `500 34px ${F}`;
-  const w = ctx.measureText(s).width + 64;
-  rr(W / 2 - w / 2, H - 132, w, 70, 35); ctx.fillStyle = "rgba(8,13,20,.82)"; ctx.fill();
-  ctx.fillStyle = C.tinta; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText(s, W / 2, H - 97);
+  ctx.save(); ctx.globalAlpha = alfa; ctx.font = `500 36px ${F}`;
+  const max = 1560, pal = s.split(" "), lin = [""];
+  for (const w of pal) { const t = lin[lin.length - 1] ? lin[lin.length - 1] + " " + w : w; if (ctx.measureText(t).width > max && lin[lin.length - 1]) lin.push(w); else lin[lin.length - 1] = t; }
+  const w = Math.max(...lin.map((l) => ctx.measureText(l).width)) + 72, h = 30 + 48 * lin.length, y = H - 56 - h;
+  rr(W / 2 - w / 2, y, w, h, 28); ctx.fillStyle = "rgba(8,13,20,.86)"; ctx.fill();
+  ctx.fillStyle = C.tinta; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+  lin.forEach((l, i) => ctx.fillText(l, W / 2, y + 15 + 24 + 48 * i));
   ctx.restore();
+}
+function legendaNarracao(t) {
+  CUES.forEach((c, i) => { const fim = i + 1 < CUES.length ? CUES[i + 1].ini - 0.2 : DURACAO - 0.4; if (t >= c.ini - 0.3 && t <= fim + 0.3) legenda(c.txt, fade(t, c.ini - 0.25, fim + 0.25, 0.25)); });
 }
 // grafico de linhas simples (eixos discretos)
 function grafico(R, series, { xlim, ylim, p = 1, faixas = [], rotY = "", rotX = "t [s]", ticksY = [], marca } = {}) {
@@ -108,11 +116,14 @@ function chip(x, y, s, cor, alfa) {
 function cenaAbertura(t) {                // 0 - 6 s
   const a = fade(t, 0, 6.2, 0.8);
   ctx.save(); ctx.globalAlpha = a;
-  const lw = 230, lh = lw * 360 / 258, p = prog(t, 0.2, 1.4);
-  rr(W / 2 - lw / 2 - 26, 150 - 26 + (1 - p) * 30, lw + 52, lh + 52, 22); ctx.fillStyle = "#fff"; ctx.fill();
-  if (logo.complete) ctx.drawImage(logo, W / 2 - lw / 2, 150 + (1 - p) * 30, lw, lh);
+  const lh = 300, lw = lh * 258 / 360, nh = 300, nw = nh * 200 / 192, p = prog(t, 0.2, 1.4), y0 = 150 + (1 - p) * 30, gap = 60;
+  const xi = W / 2 - gap / 2 - lw - 26, xn = W / 2 + gap / 2;
+  rr(xi - 26, y0 - 26, lw + 52, lh + 52, 22); ctx.fillStyle = "#fff"; ctx.fill();
+  if (logo.complete) ctx.drawImage(logo, xi, y0, lw, lh);
+  rr(xn - 26 + 26, y0 - 26, nw + 52, nh + 52, 22); ctx.fill();
+  if (logoN.complete) ctx.drawImage(logoN, xn + 26, y0, nw, nh);
   texto("LabForce NUPEF", W / 2, 620, { tam: 104, peso: 800, al: "center", alfa: prog(t, 0.8, 2) });
-  texto("Análise de ensaios de usinagem no navegador", W / 2, 700, { tam: 46, cor: C.cinza, al: "center", alfa: prog(t, 1.4, 2.6) });
+  texto("Análise de experimentos de usinagem e processos de fabricação", W / 2, 700, { tam: 46, cor: C.cinza, al: "center", alfa: prog(t, 1.4, 2.6) });
   texto("Núcleo de Pesquisa em Fabricação · IFG Câmpus Goiânia", W / 2, 770, { tam: 34, cor: C.cinza, al: "center", alfa: prog(t, 2, 3.2) });
   // traco animado (sinal) sob o titulo
   ctx.strokeStyle = C.forca; ctx.lineWidth = 4; ctx.beginPath();
@@ -177,7 +188,6 @@ function cenaForcas(t) {                  // 11 - 37 s
     texto("Fy = Fp  força passiva", 1080, 630, { tam: 40, peso: 700, cor: C.s2, alfa: prog(t, 13.6, 14.4) });
     texto("Amplificador zerado antes do corte", 1080, 740, { tam: 32, cor: C.cinza, alfa: prog(t, 14.2, 15) });
     ctx.restore();
-    legenda("1. Confira a montagem e a convenção dos eixos", fade(t, 11.6, 16.4, 0.4));
   }
   // (2) sinal + (3) faixa: 16.5 - 28.5
   const s = fade(t, 16.5, 28.6, 0.5);
@@ -200,7 +210,6 @@ function cenaForcas(t) {                  // 11 - 37 s
       ctx.fillStyle = C.tinta; ctx.beginPath(); ctx.moveTo(X, 700); ctx.lineTo(X + 22, 754); ctx.lineTo(X + 8, 750); ctx.lineTo(X, 770); ctx.closePath(); ctx.fill();
     }
     ctx.restore();
-    legenda(t < 22.8 ? "2. Abra o arquivo: tempo, Fx, Fy e Fz (DynoWare ou TXT)" : "3. Clique no início e no fim da faixa (ou digite os tempos)", fade(t, 16.8, 28.4, 0.4));
   }
   // (4) estatistica + teorico: 28.5 - 37
   const e = fade(t, 28.5, 37.2, 0.5);
@@ -223,7 +232,6 @@ function cenaForcas(t) {                  // 11 - 37 s
     });
     chip(x0, 830, `diferença ${virg(te.dif, 1)} %`, C.forca, cl((t - 33.4) / 0.6));
     ctx.restore();
-    legenda("4. Estatística por canal e comparação com a força teórica", fade(t, 28.8, 37, 0.4));
   }
   ctx.restore();
 }
@@ -259,7 +267,6 @@ function cenaEletrica(t) {                // 37 - 65 s
     ctx.restore();
     texto("rede → carga (torno)", 1680, 250, { tam: 30, cor: C.cinza, al: "right" });
     ctx.restore();
-    legenda("1. Confira a ligação: seta rede → carga, Ia com Va, Ib com Vb, Ic com Vc", fade(t, 37.6, 42.4, 0.4));
   }
   // (2) taxa + P(t) + faixas: 42.5 - 52.5
   const s = fade(t, 42.5, 52.6, 0.5);
@@ -286,7 +293,6 @@ function cenaEletrica(t) {                // 37 - 65 s
         { xlim: [0, d.dur], ylim: [340, 560], p, faixas: fx, rotY: "P, média móvel de 30 ciclos [W]", ticksY: [350, 400, 450, 500, 550] });
     }
     ctx.restore();
-    legenda(t < 46.6 ? "2. A taxa de amostragem de cada ensaio vem da frequência da rede" : "3. Marque as faixas: vazio, corte, cada condição", fade(t, 42.8, 52.4, 0.4));
   }
   // (3) resultados: 52.5 - 65
   const r = fade(t, 52.5, 65.2, 0.5);
@@ -300,7 +306,6 @@ function cenaEletrica(t) {                // 37 - 65 s
       cartao(150, 480, 520, 200, "Se (IEEE 1459)", virg(d.Se, 1), "VA", C.s2, k(54.4));
       cartao(700, 480, 520, 200, "PF (IEEE 1459)", virg(d.PF, 3), "", C.s2, k(54.8), "4 fios, P/Se");
       cartao(1250, 480, 520, 200, "Corrente de neutro", virg(d.In, 3), "A", C.s2, k(55.2), "calculada: −(ia+ib+ic)");
-      legenda("4. Potências, fator de potência e frequência de cada faixa", fade(t, 52.8, 58.4, 0.4));
     } else {
       ctx.save(); ctx.globalAlpha *= r * fade(t, 58.5, 65.2, 0.5);
       const pb = prog(t, 58.9, 60.8), x0 = 180, y0 = 760, bw = 100, gap = 40, hmax = 420, vmax = 10;
@@ -323,7 +328,6 @@ function cenaEletrica(t) {                // 37 - 65 s
       texto("a 250 Hz as ordens se rebatem:", 1420, 680, { tam: 26, cor: C.cinza, alfa: cl((t - 62) / 0.6) });
       texto("resultado indicativo, por grupo", 1420, 716, { tam: 26, cor: C.cinza, alfa: cl((t - 62) / 0.6) });
       ctx.restore();
-      legenda("5. Harmônicos com os limites da IEEE 519 e potências da IEEE 1459", fade(t, 58.8, 65, 0.4));
     }
   }
   ctx.restore();
@@ -355,7 +359,9 @@ function cenaFluxo(t) {                   // 65 - 76 s
   const lw = 92, lh = lw * 360 / 258;
   rr(W - 210, 900 - lh + 30, lw + 24, lh + 24, 12); ctx.fillStyle = "#fff"; ctx.fill();
   if (logo.complete) ctx.drawImage(logo, W - 198, 900 - lh + 42, lw, lh);
-  texto("NUPEF · IFG Câmpus Goiânia", 110, 1000, { tam: 30, cor: C.cinza });
+  const nh2 = lh, nw2 = nh2 * 200 / 192;
+  rr(W - 210 - nw2 - 44, 900 - lh + 30, nw2 + 24, nh2 + 24, 12); ctx.fillStyle = "#fff"; ctx.fill();
+  if (logoN.complete) ctx.drawImage(logoN, W - 198 - nw2 - 44, 900 - lh + 42, nw2, nh2);
   ctx.restore(); ctx.restore();
 }
 
@@ -370,6 +376,9 @@ export function desenhar(t) {
   if (t > 10.8 && t < 37.4) cenaForcas(t);
   if (t > 36.8 && t < 65.4) cenaEletrica(t);
   if (t > 64.8) cenaFluxo(t);
+  legendaNarracao(t);
 }
 window.desenhar = desenhar; window.DURACAO = DURACAO;
-window.pronto = new Promise((ok) => { if (logo.complete) ok(); else logo.onload = ok; }).then(() => document.fonts.load(`700 40px Inter`));
+const carregada = (im) => new Promise((ok) => { if (im.complete) ok(); else im.onload = ok; });
+window.pronto = Promise.all([carregada(logo), carregada(logoN), document.fonts.load(`700 40px Inter`),
+  fetch("narracao.tsv").then((r) => r.text()).then((tx) => { CUES = tx.trim().split(/\r?\n/).slice(1).map((l) => { const [a, b] = l.split("\t"); return { ini: +a, txt: b.trim() }; }); })]);
