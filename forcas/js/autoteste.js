@@ -3,6 +3,7 @@
 import { lerArquivo, taxaDoTempo, estatistica, freqDominante, corteTeorico, vcDeDn, mapaValido } from "./nucleo.js";
 import { prepararEnsaio, analisarFaixa, PADRAO } from "./analise.js";
 import { fft } from "../../comum/js/fft.js";
+import { maxF, minPos } from "../../comum/js/graficos.js";
 import { DINAMOMETROS, verificarFaixa, PADRAO_DINAMOMETRO } from "./dinamometros.js";
 
 export async function autoteste() {
@@ -30,6 +31,16 @@ export async function autoteste() {
   const L2 = lerArquivo("1;2;3;4\n5;6;7;8\n", ["fz", "tempo", "ignorar", "fx"].concat([]), { fx: 1, fy: 1, fz: 1 });
   ok(L2.N === 0, "mapa sem Fy: nenhuma amostra");
   ok(mapaValido(["tempo", "fx", "fy", "fz"]) && !mapaValido(["tempo", "fx", "fx", "fz"]), "mapa valido");
+  // campo vazio invalida a linha (nao vira 0 N nem desloca as colunas); ", " separa colunas
+  const m4 = ["tempo", "fx", "fy", "fz"];
+  const L3 = lerArquivo("0,000;10;;30\n0,001\t10\t\t30\t99\n0,002;1;2;3\n", m4);
+  ok(L3.N === 1 && L3.ignoradas === 2 && L3.F.fz[0] === 3, "campo vazio: linha ignorada");
+  const L4 = lerArquivo("0.000, 1.5, 2, 3\n0.001, 1.5, 2, 4\n", m4);
+  ok(L4.N === 2 && L4.F.fx[0] === 1.5 && L4.F.fz[1] === 4, "CSV com virgula e espaco");
+
+  // maximo do grafico com espectro longo: Math.max(...v) estourava a pilha acima de ~100 mil valores
+  const grande = [0, 1, 2].map((k) => Float64Array.from({ length: 200000 }, (_, i) => (i === 123456 ? 7 + k : 1)));
+  ok(maxF(grande) === 9 && minPos(grande) === 1 && maxF([[NaN, Infinity, -2]]) === 1e-6, "maxF/minPos com 600 mil valores");
 
   // taxa pela coluna de tempo
   const t = Float64Array.from({ length: 1001 }, (_, i) => 0.5 + i / 2000);

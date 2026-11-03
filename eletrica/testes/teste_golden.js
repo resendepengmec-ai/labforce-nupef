@@ -1,11 +1,12 @@
 // teste_golden.js - compara a versao web com as saidas de referencia do Scilab v5.3.3
 // (testes/golden/*.txt, geradas por testes/golden.sce). Rodar: node testes/teste_golden.js
 import { readFileSync, existsSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 import { prepararEnsaio, analisarFaixa, PADRAO } from "../js/analise.js";
 import { mediaMovelCiclos, rnd } from "../js/nucleo.js";
 import { sprintf } from "../../comum/js/formato.js";
 
-const dir = new URL(".", import.meta.url).pathname;
+const dir = fileURLToPath(new URL(".", import.meta.url));
 const arqs = ["E1R1", "E8R1", "S800", "S1000_instavel", "S2000", "S333"];
 const op = { fft: true, ieee519: true, ieee1459: true };
 let falhas = 0, linhas = 0, difTexto = 0;

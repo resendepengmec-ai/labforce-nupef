@@ -216,7 +216,12 @@ async function proximoEnsaio() {
   $("cvSel").focus({ preventScroll: true });
 }
 
+// analise em curso: os cliques ficam na fila e rodariam no meio dela (Pular pulava tambem o ensaio seguinte)
+let ocupado = false;
+
 async function analisarEnsaio() {
+  if (ocupado || !ensaio) return;
+  ocupado = true;
   const R = rodada, { E, nome } = ensaio, D = R.destino, c = cfg;
   const faixas = sel.estado.faixas, validas = faixas.filter((f) => !f.curta);
   $("btAnalisar").disabled = true;
@@ -254,15 +259,22 @@ async function analisarEnsaio() {
   }
   await gravarResumos();
   progresso($("progEnsaio")); mostrarLog();
-  sel.encerrar(); ensaio = null; R.i++;
+  sel.encerrar(); ensaio = null; R.i++; ocupado = false;
   await proximoEnsaio();
 }
 
+// Nunca lanca: um resumo aberto no Excel nao pode prender a tela em "Analisando…"
 async function gravarResumos() {
   const R = rodada, D = R.destino;
-  if (R.resumo.length) await D.gravar("forcas_resumo.csv", [CAB_RESUMO, ...R.resumo]);
-  if (R.teo.length) await D.gravar("corte_teorico.csv", [CAB_TEORICO, ...R.teo]);
-  await D.gravar("relatorio.txt", R.log);
+  try {
+    if (R.resumo.length) await D.gravar("forcas_resumo.csv", [CAB_RESUMO, ...R.resumo]);
+    if (R.teo.length) await D.gravar("corte_teorico.csv", [CAB_TEORICO, ...R.teo]);
+    await D.gravar("relatorio.txt", R.log);
+  } catch (e) {
+    const msg = `ERRO ao gravar os resumos: ${e.message} Se algum arquivo estiver aberto (ex.: no Excel), feche-o: a próxima gravação tenta de novo.`;
+    R.log.push(msg);
+    const p = document.createElement("p"); p.className = "aviso"; p.textContent = msg; $("resFaixas").appendChild(p);
+  }
 }
 
 async function finalizarRodada() {
@@ -308,7 +320,7 @@ function mostrarFaixa(r, figs) {
 
 const sel = criarSelecao({
   canvas: $("cvSel"), leitura: $("leitura"), instrucao: $("instrucao"), tabela: $("tabFaixas"),
-  btDesfazer: $("btDesfazer"), btReiniciar: $("btReiniciar"), aoMudar: (pronto) => { $("btAnalisar").disabled = !pronto; },
+  btDesfazer: $("btDesfazer"), btReiniciar: $("btReiniciar"), aoMudar: (pronto) => { $("btAnalisar").disabled = !pronto || ocupado; },
 });
 
 function iniciar() {
@@ -338,7 +350,7 @@ function iniciar() {
   });
   $("btAnalisar").addEventListener("click", analisarEnsaio);
   $("btPular").addEventListener("click", () => {
-    if (!ensaio) return;
+    if (!ensaio || ocupado) return;
     rodada.log.push("", `${ensaio.nome}: ensaio pulado pelo usuario.`); mostrarLog();
     sel.encerrar(); ensaio = null; rodada.i++; proximoEnsaio();
   });

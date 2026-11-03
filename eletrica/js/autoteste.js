@@ -91,6 +91,10 @@ ok(r.tot.In < 1e-6 && r.tot.FDv < 1e-6, "1459 In e V-/V+");
 // leitura: cabecalho de texto, tab, ponto e virgula
 const m = lerArquivoESP32("ESP32 ensaio\nVa Vb Vc Ia Ib Ic\n1\t2\t3\t4\t5\t6\r\n7;8;9;10;11;12\n");
 ok(m.cols[0].length === 2 && m.cols[5][1] === 12 && m.ignoradas === 2, "leitura");
+// virgula decimal com tab; separador no inicio da linha nao desloca os canais; CSV com virgula
+const m2 = lerArquivoESP32("2046,5\t1781,5\t2311\t2025\t2103\t2177\n;1;2;3;4;5;6\n1,2,3,4,5,6\n");
+ok(m2.cols[0].length === 3 && m2.cols[0][0] === 2046.5 && m2.cols[1][0] === 1781.5 && m2.cols[5][0] === 2177, "leitura: virgula decimal com tab");
+ok(m2.cols[0][1] === 1 && m2.cols[5][1] === 6 && m2.cols[5][2] === 6, "leitura: ';' no inicio e CSV com virgula");
 ok(rnd(-2.5) === -3 && rnd(2.5) === 3, "round do Scilab");
 
 // zip (fallback): assinatura e diretorio central

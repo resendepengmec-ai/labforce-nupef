@@ -1,6 +1,7 @@
 # Gera a narracao do video com o Piper (offline, codigo aberto) e publica.
 # Roda so manualmente: Actions > Narracao do video > Run workflow.
-# Versoes fixas (actions por hash, piper-tts por versao): o job tem permissao de escrita no repositorio.
+# Dois jobs: "narrar" roda codigo de terceiros (pip, voz do HuggingFace) so com
+# leitura; "publicar" tem escrita mas so roda git e actions oficiais fixadas por hash.
 name: Narracao do video
 on:
   workflow_dispatch:
@@ -9,21 +10,24 @@ on:
         description: "Voz do Piper (pt_BR-faber-medium, pt_BR-cadu-medium, pt_BR-jeff-medium)"
         default: pt_BR-faber-medium
 permissions:
-  contents: write
+  contents: read
 concurrency:
   group: narracao
   cancel-in-progress: true
+env:
+  VOZ: ${{ inputs.voz || 'pt_BR-faber-medium' }}
 jobs:
   narrar:
     runs-on: ubuntu-24.04
     timeout-minutes: 20
-    env:
-      VOZ: ${{ inputs.voz || 'pt_BR-faber-medium' }}
+    permissions:
+      contents: read
     steps:
       # sempre a ponta da main: um "Re-run" de execucao antiga nao fica desatualizado
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5.1.0
         with:
           ref: main
+          persist-credentials: false
       - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1  # v6.3.0
         with:
           python-version: "3.12"
@@ -37,9 +41,30 @@ jobs:
           python -m piper.download_voices --data-dir "$RUNNER_TEMP/vozes" "$VOZ"
       - name: Gera a narracao e junta ao video
         run: python ferramentas/video/narrar.py --motor piper --modelo "$RUNNER_TEMP/vozes/$VOZ.onnx" --refazer
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9  # v7.0.2
+        with:
+          name: video-narrado
+          path: ferramentas/video/apresentacao_narrada.mp4
+          if-no-files-found: error
+          retention-days: 1
+
+  publicar:
+    needs: narrar
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5.1.0
+        with:
+          ref: main
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333  # v8.0.2
+        with:
+          name: video-narrado
+          path: ${{ runner.temp }}/video
       - name: Publica o video narrado
         run: |
-          cp ferramentas/video/apresentacao_narrada.mp4 assets/apresentacao.mp4
+          cp "$RUNNER_TEMP/video/apresentacao_narrada.mp4" assets/apresentacao.mp4
           sed -i 's/Sem áudio, com legendas na imagem\./Narrado, com legendas na imagem./' index.html
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"

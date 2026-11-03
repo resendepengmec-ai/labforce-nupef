@@ -161,7 +161,13 @@ export const paraPNG = (c) => new Promise((ok) => c.toBlob(ok, "image/png"));
 
 export const serie = (x, y, k, rotulo, extra = {}) => ({ x, y, cor: ESTILOS[k].cor, marca: ESTILOS[k].marca, tam: ESTILOS[k].tam, rotulo, ...extra });
 export const hlin = (x0, x1, v, cor, traco, rotulo) => ({ x: [x0, x1], y: [v, v], cor, traco, largura: 2, rotulo });
-export const maxF = (...a) => Math.max(...a.flat(3).filter(Number.isFinite), 1e-6);
+// Maximo e minimo positivo por laco: Math.max(...v) estoura a pilha acima de ~100 mil valores.
+// Aceitam numeros, arrays e Float64Array aninhados; ignoram NaN e infinitos.
+function percorre(v, f) {
+  if (typeof v === "number") { if (Number.isFinite(v)) f(v); } else if (v && v.length !== undefined) for (const x of v) percorre(x, f);
+}
+export function maxF(...a) { let m = 1e-6; percorre(a, (v) => { if (v > m) m = v; }); return m; }
+export function minPos(...a) { let m = Infinity; percorre(a, (v) => { if (v > 0 && v < m) m = v; }); return m; }
 
 // Sinal com as faixas escolhidas (registro da selecao): <ensaio>_faixas.png
 // series: [{y, cor, rotulo}] sobre o vetor de tempo t

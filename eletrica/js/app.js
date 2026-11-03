@@ -156,7 +156,7 @@ async function proximoEnsaio() {
       for (let j = i + 1; j < novas.length && /^\s+\S/.test(novas[j]); j++) txt += " " + novas[j].trim();
       const p = document.createElement("p"); p.className = "aviso"; p.textContent = txt; $("avisosEnsaio").appendChild(p);
     });
-    if (1.1 * cfg.p.fRede >= E.fs / 2) throw new Error(`fs = ${E.fs.toFixed(1)} Hz é insuficiente para a rede de ${cfg.p.fRede} Hz.`);
+    if (!(E.fs > 2.2 * cfg.p.fRede)) throw new Error(`fs = ${E.fs.toFixed(1)} Hz é insuficiente para a rede de ${cfg.p.fRede} Hz.`);
   } catch (e) {
     R.log.push(`ERRO ${nome}: ${e.message} Ensaio ignorado.`);
     const p = document.createElement("p"); p.className = "aviso"; p.textContent = `${nome}: ${e.message} O ensaio foi ignorado.`;
@@ -177,7 +177,12 @@ async function proximoEnsaio() {
 
 const rotY = () => `P (média móvel ${cfg.p.nCicVis} ciclos) [W]`;
 
+// analise em curso: os cliques ficam na fila e rodariam no meio dela (Pular pulava tambem o ensaio seguinte)
+let ocupado = false;
+
 async function analisarEnsaio() {
+  if (ocupado || !ensaio) return;
+  ocupado = true;
   const R = rodada, { E, t, nome } = ensaio, D = R.destino, c = cfg;
   const faixas = sel.estado.faixas;
   $("btAnalisar").disabled = true;
@@ -216,16 +221,23 @@ async function analisarEnsaio() {
   await gravarResumos();
   progresso($("progEnsaio"));
   mostrarLog(); atualizarTabela();
-  sel.encerrar(); ensaio = null; R.i++;
+  sel.encerrar(); ensaio = null; R.i++; ocupado = false;
   await proximoEnsaio();
 }
 
+// Nunca lanca: um resumo aberto no Excel nao pode prender a tela em "Analisando…"
 async function gravarResumos() {
   const R = rodada, D = R.destino;
-  if (R.matPot.length) await D.gravar("dados_obtidos.csv", [CAB_DADOS, ...R.matPot]);
-  if (R.matQ.length) await D.gravar("ieee519_resumo.csv", [cabecalhoResumoIEEE519(), ...R.matQ]);
-  if (R.mat59.length) await D.gravar("ieee1459_resumo.csv", [cabecalhoIEEE1459(), ...R.mat59]);
-  await D.gravar("relatorio.txt", R.log);
+  try {
+    if (R.matPot.length) await D.gravar("dados_obtidos.csv", [CAB_DADOS, ...R.matPot]);
+    if (R.matQ.length) await D.gravar("ieee519_resumo.csv", [cabecalhoResumoIEEE519(), ...R.matQ]);
+    if (R.mat59.length) await D.gravar("ieee1459_resumo.csv", [cabecalhoIEEE1459(), ...R.mat59]);
+    await D.gravar("relatorio.txt", R.log);
+  } catch (e) {
+    const msg = `ERRO ao gravar os resumos: ${e.message} Se algum arquivo estiver aberto (ex.: no Excel), feche-o: a próxima gravação tenta de novo.`;
+    R.log.push(msg);
+    const p = document.createElement("p"); p.className = "aviso"; p.textContent = msg; $("resFaixas").appendChild(p);
+  }
 }
 
 async function finalizarRodada() {
@@ -281,7 +293,7 @@ function mostrarFaixa(r, figs) {
 // -------------------------------------------------------------- inicio -----
 const sel = criarSelecao({
   canvas: $("cvSel"), leitura: $("leitura"), instrucao: $("instrucao"), tabela: $("tabFaixas"),
-  btDesfazer: $("btDesfazer"), btReiniciar: $("btReiniciar"), aoMudar: (pronto) => { $("btAnalisar").disabled = !pronto; },
+  btDesfazer: $("btDesfazer"), btReiniciar: $("btReiniciar"), aoMudar: (pronto) => { $("btAnalisar").disabled = !pronto || ocupado; },
 });
 
 function iniciar() {
@@ -311,7 +323,7 @@ function iniciar() {
   });
   $("btAnalisar").addEventListener("click", analisarEnsaio);
   $("btPular").addEventListener("click", () => {
-    if (!ensaio) return;
+    if (!ensaio || ocupado) return;
     rodada.log.push("", `${ensaio.nome}: ensaio pulado pelo usuario.`); mostrarLog();
     sel.encerrar(); ensaio = null; rodada.i++; proximoEnsaio();
   });

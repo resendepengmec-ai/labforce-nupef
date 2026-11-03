@@ -2,11 +2,18 @@ server.out.log
 server.err.log
 *.log
 
-# ensaios reais (repositorio publico)
-eletrica/testes/dados/E*.txt
+# ensaios reais (repositorio publico): so os sinteticos S*.txt entram
+eletrica/testes/dados/*
+!eletrica/testes/dados/S*.txt
+eletrica/testes/golden/*
+!eletrica/testes/golden/S*.txt
 node_modules/
-eletrica/testes/golden/E*.txt
+__pycache__/
+# saidas do video (tem dados do ensaio real E1R1); /dados.js e /quadros/ caso rodados da raiz
 ferramentas/video/dados.js
+/dados.js
 ferramentas/video/quadros/
+/quadros/
 ferramentas/video/narracao/
+ferramentas/video/apresentacao.mp4
 ferramentas/video/apresentacao_narrada.mp4

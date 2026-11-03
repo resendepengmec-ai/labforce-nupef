@@ -7,7 +7,9 @@ import { fft } from "../../comum/js/fft.js";
 export const CAMPOS = ["tempo", "fx", "fy", "fz", "ignorar"];
 
 export function numeroLocal(v) {
-  const n = Number(String(v).trim().replace(",", "."));
+  const s = String(v).trim();
+  if (s === "") return null;   // campo vazio invalida a linha (Number("") daria 0)
+  const n = Number(s.replace(",", "."));
   return Number.isFinite(n) ? n : null;
 }
 
@@ -15,8 +17,9 @@ export function numeroLocal(v) {
 export function separarLinha(linha) {
   const t = linha.trim();
   if (!t) return [];
-  if (t.includes("\t")) return t.split(/\t+/).map((x) => x.trim());
+  if (t.includes("\t")) return t.split("\t").map((x) => x.trim());   // um tab = uma coluna: campo vazio nao desloca as outras
   if (t.includes(";")) return t.split(";").map((x) => x.trim());
+  if (/,\s/.test(t)) return t.split(/\s*,\s*/);                     // "0.0, 1.5, 2" (numpy delimiter=", ")
   if (/\s+/.test(t)) return t.split(/\s+/);
   if (t.includes(",")) return t.split(",").map((x) => x.trim());
   return [t];

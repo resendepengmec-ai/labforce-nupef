@@ -1,5 +1,5 @@
 // figuras.js - figuras da analise eletrica (espectro, IEEE 519, IEEE 1459)
-import { painel, novaFigura, ESTILOS, serie, hlin, maxF } from "../../comum/js/graficos.js";
+import { painel, novaFigura, ESTILOS, serie, hlin, maxF, minPos } from "../../comum/js/graficos.js";
 
 // ---- figuras da analise --------------------------------------------------
 export function figuraEspectro(R, fs) {
@@ -7,7 +7,7 @@ export function figuraEspectro(R, fs) {
   [["V", R.eV, "amplitude de pico [V]", "Va [V]|Vb [V]|Vc [V]"], ["I", R.eI, "amplitude de pico [A]", "Ia [A]|Ib [A]|Ic [A]"]]
     .forEach(([s, e3, yl, rots], p) => {
       const f = e3[0].f.subarray(1), Y = e3.map((e) => Array.from(e.A.subarray(1), (v) => Math.max(v, 1e-6)));
-      const ymax = maxF(Y), ymin = Math.max(Math.min(...Y.flat().filter((v) => v > 0)), ymax * 1e-7);
+      const ymax = maxF(Y), ymin = Math.max(minPos(Y), ymax * 1e-7);
       painel(ctx, { x: 0, y: p * 400, w: 1100, h: 400 }, {
         titulo: p === 0 ? `${R.rotulo} - espectro das tensões | f1 = ${R.f1.toFixed(3).replace(".", ",")} Hz`
           : `espectro das correntes - acima de ${String(fs / 2).replace(".", ",")} Hz há dobramento`,

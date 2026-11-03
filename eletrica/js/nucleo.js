@@ -222,7 +222,8 @@ export function lerArquivoESP32(texto) {
   for (const l of linhas) {
     const t = l.trim();
     if (!t) continue;
-    const p = t.split(/[\s;,]+/);
+    // com tab ou ";" separando, a virgula e decimal; sem eles, a virgula separa colunas
+    const p = (/[\t;]/.test(t) ? t.replace(/,/g, ".").split(/[\s;]+/) : t.split(/[\s,]+/)).filter((s) => s !== "");
     if (p.length < 6) { ignoradas++; continue; }
     const v = p.slice(0, 6).map(Number);
     if (v.some((z) => !Number.isFinite(z))) { ignoradas++; continue; }

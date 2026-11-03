@@ -35,7 +35,7 @@ export function figuraEspectro(E, R) {
     const X = fft(Float64Array.from(x, (v, i) => (v - m) * w[i]));
     return Float64Array.from({ length: M - 1 }, (_, i) => Math.max(2 * Math.hypot(X.re[i + 1], X.im[i + 1]) / sw, 1e-9));
   });
-  const ymax = maxF(Ys.map((y) => Array.from(y)));
+  const ymax = maxF(Ys);
   painel(ctx, { x: 0, y: 0, w: 1200, h: 520 }, {
     titulo: `${R.rotulo} - espectro de amplitude (sem a média)`, xlabel: "f [Hz]", ylabel: "amplitude de pico [N]",
     xlim: [f[0], f[f.length - 1]], ylim: [ymax * 1e-5, ymax * 2], logY: true,
