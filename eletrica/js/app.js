@@ -8,8 +8,9 @@ import { figuraFaixas, paraPNG } from "../../comum/js/graficos.js";
 import { figuraEspectro, figuraIEEE519, figuraIEEE1459 } from "./figuras.js";
 import { temPastaDireta, criarDestino, nomeRodada, baixar } from "../../comum/js/saida.js";
 import { criarSelecao } from "../../comum/js/selecao.js";
+import { criarTarefa } from "../../comum/js/tarefa.js";
 import {
-  $, virg, numero, esperar, marcarEtapa, recolher, expandir, mostrar, progresso, ligarArquivos, ligarPasta, chip, tabelaHTML,
+  $, virg, numero, esperar, marcarEtapa, recolher, expandir, mostrar, progresso, ligarArquivos, ligarPasta, chip, tabelaHTML, nomeUnico, gravarTodos,
 } from "../../comum/js/ui.js";
 
 const CANAIS = ["Va", "Vb", "Vc", "Ia", "Ib", "Ic"];
@@ -17,6 +18,16 @@ const CHAVE = "pe-config-v1";
 const sn = (b) => (b ? "sim" : "nao");
 
 let pasta = null, arquivos = [], cfg = null, rodada = null, ensaio = null;
+
+// leitura e analise no Web Worker (a pagina nao trava); sem Worker, aqui mesmo
+const tarefa = criarTarefa("eletrica", {
+  preparar: async (a, log) => prepararEnsaio(await a.arquivo.text(), a.nome, a.p, log),
+  analisar: (a, log) => analisarFaixa(ensaio.E, a.c1, a.c2, a.rotulo, a.p, a.op, log),
+});
+async function chamar(tipo, args) {
+  try { const { r, log } = await tarefa(tipo, args); rodada.log.push(...log); return r; }
+  catch (e) { rodada.log.push(...(e.log || [])); throw e; }
+}
 
 // ------------------------------------------------------- configuracao -----
 function lerSalvo() { try { return JSON.parse(localStorage.getItem(CHAVE)) || {}; } catch { return {}; } }
@@ -123,7 +134,7 @@ async function iniciarRodada() {
     c.nFaixas, c.zoom ? "com" : "sem", sn(c.op.fft), sn(c.op.ieee519), sn(c.op.ieee1459), sn(c.op.graficos)));
   log.push(sprintf("Parametros: rede %g Hz | media movel %d ciclos | faixa minima %g s | Isc/IL %g | IL %s | atraso [us] %s",
     c.p.fRede, c.p.nCicVis, c.p.duracaoMin, c.p.IscIL, Number.isNaN(c.p.IL519) ? "auto" : String(c.p.IL519), c.atrasoUs.join(" ")));
-  rodada = { destino, log, i: 0, matPot: [], matQ: [], mat59: [], nomes: [], linhasTab: [], salvoZip: false };
+  rodada = { destino, log, i: 0, matPot: [], matQ: [], mat59: [], nomes: [], linhasTab: [], usados: new Set(), salvoZip: false };
   $("resFaixas").replaceChildren(); $("tabResumo").replaceChildren(); $("btNova").hidden = true;
   $("destinoInfo").textContent = destino.modo === "pasta"
     ? `Gravando em ${pasta.name}/${nome}. Cada ensaio é gravado assim que termina.`
@@ -138,7 +149,7 @@ async function iniciarRodada() {
 async function proximoEnsaio() {
   const R = rodada;
   if (R.i >= arquivos.length) return finalizarRodada();
-  const f = arquivos[R.i], nome = f.name.replace(/\.[^.]*$/, "");
+  const f = arquivos[R.i], nome = nomeUnico(f.name, R.usados, R.log);
   marcarEtapa(4);
   mostrar($("secEnsaio"));
   $("tituloEnsaio").textContent = `4 Faixas · ensaio ${R.i + 1} de ${arquivos.length}: ${nome}`;
@@ -148,7 +159,7 @@ async function proximoEnsaio() {
   let E;
   try {
     const n0 = R.log.length;
-    E = prepararEnsaio(await f.text(), nome, cfg.p, R.log);
+    E = await chamar("preparar", { arquivo: f, nome, p: cfg.p });
     const novas = R.log.slice(n0);
     novas.forEach((l, i) => {
       if (!/AVISO|Aviso/.test(l)) return;
@@ -192,11 +203,11 @@ async function analisarEnsaio() {
     for (const f of faixas.filter((x) => x.curta)) {
       R.log.push("", sprintf("%s faixa %d IGNORADA: %.2f s (minimo %g s).", nome, f.num, (f.c2 - f.c1) / E.fs, c.p.duracaoMin));
     }
-    if (c.op.graficos) await D.gravar(`${nome}_faixas.png`, await paraPNG(figuraFaixas(t, [{ y: E.Pinst, cor: "rgb(0,0,205)" }], faixas, `${nome} - faixas analisadas`, rotY(), E.fs)));
+    if (c.op.graficos) await D.gravar(`${nome}_faixas.png`, await paraPNG(figuraFaixas(t, [{ y: E.Pinst, cor: "rgb(0,0,205)" }], faixas, `${nome} - faixas analisadas`, rotY())));
     for (const [k, f] of validas.entries()) {
       progresso($("progEnsaio"), `Analisando faixa ${k + 1} de ${validas.length}…`); await esperar();
       const rotulo = c.nFaixas > 1 ? `${nome}_f${f.num}` : nome;
-      const r = analisarFaixa(E, f.c1, f.c2, rotulo, c.p, c.op, R.log);
+      const r = await chamar("analisar", { c1: f.c1, c2: f.c2, rotulo, p: c.p, op: c.op });
       const figs = [];
       for (const [arq, linhas] of Object.entries(r.arquivos)) await D.gravar(arq, linhas);
       if (c.op.graficos) {
@@ -225,19 +236,12 @@ async function analisarEnsaio() {
   await proximoEnsaio();
 }
 
-// Nunca lanca: um resumo aberto no Excel nao pode prender a tela em "Analisando…"
 async function gravarResumos() {
-  const R = rodada, D = R.destino;
-  try {
-    if (R.matPot.length) await D.gravar("dados_obtidos.csv", [CAB_DADOS, ...R.matPot]);
-    if (R.matQ.length) await D.gravar("ieee519_resumo.csv", [cabecalhoResumoIEEE519(), ...R.matQ]);
-    if (R.mat59.length) await D.gravar("ieee1459_resumo.csv", [cabecalhoIEEE1459(), ...R.mat59]);
-    await D.gravar("relatorio.txt", R.log);
-  } catch (e) {
-    const msg = `ERRO ao gravar os resumos: ${e.message} Se algum arquivo estiver aberto (ex.: no Excel), feche-o: a próxima gravação tenta de novo.`;
-    R.log.push(msg);
-    const p = document.createElement("p"); p.className = "aviso"; p.textContent = msg; $("resFaixas").appendChild(p);
-  }
+  const R = rodada, arqs = [];
+  if (R.matPot.length) arqs.push(["dados_obtidos.csv", [CAB_DADOS, ...R.matPot]]);
+  if (R.matQ.length) arqs.push(["ieee519_resumo.csv", [cabecalhoResumoIEEE519(), ...R.matQ]]);
+  if (R.mat59.length) arqs.push(["ieee1459_resumo.csv", [cabecalhoIEEE1459(), ...R.mat59]]);
+  await gravarTodos(R, [...arqs, ["relatorio.txt", R.log]]);
 }
 
 async function finalizarRodada() {

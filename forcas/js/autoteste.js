@@ -4,6 +4,8 @@ import { lerArquivo, taxaDoTempo, estatistica, freqDominante, corteTeorico, vcDe
 import { prepararEnsaio, analisarFaixa, PADRAO } from "./analise.js";
 import { fft } from "../../comum/js/fft.js";
 import { maxF, minPos } from "../../comum/js/graficos.js";
+import { nv, nv6g } from "../../comum/js/formato.js";
+import { nomeUnico } from "../../comum/js/ui.js";
 import { DINAMOMETROS, verificarFaixa, PADRAO_DINAMOMETRO } from "./dinamometros.js";
 
 export async function autoteste() {
@@ -88,6 +90,19 @@ export async function autoteste() {
   ok(R.linhasResumo.length === 4 && R.arquivos["SINT_faixa.csv"].length === 3001, "ensaio: CSV da faixa e resumo");
   perto(R.teorico.Fc, 800, 1e-3, "ensaio: Fc teorica 800 N (kc1 escolhido)");
   ok(Math.abs(R.teorico.dif) < 0.01, "ensaio: diferenca medida x teorica ~ 0");
+  // espectro calculado na analise (roda no Web Worker): pico de Fz em 80 Hz
+  const Rf = analisarFaixa(E, 1500, 4499, "SINT", p, { fft: true }, []);
+  const Y = Rf.espectro.Y.fz; let kmax = 0; for (let i = 1; i < Y.length; i++) if (Y[i] > Y[kmax]) kmax = i;
+  perto(Rf.espectro.f[kmax], 80, 0.01, "espectro: pico de Fz em 80 Hz");
+
+  // nv6g rapido = nv(v, "%.6g") (CSV da faixa), inclusive nos limites da notacao exponencial
+  const vals = [0, -0, 1e-4, 9.99999e-5, 999999.4, 999999.6, 1e6, -123.4565, 0.1 + 0.2, NaN, Infinity];
+  for (let i = 0; i < 200000; i++) vals.push((Math.random() - 0.5) * 10 ** (Math.random() * 14 - 6));
+  ok(vals.every((v) => nv6g(v) === nv(v, "%.6g")), "nv6g igual a nv %.6g em 200 mil valores");
+
+  // nomes repetidos na rodada: ensaio1.txt e ensaio1.csv nao se sobrescrevem
+  const usados = new Set(), lg = [];
+  ok(["ensaio1.txt", "ensaio1.csv", "ensaio1.dat", "outro.txt"].map((a) => nomeUnico(a, usados, lg)).join() === "ensaio1,ensaio1_2,ensaio1_3,outro" && lg.length === 4, "nomes repetidos ganham _2, _3");
 
   // dinamometro: padrao 9257B; aviso de faixa acima de 90 %
   ok(PADRAO_DINAMOMETRO === "9257B" && DINAMOMETROS["9257B"].faixa.fz[1] === 10, "dinamometro padrao 9257B (Fz ate 10 kN)");

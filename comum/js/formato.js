@@ -67,3 +67,15 @@ export function sprintf(fmt, ...args) {
 
 // Numero com virgula decimal (nv do Scilab)
 export function nv(x, fmt) { return sprintf(fmt, x).replace(/\./g, ","); }
+
+// nv(v, "%.6g") rapido, para CSV com milhoes de valores (5x mais rapido, mesmo texto).
+// Fora de 1e-4..1e6 (notacao exponencial) usa o caminho geral.
+export function nv6g(v) {
+  if (v === 0) return "0";
+  const a = Math.abs(v);
+  if (!(a >= 1e-4 && a < 1e6)) return nv(v, "%.6g");
+  let s = v.toPrecision(6);
+  if (s.includes("e")) return nv(v, "%.6g");   // arredondou para 1e6
+  if (s.includes(".")) s = s.replace(/\.?0+$/, "");
+  return s.replace(".", ",");
+}

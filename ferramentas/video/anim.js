@@ -4,7 +4,7 @@ const W = 1920, H = 1080;
 const cv = document.getElementById("c"), ctx = cv.getContext("2d");
 const D = window.DADOS;
 const logo = new Image(); logo.src = "../../assets/logo-ifg-goiania.png";
-const logoN = new Image(); logoN.src = "../../assets/logo-nupef.png";   // 200 x 192
+const logoN = new Image(); logoN.src = "../../assets/logo-nupef.webp";   // 200 x 192
 let CUES = [];   // legendas = texto da narracao (narracao.tsv)
 const C = {
   fundo: "#0f1722", fundo2: "#16212f", tinta: "#eef3f6", cinza: "#9fb0bd", linha: "#2a3a4b",

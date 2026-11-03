@@ -5,9 +5,9 @@
 // Toda saida de texto vai para o array "log" (vira relatorio.txt).
 import {
   lerArquivoESP32, media, detectaFs, mediaMovelCiclos, grandezasEletricas,
-  espectroFFT, difFase, definirAviso,
+  espectroParFFT, difFase, definirAviso,
 } from "./nucleo.js";
-import { sprintf, nv } from "../../comum/js/formato.js";
+import { sprintf } from "../../comum/js/formato.js";
 import {
   analiseIEEE519, marcarFsInstavel, relatorioIEEE519, linhaResumoIEEE519,
 } from "./ieee519.js";
@@ -56,6 +56,20 @@ export function prepararEnsaio(texto, nome, p, log) {
   return { nome, N, fs, fsBruta, varFs, regra, V: [Va, Vb, Vc], I: [Ia, Ib, Ic], Pinst };
 }
 
+// Metodo da v5.3.3 (mantido): a janela do IEEE 519 e sincrona com a rede NOMINAL e cada
+// harmonico usa so a raia mais proxima. Com f1 fora do nominal, a ordem h fica a uma
+// fracao d = dist(h*|f1-fRede|*Tw, inteiro) da raia e sai menor por sinc(d).
+// Devolve a maior perda (0..1) entre as ordens 2..50 e a ordem em que ocorre.
+export function perdaEntreRaias(f1, fRede, Tw) {
+  let perda = 0, h = 0;
+  for (let k = 2; k <= 50; k++) {
+    const x = k * Math.abs(f1 - fRede) * Tw, d = Math.abs(x - Math.round(x));
+    const p = d < 1e-12 ? 0 : 1 - Math.sin(Math.PI * d) / (Math.PI * d);
+    if (p > perda) { perda = p; h = k; }
+  }
+  return { perda, h };
+}
+
 // c1, c2: indices base 0 (inclusivos). op: {fft, ieee519, ieee1459}
 export function analisarFaixa(E, c1, c2, rotulo, p, op, log) {
   definirAviso((s) => log.push(s));
@@ -65,8 +79,8 @@ export function analisarFaixa(E, c1, c2, rotulo, p, op, log) {
   const g = grandezasEletricas(V[0], V[1], V[2], I[0], I[1], I[2]);
   const eV = [], eI = [];
   for (let k = 0; k < 3; k++) {
-    eV.push(espectroFFT(V[k], fs, fRede));
-    eI.push(espectroFFT(I[k], fs, fRede, eV[k].k));
+    const [ev, ei] = espectroParFFT(V[k], I[k], fs, fRede);
+    eV.push(ev); eI.push(ei);
   }
   const f1 = (eV[0].f1 + eV[1].f1 + eV[2].f1) / 3;
   const defVbVa = difFase(eV[1].ph1, eV[0].ph1), defVcVa = difFase(eV[2].ph1, eV[0].ph1);
@@ -91,6 +105,9 @@ export function analisarFaixa(E, c1, c2, rotulo, p, op, log) {
       R.q = q;
       R.arquivos[rotulo + "_IEEE519_harmonicos.csv"] = rel.csv;
       R.linha519 = linhaResumoIEEE519(q, rotulo, f1);
+      const { perda, h } = perdaEntreRaias(f1, fRede, q.Tw);
+      if (perda > 0.1) log.push(sprintf("  AVISO %s: f1 = %.3f Hz difere de %g Hz. Pelo metodo da v5.3.3 (janela sincrona com a rede nominal),", rotulo, f1, fRede),
+        sprintf("      os harmonicos caem entre raias e saem ate %.0f %% menores (ordem %d): a situacao IEEE 519 pode sair favoravel demais.", 100 * perda, h));
     } else log.push("  IEEE 519 nao avaliado: " + q.msg);
   }
   if (op.ieee1459) {
@@ -99,11 +116,11 @@ export function analisarFaixa(E, c1, c2, rotulo, p, op, log) {
       log.push(...relatorioIEEE1459(r));
       R.r59 = r;
       R.linha1459 = linhaIEEE1459(r, rotulo);
+      if (p.atrasoCanal.some((a) => a !== 0)) log.push(`  AVISO ${rotulo}: o atraso entre canais corrige so os fasores fundamentais (P1, P1+, Q1+ e derivados).`,
+        "      P, Pt, FP, PH e PF usam os sinais sem correcao: com atraso grande, PH pode aparecer sem haver harmonicos.");
     } else log.push("  IEEE 1459 nao avaliado: " + r.msg);
   }
   const nums = sprintf("%.1f %.1f %.3f %.2f %.1f %.3f %.3f %.6g", g.Pt, g.Vrms[0], g.Ief, tu, g.St, g.FP, f1, fs);
   R.linhaDados = rotulo.replace(/ /g, "_") + " " + nums.replace(/\./g, ",");
   return R;
 }
-
-export { nv };

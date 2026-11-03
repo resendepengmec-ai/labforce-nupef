@@ -2,7 +2,7 @@
 //   prepararEnsaio : le o arquivo, aplica a calibracao, verifica o tempo
 //   analisarFaixa  : estatistica por canal, CSV da faixa e forca teorica
 import { lerArquivo, taxaDoTempo, estatistica, corteTeorico } from "./nucleo.js";
-import { sprintf, nv } from "../../comum/js/formato.js";
+import { sprintf, nv, nv6g } from "../../comum/js/formato.js";
 import { DINAMOMETROS, verificarFaixa } from "./dinamometros.js";
 
 export const VERSAO = "web 2.0.0";
@@ -36,11 +36,19 @@ export function prepararEnsaio(texto, nome, p, log) {
   return { nome, ...L, fs: tx.fs, desvio: tx.desvio };
 }
 
-// c1, c2: indices base 0 inclusivos; op: {teorico: bool}
+// Espectro de amplitude de pico (Hann, sem a media) a partir do |X| da frequencia
+// dominante (mesma janela e mesma media): 2|X|/soma(w), sem o DC
+function amplitudePico(A, N) {
+  let sw = 0;
+  for (let i = 0; i < N; i++) sw += 0.5 - 0.5 * Math.cos(2 * Math.PI * i / (N - 1));
+  return Float64Array.from({ length: A.length - 1 }, (_, i) => Math.max(2 * A[i + 1] / sw, 1e-9));
+}
+
+// c1, c2: indices base 0 inclusivos; op: {teorico, fft: bool}
 export function analisarFaixa(E, c1, c2, rotulo, p, op, log) {
   const n = c2 - c1 + 1, fs = E.fs, t0 = E.t[c1], t1 = E.t[c2];
-  const est = {};
-  for (const { k } of CANAIS) est[k] = estatistica(E.F[k].subarray(c1, c2 + 1), fs);
+  const est = {}, Abs = {};
+  for (const { k } of CANAIS) est[k] = estatistica(E.F[k].subarray(c1, c2 + 1), fs, op.fft && k !== "fr" ? (A) => { Abs[k] = A; } : null);
   const R = { rotulo, c1, c2, t0, t1, tu: t1 - t0, n, est, arquivos: {} };
   log.push("");
   log.push(sprintf("%s | %.3f s a %.3f s (%.3f s, %d amostras) | resolucao espectral %.3f Hz", rotulo, t0, t1, t1 - t0, n, est.fz.df));
@@ -64,9 +72,13 @@ export function analisarFaixa(E, c1, c2, rotulo, p, op, log) {
   // dados da faixa (forcas ja calibradas)
   const linhas = ["tempo[s];Fx[N];Fy[N];Fz[N];Fr[N]"];
   for (let i = c1; i <= c2; i++) {
-    linhas.push([E.t[i], E.F.fx[i], E.F.fy[i], E.F.fz[i], E.F.fr[i]].map((v) => nv(v, "%.6g")).join(";"));
+    linhas.push(nv6g(E.t[i]) + ";" + nv6g(E.F.fx[i]) + ";" + nv6g(E.F.fy[i]) + ";" + nv6g(E.F.fz[i]) + ";" + nv6g(E.F.fr[i]));
   }
   R.arquivos[`${rotulo}_faixa.csv`] = linhas;
+  if (op.fft && Abs.fx && Abs.fy && Abs.fz) {
+    const Y = { fx: amplitudePico(Abs.fx, n), fy: amplitudePico(Abs.fy, n), fz: amplitudePico(Abs.fz, n) };
+    R.espectro = { f: Float64Array.from({ length: Y.fx.length }, (_, i) => (i + 1) * fs / n), Y };
+  }
   if (op.teorico) {
     const q = p.teorico, c = corteTeorico(q), med = est[q.canal].media;
     const dif = 100 * (Math.abs(med) - c.Fc) / c.Fc;

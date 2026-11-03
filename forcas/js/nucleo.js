@@ -69,6 +69,7 @@ export function taxaDoTempo(t) {
 
 // Frequencia dominante: FFT (janela de Hann) do sinal sem a media, maior raia
 // fora do DC, com interpolacao exata para Hann. Resolucao = fs/N.
+// A: |X| das raias 0..N/2 (o espectro da figura sai daqui, sem outra FFT).
 export function freqDominante(x, fs) {
   const N = x.length;
   if (N < 8 || !(fs > 0)) return { f: NaN, df: NaN };
@@ -79,17 +80,18 @@ export function freqDominante(x, fs) {
   for (let i = 0; i < M; i++) A[i] = Math.hypot(X.re[i], X.im[i]);
   let k = 2;                                   // raias 0 e 1 carregam o DC da janela
   for (let i = 3; i < M; i++) if (A[i] > A[k]) k = i;
-  if (!(A[k] > 0)) return { f: NaN, df: fs / N };
+  if (!(A[k] > 0)) return { f: NaN, df: fs / N, A };
   let d = 0;
   if (k > 0 && k < M - 1) {
     if (A[k + 1] >= A[k - 1]) { const a = A[k + 1] / A[k]; d = (2 * a - 1) / (a + 1); }
     else { const a = A[k - 1] / A[k]; d = -(2 * a - 1) / (a + 1); }
   }
-  return { f: (k + d) * fs / N, df: fs / N };
+  return { f: (k + d) * fs / N, df: fs / N, A };
 }
 
 // Estatistica de um canal (populacional). Curtose de Pearson (normal = 3).
-export function estatistica(x, fs) {
+// aoEspectro(A): opcional, recebe o |X| da FFT da frequencia dominante.
+export function estatistica(x, fs, aoEspectro) {
   const n = x.length;
   if (!n) return null;
   let s = 0, s2 = 0, pico = 0;
@@ -100,6 +102,7 @@ export function estatistica(x, fs) {
   m2 /= n; m3 /= n; m4 /= n;
   const dp = Math.sqrt(m2);
   const fd = freqDominante(x, fs);
+  if (aoEspectro && fd.A) aoEspectro(fd.A);
   return {
     media, rms, pico, dp,
     cv: media === 0 ? NaN : Math.abs(dp / media),

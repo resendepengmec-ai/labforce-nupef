@@ -171,7 +171,7 @@ export function minPos(...a) { let m = Infinity; percorre(a, (v) => { if (v > 0 
 
 // Sinal com as faixas escolhidas (registro da selecao): <ensaio>_faixas.png
 // series: [{y, cor, rotulo}] sobre o vetor de tempo t
-export function figuraFaixas(t, series, faixas, titulo, rotY, fs) {
+export function figuraFaixas(t, series, faixas, titulo, rotY) {
   const { c, ctx } = novaFigura(1200, 500);
   let mn = Infinity, mx = -Infinity;
   for (const S of series) for (let i = 0; i < S.y.length; i++) { if (S.y[i] < mn) mn = S.y[i]; if (S.y[i] > mx) mx = S.y[i]; }
@@ -181,15 +181,16 @@ export function figuraFaixas(t, series, faixas, titulo, rotY, fs) {
     ylim: [mn - 0.05 * d, mx + 0.12 * d], legenda: series.length > 1 ? "ne" : undefined,
     series: series.map((S) => ({ x: t, y: S.y, cor: S.cor, largura: 1, rotulo: series.length > 1 ? S.rotulo : undefined })),
   });
-  desenharFaixas(ctx, T, faixas, fs, t[0]);
+  desenharFaixas(ctx, T, faixas, t);
   return c;
 }
 
-export function desenharFaixas(ctx, T, faixas, fs, t0 = 0) {
+// t: tempo de cada amostra (no modulo de forcas vem do arquivo e pode ter passo irregular)
+export function desenharFaixas(ctx, T, faixas, t) {
   ctx.save();
   faixas.forEach((f) => {
     const cor = f.curta ? "rgb(150,150,150)" : ESTILOS[(f.num - 1) % 6].cor;
-    const a = T.px(t0 + f.c1 / fs), b = T.px(t0 + f.c2 / fs);
+    const a = T.px(t[f.c1]), b = T.px(t[f.c2]);
     ctx.fillStyle = cor; ctx.globalAlpha = 0.12; ctx.fillRect(a, T.Y0, b - a, T.Y1 - T.Y0);
     ctx.globalAlpha = 1; ctx.strokeStyle = cor; ctx.lineWidth = 2;
     for (const X of [a, b]) { ctx.beginPath(); ctx.moveTo(X, T.Y0); ctx.lineTo(X, T.Y1); ctx.stroke(); }

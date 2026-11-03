@@ -6,9 +6,7 @@
 // ficam limitadas a ela. Faixa menor que durMin fica marcada "(curta)" e nao e
 // analisada; as demais mantem o numero escolhido.
 import { painel, desenharFaixas } from "./graficos.js";
-
-const virg = (x, d) => (Number.isFinite(x) ? x.toFixed(d).replace(".", ",") : "");
-const numero = (s) => { const t = String(s).trim().replace(",", "."); return t === "" ? NaN : Number(t); };
+import { virg, numero } from "./ui.js";
 
 export function criarSelecao(el) {
   // el: {canvas, leitura, instrucao, tabela, btDesfazer, btReiniciar, aoMudar}
@@ -43,7 +41,7 @@ export function criarSelecao(el) {
       const f = S.lim["f" + j];
       if (!f || f[0] === null || f[1] === null) continue;
       const c1 = Math.max(idx(Math.min(...f)), i1), c2 = Math.min(idx(Math.max(...f)), i2);
-      S.faixas.push({ c1, c2, num: j + 1, curta: (c2 - c1) / S.fs < S.durMin });
+      S.faixas.push({ c1, c2, num: j + 1, curta: S.t[c2] - S.t[c1] < S.durMin });
     }
     const prox = vagas().find((v) => valor(v) === null);
     S.prox = prox || null;
@@ -90,22 +88,35 @@ export function criarSelecao(el) {
       }
       const dur = tr.insertCell(), est = tr.insertCell(); est.className = "est";
       if (k === "z") {
-        dur.textContent = S.zoomFeito && S.zoom ? virg((S.i2 - S.i1) / S.fs, 2) : "";
+        dur.textContent = S.zoomFeito && S.zoom ? virg(S.t[S.i2] - S.t[S.i1], 2) : "";
         est.textContent = S.zoomFeito && S.zoom ? "delimita as faixas" : "";
       } else {
         const f = S.faixas.find((x) => x.num === Number(k.slice(1)) + 1);
-        dur.textContent = f ? virg((f.c2 - f.c1) / S.fs, 2) : "";
+        dur.textContent = f ? virg(S.t[f.c2] - S.t[f.c1], 2) : "";
         est.textContent = f ? (f.curta ? "curta: não analisada" : "válida") : "";
       }
     }
   }
 
-  function desenhar() {
+  // soCursor: so o mouse mexeu. O grafico (milhoes de pontos) fica guardado em S.base e
+  // so a linha do cursor e redesenhada; antes cada movimento percorria todas as amostras.
+  function desenhar(soCursor = false) {
     const cv = el.canvas, dpr = window.devicePixelRatio || 1;
     const w = cv.clientWidth, h = cv.clientHeight;
     if (!w || !h) return;
-    if (cv.width !== Math.round(w * dpr) || cv.height !== Math.round(h * dpr)) { cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr); }
     const ctx = cv.getContext("2d");
+    const linha = (tt, cor, larg = 2, tr = []) => {
+      const T = S.T, X = T.px(tt); if (X < T.X0 - 1 || X > T.X1 + 1) return;
+      ctx.save(); ctx.strokeStyle = cor; ctx.lineWidth = larg; ctx.setLineDash(tr);
+      ctx.beginPath(); ctx.moveTo(X, T.Y0); ctx.lineTo(X, T.Y1); ctx.stroke(); ctx.restore();
+    };
+    const cursor = () => { if (S.hover !== null && S.prox) linha(S.hover, "rgba(0,0,0,0.35)", 1, [4, 4]); };
+    if (soCursor && S.base && S.base.width === cv.width && S.base.height === cv.height) {
+      ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.drawImage(S.base, 0, 0);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0); cursor();
+      return;
+    }
+    if (cv.width !== Math.round(w * dpr) || cv.height !== Math.round(h * dpr)) { cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr); }
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     const { t, i1, i2 } = S;
     let mn = Infinity, mx = -Infinity;
@@ -116,19 +127,15 @@ export function criarSelecao(el) {
       xlim: [t[i1], t[i2]], ylim: [mn - 0.05 * d, mx + 0.12 * d], legenda: S.series.length > 1 ? "ne" : undefined,
       series: S.series.map((s) => ({ x: t.subarray(i1, i2 + 1), y: s.y.subarray(i1, i2 + 1), cor: s.cor, largura: 1, rotulo: S.series.length > 1 ? s.rotulo : undefined })),
     });
-    const T = S.T;
-    desenharFaixas(ctx, T, S.faixas, S.fs, t[0]);
-    const linha = (tt, cor, larg = 2, tr = []) => {
-      const X = T.px(tt); if (X < T.X0 - 1 || X > T.X1 + 1) return;
-      ctx.save(); ctx.strokeStyle = cor; ctx.lineWidth = larg; ctx.setLineDash(tr);
-      ctx.beginPath(); ctx.moveTo(X, T.Y0); ctx.lineTo(X, T.Y1); ctx.stroke(); ctx.restore();
-    };
+    desenharFaixas(ctx, S.T, S.faixas, t);
     if (S.zoom && !S.zoomFeito && S.lim.z) for (const v of S.lim.z) if (v !== null) linha(v, "rgb(130,130,130)");
     for (let j = 0; j < S.n; j++) {               // faixa com 1 limite so: linha pendente
       const f = S.lim["f" + j];
       if (f && (f[0] === null) !== (f[1] === null)) linha(f[0] ?? f[1], "rgb(20,20,20)", 2, [6, 3]);
     }
-    if (S.hover !== null && S.prox) linha(S.hover, "rgba(0,0,0,0.35)", 1, [4, 4]);
+    if (!S.base) S.base = document.createElement("canvas");
+    S.base.width = cv.width; S.base.height = cv.height; S.base.getContext("2d").drawImage(cv, 0, 0);
+    cursor();
   }
 
   function atualizar(refazTabela) {
@@ -157,9 +164,9 @@ export function criarSelecao(el) {
       const i = idx(tt);
       el.leitura.textContent = `t = ${virg(tt, 2)} s · ` + S.series.map((s) => `${s.rotulo || "y"} = ${virg(s.y[i], 1)}`).join(" · ") + (S.unidade ? ` ${S.unidade}` : "");
     }
-    desenhar();
+    desenhar(true);
   });
-  el.canvas.addEventListener("pointerleave", () => { if (S) { S.hover = null; el.leitura.textContent = ""; desenhar(); } });
+  el.canvas.addEventListener("pointerleave", () => { if (S) { S.hover = null; el.leitura.textContent = ""; desenhar(true); } });
   const desfazer = () => { if (S && S.hist.length) { definir(S.hist.pop(), null); atualizar(true); } };
   el.btDesfazer.addEventListener("click", desfazer);
   el.btReiniciar.addEventListener("click", () => { if (S) { S.lim = {}; S.hist = []; atualizar(true); } });
@@ -176,7 +183,14 @@ export function criarSelecao(el) {
       atualizar(true);
     },
     get estado() { return S ? { pronto: S.pronto, faixas: S.faixas, i1: S.i1, i2: S.i2 } : null; },
-    encerrar() { S = null; },
+    // limpa a tela: com a leitura no Worker a pagina segue ativa enquanto o proximo arquivo
+    // carrega, e a tabela antiga nao pode aceitar tempos de um ensaio que ja acabou
+    encerrar() {
+      S = null;
+      el.tabela.replaceChildren(); el.instrucao.textContent = ""; el.leitura.textContent = "";
+      const cv = el.canvas; cv.getContext("2d").clearRect(0, 0, cv.width, cv.height);
+      el.btDesfazer.disabled = true; el.aoMudar && el.aoMudar(false);
+    },
     desenhar() { if (S) desenhar(); },
   };
 }

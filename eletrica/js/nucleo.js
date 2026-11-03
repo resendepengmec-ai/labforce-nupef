@@ -114,9 +114,6 @@ export function detectaFs(v, fRede, tol = 0.003) {
   return { fs, fsBruta, varFs, regra };
 }
 
-// Tempo [s] -> indice valido 0..N-1 (t[0] = 0)
-export function tempo2indice(tc, fs, N) { return Math.min(Math.max(rnd(tc * fs), 0), N - 1); }
-
 // Grandezas de uma janela (V e A)
 export function grandezasEletricas(Va, Vb, Vc, Ia, Ib, Ic) {
   const Vrms = [valorRMS(Va), valorRMS(Vb), valorRMS(Vc)];
@@ -132,16 +129,45 @@ export function grandezasEletricas(Va, Vb, Vc, Ia, Ib, Ic) {
   return { Vrms, Irms, Ief, St, Pf, Pt, FP, Fi };
 }
 
+function conferirJanela(N, fs, fRede) {
+  if (N < 2 * fs / fRede) throw new Error("espectroFFT: janela menor que 2 ciclos.");
+  if (1.1 * fRede >= fs / 2) throw new Error("espectroFFT: fs insuficiente para fRede.");
+}
+// sinal sem a media, vezes a janela w; sw = soma(w), sw2 = soma(w^2)
+function janelado(xin, w) {
+  const N = xin.length, mx = media(xin), x = new Float64Array(N);
+  let sw = 0, sw2 = 0;
+  for (let i = 0; i < N; i++) { x[i] = (xin[i] - mx) * w[i]; sw += w[i]; sw2 += w[i] * w[i]; }
+  return { x, sw, sw2 };
+}
+
 // Espectro de amplitude (Hann) e fundamental. kRef: raia (base 0) de outro sinal.
 export function espectroFFT(xin, fs, fRede, kRef) {
   const N = xin.length;
-  if (N < 2 * fs / fRede) throw new Error("espectroFFT: janela menor que 2 ciclos.");
-  if (1.1 * fRede >= fs / 2) throw new Error("espectroFFT: fs insuficiente para fRede.");
-  const mx = media(xin), w = hann(N);
-  let sw = 0, sw2 = 0;
-  const x = new Float64Array(N);
-  for (let i = 0; i < N; i++) { x[i] = (xin[i] - mx) * w[i]; sw += w[i]; sw2 += w[i] * w[i]; }
-  const X = fft(x), M = Math.floor(N / 2) + 1;
+  conferirJanela(N, fs, fRede);
+  const { x, sw, sw2 } = janelado(xin, hann(N));
+  return espectroDeX(fft(x), N, sw, sw2, fs, fRede, kRef);
+}
+
+// Tensao e corrente de uma fase numa FFT complexa so (z = v + i.c): metade do custo.
+// Mesmo resultado de espectroFFT(v) e espectroFFT(c, ..., kV) (diferenca de arredondamento).
+export function espectroParFFT(v, c, fs, fRede) {
+  const N = v.length;
+  conferirJanela(N, fs, fRede);
+  const w = hann(N), a = janelado(v, w), b = janelado(c, w);
+  const Z = fft(a.x, b.x), M = Math.floor(N / 2) + 1;
+  const V = { re: new Float64Array(M), im: new Float64Array(M) }, I = { re: new Float64Array(M), im: new Float64Array(M) };
+  for (let k = 0; k < M; k++) {
+    const j = k === 0 ? 0 : N - k, zr = Z.re[k], zi = Z.im[k], yr = Z.re[j], yi = Z.im[j];
+    V.re[k] = (zr + yr) / 2; V.im[k] = (zi - yi) / 2;        // (Z[k] + conj Z[N-k]) / 2
+    I.re[k] = (zi + yi) / 2; I.im[k] = (yr - zr) / 2;        // (Z[k] - conj Z[N-k]) / 2i
+  }
+  const eV = espectroDeX(V, N, a.sw, a.sw2, fs, fRede);
+  return [eV, espectroDeX(I, N, b.sw, b.sw2, fs, fRede, eV.k)];
+}
+
+function espectroDeX(X, N, sw, sw2, fs, fRede, kRef) {
+  const M = Math.floor(N / 2) + 1;
   const A = new Float64Array(M), f = new Float64Array(M);
   for (let i = 0; i < M; i++) { A[i] = 2 * Math.hypot(X.re[i], X.im[i]) / sw; f[i] = i * fs / N; }
   A[0] /= 2;

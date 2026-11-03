@@ -4,13 +4,13 @@
 import { fft, limparCacheFFT, planosGuardados } from "../../comum/js/fft.js";
 import { sprintf } from "../../comum/js/formato.js";
 import {
-  valorRMS, grandezasEletricas, espectroFFT, difFase, mediaMovelCiclos, tempo2indice,
+  valorRMS, grandezasEletricas, espectroFFT, espectroParFFT, difFase, mediaMovelCiclos,
   percentil, ciclosSincronos, arredondaFs, detectaFs, lerArquivoESP32, rnd, definirAviso,
 } from "./nucleo.js";
 import { limitesCorrenteIEEE519, limitesTensaoIEEE519, analiseIEEE519 } from "./ieee519.js";
 import { analiseIEEE1459 } from "./ieee1459.js";
 import { criarZip } from "../../comum/js/saida.js";
-import { prepararEnsaio, analisarFaixa, PADRAO } from "./analise.js";
+import { prepararEnsaio, analisarFaixa, PADRAO, perdaEntreRaias } from "./analise.js";
 
 export async function autoteste() {
 let nOK = 0;
@@ -54,6 +54,12 @@ const x = Float64Array.from({ length: N }, (_, i) => 311 * Math.sin(2 * Math.PI 
 const y = Float64Array.from({ length: N }, (_, i) => 10 * Math.sin(2 * Math.PI * 60.023 * i / fs - fi));
 const ev = espectroFFT(x, fs, 60), ei = espectroFFT(y, fs, 60, ev.k);
 perto(ev.f1, 60.023, 1e-5, "f1"); perto(ev.A1, 311, 1e-3, "A1"); perto(difFase(ev.ph1, ei.ph1), 60, 1e-3, "fase");
+// V e I numa FFT so: mesmo resultado das duas FFTs separadas
+{
+  const [pv, pi] = espectroParFFT(x, y, fs, 60);
+  let dA = 0; for (let i = 0; i < pv.A.length; i++) dA = Math.max(dA, Math.abs(pv.A[i] - ev.A[i]) / 311, Math.abs(pi.A[i] - ei.A[i]) / 10);
+  ok(dA < 1e-12 && pv.k === ev.k && pi.k === ei.k && Math.abs(pi.ph1 - ei.ph1) < 1e-9 && Math.abs(pi.A1 - ei.A1) < 1e-9, `espectroParFFT = espectroFFT (dif ${dA})`);
+}
 
 // media movel de 30 ciclos anula o ripple de 120 Hz
 const p = Float64Array.from({ length: N }, (_, i) => 500 + 300 * Math.cos(2 * w * i / fs));
@@ -61,7 +67,6 @@ const pm = mediaMovelCiclos(p, fs, 60, 6);
 ok(pm.slice(100, N - 100).every((v) => Math.abs(v - 500) < 1e-9), "media movel");
 
 // indices, percentil, limites
-ok([-3, 0, 0.2, 1e9].map((t) => tempo2indice(t, 250, 100)).join() === "0,0,50,99", "tempo2indice");
 perto(percentil(Array.from({ length: 100 }, (_, i) => i + 1), 99), 99.01, 1e-9, "percentil");
 const L = limitesCorrenteIEEE519([2, 5, 8, 11, 23, 35], 10);
 ok(L.limI.join() === "2,4,4,2,0.6,0.3" && L.limTDD === 5, "limites corrente");
@@ -132,6 +137,17 @@ ok(zb[0] === 0x50 && zb[1] === 0x4b && zb.length > 100, "zip");
   perto(r.f1, 60.02, 1e-3, "ensaio sintetico: f1 = 60,02 Hz");
   perto(r.r59.tot.PF, 0.5, 0.01, "ensaio sintetico: PF (IEEE 1459) = 0,5");
   ok(r.q.stTDD === "ATENDE", "ensaio sintetico: TDD atende");
+  ok(!log.some((l) => /entre raias|atraso entre canais/.test(l)), "ensaio sintetico: sem avisos de raia nem de atraso");
+  const log2 = [];
+  analisarFaixa(E, 4000, 12000, "S800b", { ...PADRAO, atrasoCanal: [0, 0, 0, 2e-4, 2e-4, 2e-4] }, { ieee1459: true }, log2);
+  ok(log2.some((l) => /atraso entre canais/.test(l)), "aviso do atraso entre canais");
+}
+
+// perda entre raias (metodo v5.3.3): 25a ordem -36 % a 60,1 Hz; abaixo de 10 % a 60,02 Hz
+{
+  const a = perdaEntreRaias(60.1, 60, 0.2), b = perdaEntreRaias(60.02, 60, 0.2);
+  perto(a.perda, 1 - 2 / Math.PI, 1e-9, "perda entre raias a 60,1 Hz"); ok(a.h === 25, "ordem da maior perda a 60,1 Hz");
+  ok(b.perda < 0.1 && perdaEntreRaias(60, 60, 0.2).perda === 0, "sem aviso a 60,02 Hz e a 60 Hz");
 }
 
 return { nOK, falhas };

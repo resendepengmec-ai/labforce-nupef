@@ -1,6 +1,5 @@
 // figuras.js - figuras do modulo de forcas: sinal da faixa e espectro
 import { painel, novaFigura, serie, maxF } from "../../comum/js/graficos.js";
-import { fft } from "../../comum/js/fft.js";
 
 export const CORES = { fx: "rgb(0,0,205)", fy: "rgb(0,128,0)", fz: "rgb(220,0,0)", fr: "rgb(60,60,60)" };
 
@@ -23,18 +22,10 @@ export function figuraSinal(E, R) {
   return c;
 }
 
-// Espectro de amplitude (Hann) de Fx, Fy, Fz na faixa
+// Espectro de amplitude (Hann) de Fx, Fy, Fz na faixa (calculado em analisarFaixa: R.espectro)
 export function figuraEspectro(E, R) {
   const { c, ctx } = novaFigura(1200, 520);
-  const N = R.n, fs = E.fs, M = Math.floor(N / 2) + 1;
-  const w = Float64Array.from({ length: N }, (_, i) => 0.5 - 0.5 * Math.cos(2 * Math.PI * i / (N - 1)));
-  const sw = w.reduce((a, b) => a + b, 0);
-  const f = Float64Array.from({ length: M - 1 }, (_, i) => (i + 1) * fs / N);
-  const Ys = ["fx", "fy", "fz"].map((k) => {
-    const x = E.F[k].subarray(R.c1, R.c2 + 1), m = R.est[k].media;
-    const X = fft(Float64Array.from(x, (v, i) => (v - m) * w[i]));
-    return Float64Array.from({ length: M - 1 }, (_, i) => Math.max(2 * Math.hypot(X.re[i + 1], X.im[i + 1]) / sw, 1e-9));
-  });
+  const { f, Y } = R.espectro, Ys = [Y.fx, Y.fy, Y.fz];
   const ymax = maxF(Ys);
   painel(ctx, { x: 0, y: 0, w: 1200, h: 520 }, {
     titulo: `${R.rotulo} - espectro de amplitude (sem a média)`, xlabel: "f [Hz]", ylabel: "amplitude de pico [N]",

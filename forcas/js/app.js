@@ -8,8 +8,9 @@ import { sprintf } from "../../comum/js/formato.js";
 import { figuraFaixas, paraPNG } from "../../comum/js/graficos.js";
 import { temPastaDireta, criarDestino, nomeRodada, baixar } from "../../comum/js/saida.js";
 import { criarSelecao } from "../../comum/js/selecao.js";
+import { criarTarefa } from "../../comum/js/tarefa.js";
 import {
-  $, virg, numero, esperar, marcarEtapa, recolher, expandir, mostrar, progresso, ligarArquivos, ligarPasta, tabelaHTML,
+  $, virg, numero, esperar, marcarEtapa, recolher, expandir, mostrar, progresso, ligarArquivos, ligarPasta, tabelaHTML, nomeUnico, gravarTodos,
 } from "../../comum/js/ui.js";
 
 const CHAVE = "forcas-config-v1";
@@ -17,6 +18,16 @@ const ROT_CAMPO = { tempo: "tempo [s]", fx: "Fx [N]", fy: "Fy [N]", fz: "Fz [N]"
 const TEO = [["tAp", "ap"], ["tFn", "fn"], ["tVc", "vc"], ["tKr", "kr"], ["tG0", "g0"], ["tKc1", "kc1"], ["tMc", "mc"]];
 
 let pasta = null, arquivos = [], cfg = null, rodada = null, ensaio = null;
+
+// leitura e analise no Web Worker (a pagina nao trava); sem Worker, aqui mesmo
+const tarefa = criarTarefa("forcas", {
+  preparar: async (a, log) => prepararEnsaio(await a.arquivo.text(), a.nome, a.p, log),
+  analisar: (a, log) => analisarFaixa(ensaio.E, a.c1, a.c2, a.rotulo, a.p, a.op, log),
+});
+async function chamar(tipo, args) {
+  try { const { r, log } = await tarefa(tipo, args); rodada.log.push(...log); return r; }
+  catch (e) { rodada.log.push(...(e.log || [])); throw e; }
+}
 
 function lerSalvo() { try { return JSON.parse(localStorage.getItem(CHAVE)) || {}; } catch { return {}; } }
 function salvar(c) { try { localStorage.setItem(CHAVE, JSON.stringify(c)); } catch { /* sem armazenamento */ } }
@@ -175,7 +186,7 @@ async function iniciarRodada() {
     log.push(sprintf("Teorico: ap %g mm | fn %g mm/rot | vc %g m/min | kr %g graus | g0 %g graus | kc1 %g N/mm2 | mc %g | canal %s",
       q.ap, q.fn, q.vc, q.kr, q.g0, q.kc1, q.mc, ROT[q.canal]));
   }
-  rodada = { destino, log, i: 0, resumo: [], teo: [], nomes: [], salvoZip: false };
+  rodada = { destino, log, i: 0, resumo: [], teo: [], nomes: [], usados: new Set(), salvoZip: false };
   $("resFaixas").replaceChildren(); $("btNova").hidden = true;
   $("destinoInfo").textContent = destino.modo === "pasta"
     ? `Gravando em ${pasta.name}/${nome}. Cada ensaio é gravado assim que termina.`
@@ -190,7 +201,7 @@ async function iniciarRodada() {
 async function proximoEnsaio() {
   const R = rodada;
   if (R.i >= arquivos.length) return finalizarRodada();
-  const f = arquivos[R.i], nome = f.name.replace(/\.[^.]*$/, "");
+  const f = arquivos[R.i], nome = nomeUnico(f.name, R.usados, R.log);
   marcarEtapa(4);
   mostrar($("secEnsaio"));
   $("tituloEnsaio").textContent = `4 Faixas · ensaio ${R.i + 1} de ${arquivos.length}: ${nome}`;
@@ -199,7 +210,7 @@ async function proximoEnsaio() {
   let E;
   try {
     const n0 = R.log.length;
-    E = prepararEnsaio(await f.text(), nome, cfg.p, R.log);
+    E = await chamar("preparar", { arquivo: f, nome, p: cfg.p });
     for (const l of R.log.slice(n0)) if (/AVISO/.test(l)) { const p = document.createElement("p"); p.className = "aviso"; p.textContent = l.trim(); $("avisosEnsaio").appendChild(p); }
   } catch (e) {
     R.log.push(`ERRO ${nome}: ${e.message} Ensaio ignorado.`);
@@ -232,19 +243,19 @@ async function analisarEnsaio() {
     }
     if (c.op.graficos) {
       const series = ["fx", "fy", "fz"].map((k) => ({ y: E.F[k], cor: CORES[k], rotulo: k === "fx" ? "Fx [N]" : k === "fy" ? "Fy [N]" : "Fz [N]" }));
-      await D.gravar(`${nome}_faixas.png`, await paraPNG(figuraFaixas(E.t, series, faixas, `${nome} - faixas analisadas`, "força [N]", E.fs)));
+      await D.gravar(`${nome}_faixas.png`, await paraPNG(figuraFaixas(E.t, series, faixas, `${nome} - faixas analisadas`, "força [N]")));
     }
     for (const [k, f] of validas.entries()) {
       progresso($("progEnsaio"), `Analisando faixa ${k + 1} de ${validas.length}…`); await esperar();
       const rotulo = c.nFaixas > 1 ? `${nome}_f${f.num}` : nome;
-      const r = analisarFaixa(E, f.c1, f.c2, rotulo, c.p, c.op, R.log);
+      const r = await chamar("analisar", { c1: f.c1, c2: f.c2, rotulo, p: c.p, op: c.op });
       for (const [arq, linhas] of Object.entries(r.arquivos)) await D.gravar(arq, linhas);
       const figs = [];
       if (c.op.graficos) {
         figs.push([`${rotulo}_sinal.png`, figuraSinal(E, r)]);
-        if (c.op.fft) figs.push([`${rotulo}_espectro.png`, figuraEspectro(E, r)]);
+        if (r.espectro) figs.push([`${rotulo}_espectro.png`, figuraEspectro(E, r)]);
         for (const [arq, cv] of figs) await D.gravar(arq, await paraPNG(cv));
-      } else if (c.op.fft) figs.push([null, figuraEspectro(E, r)]);
+      } else if (r.espectro) figs.push([null, figuraEspectro(E, r)]);
       R.resumo.push(...r.linhasResumo);
       if (r.linhaTeorico) R.teo.push(r.linhaTeorico);
       R.nomes.push(rotulo);
@@ -263,18 +274,11 @@ async function analisarEnsaio() {
   await proximoEnsaio();
 }
 
-// Nunca lanca: um resumo aberto no Excel nao pode prender a tela em "Analisando…"
 async function gravarResumos() {
-  const R = rodada, D = R.destino;
-  try {
-    if (R.resumo.length) await D.gravar("forcas_resumo.csv", [CAB_RESUMO, ...R.resumo]);
-    if (R.teo.length) await D.gravar("corte_teorico.csv", [CAB_TEORICO, ...R.teo]);
-    await D.gravar("relatorio.txt", R.log);
-  } catch (e) {
-    const msg = `ERRO ao gravar os resumos: ${e.message} Se algum arquivo estiver aberto (ex.: no Excel), feche-o: a próxima gravação tenta de novo.`;
-    R.log.push(msg);
-    const p = document.createElement("p"); p.className = "aviso"; p.textContent = msg; $("resFaixas").appendChild(p);
-  }
+  const R = rodada, arqs = [];
+  if (R.resumo.length) arqs.push(["forcas_resumo.csv", [CAB_RESUMO, ...R.resumo]]);
+  if (R.teo.length) arqs.push(["corte_teorico.csv", [CAB_TEORICO, ...R.teo]]);
+  await gravarTodos(R, [...arqs, ["relatorio.txt", R.log]]);
 }
 
 async function finalizarRodada() {

@@ -16,7 +16,7 @@
 <body class="mod-eletrica">
 <header class="barra">
   <div class="barra-in">
-    <a class="marca" href="../"><img class="logo-nupef" src="../assets/logo-nupef.png" alt="" width="40" height="38">LabForce <span>NUPEF</span></a>
+    <a class="marca" href="../"><img class="logo-nupef" src="../assets/logo-nupef.webp" alt="" width="40" height="38">LabForce <span>NUPEF</span></a>
     <span class="modulo">Grandezas elétricas</span>
     <nav aria-label="Navegação do módulo">
       <a href="./">Análise</a>
@@ -193,7 +193,7 @@
 <h2>7 Ligação 3F+N</h2>
 <p>O módulo considera um sistema trifásico a 4 fios com tensões medidas entre fase e neutro. A figura 1 mostra a ligação.</p>
 <figure>
-  <img src="img/ligacao_3F_N.png" alt="Esquemático da ligação 3F+N: sensores de corrente Ia, Ib e Ic nas fases A, B e C, com a seta no sentido rede para carga; pontas de tensão Va, Vb e Vc em relação ao neutro; aquisição ESP32 com 6 canais." width="743" height="515" loading="lazy">
+  <img src="img/ligacao_3F_N.webp" alt="Esquemático da ligação 3F+N: sensores de corrente Ia, Ib e Ic nas fases A, B e C, com a seta no sentido rede para carga; pontas de tensão Va, Vb e Vc em relação ao neutro; aquisição ESP32 com 6 canais." width="743" height="515" loading="lazy">
   <figcaption>Figura 1 — Ligação 3F+N dos sensores ao módulo de aquisição ESP32.</figcaption>
 </figure>
 <h3 id="s7-1">7.1 Procedimento de ligação</h3>
@@ -285,7 +285,7 @@
 <h2>10 Procedimento de uso</h2>
 <p>Uma rodada tem 5 etapas: ligação, configuração, arquivos, faixas e resultados. A barra de etapas mostra a etapa atual (figura 2). Uma etapa concluída fica recolhida, com um resumo. Antes de iniciar a análise, <strong>Alterar</strong> reabre a etapa.</p>
 <figure>
-  <img src="img/manual/etapas.png" alt="Barra com as 5 etapas: 1 Ligação, 2 Configuração, 3 Arquivos, 4 Faixas, 5 Resultados." width="1140" height="40" loading="lazy">
+  <img src="img/manual/etapas.png" alt="Barra com as 5 etapas: 1 Ligação, 2 Configuração, 3 Arquivos, 4 Faixas, 5 Resultados." width="1140" height="30" loading="lazy">
   <figcaption>Figura 2 — Barra de etapas. A etapa atual tem o traço na cor do módulo; as concluídas têm ✓.</figcaption>
 </figure>
 <h3 id="s10-1">10.1 Confirmar a ligação</h3>
@@ -297,7 +297,7 @@
 </ol>
 <h3 id="s10-2">10.2 Configurar a análise</h3>
 <figure>
-  <img src="img/manual/configuracao.png" alt="Etapa 2: quadros de calibração por canal, faixas por ensaio com a opção de zoom e grandezas da análise." loading="lazy">
+  <img src="img/manual/configuracao.webp" width="1140" height="517" alt="Etapa 2: quadros de calibração por canal, faixas por ensaio com a opção de zoom e grandezas da análise." loading="lazy">
   <figcaption>Figura 3 — Etapa 2: calibração, faixas e grandezas.</figcaption>
 </figure>
 <ol class="passos">
@@ -313,7 +313,7 @@
 <p class="seg seg-nota"><strong>NOTA:</strong> As potências básicas (P, U, Ief, St, FP) são sempre calculadas. A quantidade de faixas é a mesma para todos os ensaios da rodada.</p>
 <h3 id="s10-3">10.3 Escolher os arquivos e a pasta</h3>
 <figure>
-  <img src="img/manual/arquivos.png" alt="Etapa 3: área para soltar os arquivos, lista dos arquivos escolhidos e botão Escolher pasta." loading="lazy">
+  <img src="img/manual/arquivos.webp" width="1140" height="313" alt="Etapa 3: área para soltar os arquivos, lista dos arquivos escolhidos e botão Escolher pasta." loading="lazy">
   <figcaption>Figura 4 — Etapa 3: arquivos do ensaio e pasta de resultados.</figcaption>
 </figure>
 <ol class="passos">
@@ -327,7 +327,7 @@
 <p class="seg seg-nota"><strong>NOTA:</strong> O módulo analisa os arquivos em ordem de nome. Os ensaios podem ter taxas de amostragem diferentes.</p>
 <h3 id="s10-4">10.4 Selecionar as faixas</h3>
 <figure>
-  <img src="img/manual/faixas.png" alt="Etapa 4: gráfico da potência suavizada com a região de interesse, a faixa f1 marcada e o início da faixa f2; tabela com os tempos de início e fim." loading="lazy">
+  <img src="img/manual/faixas.webp" width="1140" height="848" alt="Etapa 4: gráfico da potência suavizada com a região de interesse, a faixa f1 marcada e o início da faixa f2; tabela com os tempos de início e fim." loading="lazy">
   <figcaption>Figura 5 — Seleção com zoom: região de interesse delimitada, faixa f1 marcada e início da faixa f2 (linha tracejada).</figcaption>
 </figure>
 <p>O gráfico mostra a potência ativa suavizada do ensaio. A linha acima do gráfico mostra a próxima ação. Cada limite pode ser marcado de duas formas: com um clique no gráfico ou com o tempo digitado na tabela.</p>
@@ -364,7 +364,7 @@
 <p>Cada rodada cria uma pasta de resultados nova. O módulo não substitui os resultados de rodadas anteriores.</p>
 <p>Com 1 faixa por ensaio, o rótulo é o nome do ensaio (exemplo: <code>E1R1</code>). Com 2 ou mais faixas, o rótulo tem o número da faixa (exemplo: <code>E1R1_f2</code>).</p>
 <figure>
-  <img src="img/manual/resultados.png" alt="Etapa 5: tabela-resumo com uma linha por faixa: Pt, U, Ief, t, St, FP, f1, fs, situação IEEE 519 e grandezas da IEEE 1459." loading="lazy">
+  <img src="img/manual/resultados.webp" width="1140" height="330" alt="Etapa 5: tabela-resumo com uma linha por faixa: Pt, U, Ief, t, St, FP, f1, fs, situação IEEE 519 e grandezas da IEEE 1459." loading="lazy">
   <figcaption>Figura 6 — Etapa 5: resumo das faixas. Abaixo da tabela, a tela mostra os gráficos de cada faixa e o relatório.</figcaption>
 </figure>
 <div class="tabela-rolar"><table>
@@ -454,7 +454,7 @@
   <div class="inst">
     <div class="logos-inst">
       <a class="logo-ifg" href="https://www.ifg.edu.br/goiania" rel="noopener noreferrer"><img src="../assets/logo-ifg-goiania.png" alt="Instituto Federal de Goiás, Câmpus Goiânia" width="52" height="72" loading="lazy"></a>
-      <a class="logo-nupef-rod" href="../quem-somos.html"><img src="../assets/logo-nupef.png" alt="NUPEF, Núcleo de Pesquisas em Processos de Fabricação" width="76" height="72" loading="lazy"></a>
+      <a class="logo-nupef-rod" href="../quem-somos.html"><img src="../assets/logo-nupef.webp" alt="NUPEF, Núcleo de Pesquisas em Processos de Fabricação" width="76" height="72" loading="lazy"></a>
     </div>
     <address><strong>Instituto Federal de Goiás · Câmpus Goiânia</strong>NUPEF, Núcleo de Pesquisa em Fabricação<br>Rua 75, nº 46, Centro, Goiânia-GO, CEP 74055-110<br>Telefone (62) 3227-2700</address>
     <nav aria-label="Links institucionais"><a href="../quem-somos.html">Quem somos</a><a href="https://www.ifg.edu.br/goiania" rel="noopener noreferrer">ifg.edu.br/goiania</a><a href="https://ifgproduz.ifg.edu.br/informacoes-grupo/70" rel="noopener noreferrer">NUPEF no IFG Produz</a></nav>

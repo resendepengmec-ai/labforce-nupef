@@ -7,6 +7,30 @@ export const virg = (x, d) => (Number.isFinite(x) ? x.toFixed(d).replace(".", ",
 export const numero = (s) => { const t = String(s).trim().replace(",", "."); return t === "" ? NaN : Number(t); };
 export const esperar = () => new Promise((ok) => setTimeout(ok, 30));
 
+// Grava os resumos da rodada, um a um, sem lancar: um arquivo aberto no Excel (bloqueado
+// pelo Windows) nao impede os outros nem prende a tela em "Analisando…"; vira aviso.
+export async function gravarTodos(R, arqs) {
+  const falhas = [];
+  for (const [arq, conteudo] of arqs) {
+    try { await R.destino.gravar(arq, conteudo); } catch (e) { falhas.push(`${arq} (${e.message})`); }
+  }
+  if (!falhas.length) return;
+  const msg = `ERRO ao gravar ${falhas.join(", ")}. Se o arquivo estiver aberto (ex.: no Excel), feche-o: a próxima gravação tenta de novo.`;
+  R.log.push(msg);
+  const p = document.createElement("p"); p.className = "aviso"; p.textContent = msg; $("resFaixas").appendChild(p);
+}
+
+// Nome-base do arquivo sem repetir na rodada: ensaio1.txt e ensaio1.csv gravariam os
+// mesmos ensaio1_*.csv/png; o segundo vira ensaio1_2 (e fica registrado no relatorio)
+export function nomeUnico(arquivo, usados, log) {
+  const base = arquivo.replace(/\.[^.]*$/, "");
+  let nome = base;
+  for (let k = 2; usados.has(nome); k++) nome = `${base}_${k}`;
+  usados.add(nome);
+  if (nome !== base) log.push("", `${arquivo}: nome repetido nesta rodada; resultados gravados como ${nome}.`);
+  return nome;
+}
+
 // Etapas: n = etapa atual (1..5); anteriores = feitas
 export function marcarEtapa(n) {
   document.querySelectorAll(".etapas li").forEach((li, i) => {
