@@ -2,7 +2,7 @@
 // N potencia de 2: radix-2 iterativo. Outros N: algoritmo de Bluestein
 // (chirp-z) sobre uma FFT radix-2 de tamanho >= 2N-1.
 // Planos (twiddles, chirp) ficam em cache por N: janelas de mesmo tamanho
-// (IEEE 519/1459) reaproveitam o plano.
+// (IEEE 519/1459) reaproveitam o plano. Planos grandes: so o ultimo (ver obterPlano).
 // Convencao: X[k] = sum_n x[n] exp(-2 pi i k n / N)  (sem escala), como o Scilab.
 
 const cachePlanos = new Map();
@@ -73,7 +73,16 @@ function planoBluestein(n) {
   return { tipo: "bl", n, m, p2, wr, wi, br, bi };
 }
 
+// Planos pequenos (janelas IEEE) ficam todos no cache. Dos grandes fica so o ultimo:
+// cada faixa tem um N diferente, e guardar todos (~78 MB cada) derrubava a aba.
+const N_PEQUENO = 1 << 16;
+let planoGrande = null;
+
 function obterPlano(n) {
+  if (n > N_PEQUENO) {
+    if (!planoGrande || planoGrande.n !== n) planoGrande = ehPot2(n) ? planoRadix2(n) : planoBluestein(n);
+    return planoGrande;
+  }
   let p = cachePlanos.get(n);
   if (!p) {
     p = ehPot2(n) ? planoRadix2(n) : planoBluestein(n);
@@ -81,6 +90,9 @@ function obterPlano(n) {
   }
   return p;
 }
+
+// para os testes: quantos planos estao guardados
+export const planosGuardados = () => cachePlanos.size + (planoGrande ? 1 : 0);
 
 // x: Float64Array real (ou {re, im}). Devolve {re, im} de tamanho N.
 export function fft(x, xi) {
@@ -114,4 +126,4 @@ export function fft(x, xi) {
   return { re, im };
 }
 
-export function limparCacheFFT() { cachePlanos.clear(); }
+export function limparCacheFFT() { cachePlanos.clear(); planoGrande = null; }

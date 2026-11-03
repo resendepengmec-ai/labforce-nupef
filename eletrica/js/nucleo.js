@@ -218,7 +218,10 @@ export function percentil(x, p) {
 export function lerArquivoESP32(texto) {
   const linhas = texto.split(/\r?\n/);
   const cols = [[], [], [], [], [], []];
-  let ignoradas = 0;
+  let ignoradas = 0, cortada = false;
+  // sem quebra de linha no fim, a ultima linha pode ter sido cortada na gravacao
+  // ("...2196\t20" no lugar de "...2196\t2043") e ainda parecer valida: descartada
+  if (linhas.length > 1 && linhas[linhas.length - 1].trim() !== "") { linhas.pop(); cortada = true; }
   for (const l of linhas) {
     const t = l.trim();
     if (!t) continue;
@@ -229,5 +232,5 @@ export function lerArquivoESP32(texto) {
     if (v.some((z) => !Number.isFinite(z))) { ignoradas++; continue; }
     for (let k = 0; k < 6; k++) cols[k].push(v[k]);
   }
-  return { cols: cols.map((c) => Float64Array.from(c)), ignoradas };
+  return { cols: cols.map((c) => Float64Array.from(c)), ignoradas, cortada };
 }

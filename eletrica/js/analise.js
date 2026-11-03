@@ -32,7 +32,7 @@ export const CAB_DADOS = "Ensaio Pt[W] U[V] Ief[A] t[s] St[VA] FP f1[Hz] fs[Hz]"
 
 export function prepararEnsaio(texto, nome, p, log) {
   definirAviso((s) => log.push(s));
-  const { cols, ignoradas } = lerArquivoESP32(texto);
+  const { cols, ignoradas, cortada } = lerArquivoESP32(texto);
   const N = cols[0].length;
   if (N < 10) throw new Error(`${nome}: arquivo sem dados numéricos de 6 colunas.`);
   const cteT = (p.tensaoMcont / p.resolAD) * p.tensaoPicoPico;
@@ -49,6 +49,7 @@ export function prepararEnsaio(texto, nome, p, log) {
     log.push("      tempos, f1 e harmonicos podem ter erro. Situacao IEEE 519 = FS_INSTAVEL.");
   }
   if (ignoradas > 0) log.push(sprintf("%s: %d linha(s) nao numericas ignoradas.", nome, ignoradas));
+  if (cortada) log.push(sprintf("%s: arquivo sem quebra de linha no fim; a ultima linha (possivelmente cortada na gravacao) foi descartada.", nome));
   const Pot = new Float64Array(N);
   for (let i = 0; i < N; i++) Pot[i] = Va[i] * Ia[i] + Vb[i] * Ib[i] + Vc[i] * Ic[i];
   const Pinst = mediaMovelCiclos(Pot, fs, p.fRede, p.nCicVis);

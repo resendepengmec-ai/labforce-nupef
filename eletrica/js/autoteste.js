@@ -1,7 +1,7 @@
 // autoteste.js - verificacao do modulo eletrico com sinais sinteticos de resposta
 // conhecida (porte de teste_funcoes.sce + FFT, formatos e zip). Roda no navegador
 // (manual, secao 6) e no Node (testes/teste_unidades.js).
-import { fft } from "../../comum/js/fft.js";
+import { fft, limparCacheFFT, planosGuardados } from "../../comum/js/fft.js";
 import { sprintf } from "../../comum/js/formato.js";
 import {
   valorRMS, grandezasEletricas, espectroFFT, difFase, mediaMovelCiclos, tempo2indice,
@@ -95,6 +95,16 @@ ok(m.cols[0].length === 2 && m.cols[5][1] === 12 && m.ignoradas === 2, "leitura"
 const m2 = lerArquivoESP32("2046,5\t1781,5\t2311\t2025\t2103\t2177\n;1;2;3;4;5;6\n1,2,3,4,5,6\n");
 ok(m2.cols[0].length === 3 && m2.cols[0][0] === 2046.5 && m2.cols[1][0] === 1781.5 && m2.cols[5][0] === 2177, "leitura: virgula decimal com tab");
 ok(m2.cols[0][1] === 1 && m2.cols[5][1] === 6 && m2.cols[5][2] === 6, "leitura: ';' no inicio e CSV com virgula");
+// ultima linha sem quebra de linha (gravacao interrompida) e descartada
+const m3 = lerArquivoESP32("1\t2\t3\t4\t5\t6\n7\t8\t9\t10\t11\t2043\n7\t8\t9\t10\t11\t20");
+ok(m3.cols[5].length === 2 && m3.cols[5][1] === 2043 && m3.cortada && !m2.cortada, "leitura: ultima linha cortada descartada");
+
+// cache da FFT: planos grandes nao se acumulam (cada faixa tem um N diferente)
+limparCacheFFT();
+for (const n of [70001, 70002, 70003]) fft(new Float64Array(n));
+ok(planosGuardados() === 1,`cache da FFT limitado: ${planosGuardados()} planos`);
+{ const X = fft(Float64Array.from({ length: 70001 }, (_, i) => Math.cos(2 * Math.PI * 7 * i / 70001)));
+  perto(X.re[7], 70001 / 2, 1e-9, "FFT grande correta apos troca de plano"); }
 ok(rnd(-2.5) === -3 && rnd(2.5) === 3, "round do Scilab");
 
 // zip (fallback): assinatura e diretorio central
