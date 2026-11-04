@@ -94,7 +94,7 @@ function secaoFatorial(r, resp) {
   }
   if (r.lenth) tabs.push({ id: `${id}_lenth`, titulo: "Método de Lenth (sem réplica)", cab: ["PSE", "GL (m/3)", "ME", "SME"],
     linhas: [[N(r.lenth.PSE), N(r.lenth.d, 3), N(r.lenth.ME), N(r.lenth.SME)]] });
-  const lim = r.lenth ? [{ v: r.lenth.ME, rot: "ME" }, { v: r.lenth.SME, rot: "SME" }] : [{ v: r.tCrit, rot: `t crítico (${C.num(r.tCrit, 3)})` }];
+  const lim = r.lenth ? [{ v: r.lenth.ME, rot: "ME" }, { v: r.lenth.SME, rot: "SME" }] : [{ v: r.tCrit, rot: `t crítico (α = ${C.num(r.alfa, 3)})` }];
   const figs = [
     { id: `${id}_pareto`, tipo: "pareto", titulo: `${resp}: Pareto dos efeitos${r.lenth ? "" : " padronizados (|t|)"}`, rotX: r.lenth ? "|efeito|" : "|t|",
       itens: efs.map((e) => ({ rotulo: e.rotulo, v: Math.abs(r.lenth ? e.efeito : e.t), sig: e.signif })), limites: lim },
