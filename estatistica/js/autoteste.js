@@ -4,6 +4,8 @@
 import REF from "../testes/referencias.js";
 import * as D from "./distribuicoes.js";
 import * as A from "./algebra.js";
+import { anova1 } from "./anova1.js";
+import { lerCSV, numeroCSV, colunaNumerica } from "./dados.js";
 
 export async function autoteste() {
   let nOK = 0;
@@ -52,6 +54,35 @@ export async function autoteste() {
   let singular = false;
   try { A.inversa([[1, 2], [2, 4]]); } catch (e) { singular = e.coluna === 1; }
   ok(singular, "inversa: matriz singular detectada (coluna 2)");
+
+  // ---- ANOVA de um fator (statsmodels / SciPy) --------------------------------
+  for (const [caso, E] of Object.entries(REF.anova1)) {
+    const r = anova1(E.grupos, E.alfa), m = `ANOVA ${caso}`;
+    E.desc.forEach((d, i) => {
+      for (const k of ["n", "media", "dp", "mediana", "min", "max", "cv", "icInf", "icSup"]) perto(r.desc[i][k], d[k], `${m} ${d.nome} ${k}`);
+    });
+    for (const k of ["gl", "sq", "F"]) perto(r.tabela.entre[k], E.entre[k], `${m} entre ${k}`);
+    pval(r.tabela.entre.p, E.entre.p, `${m} F`);
+    for (const k of ["gl", "sq"]) perto(r.tabela.dentro[k], E.dentro[k], `${m} dentro ${k}`);
+    perto(r.R2, E.R2, `${m} R2`); perto(r.R2aj, E.R2aj, `${m} R2 ajustado`);
+    E.tukey.forEach((t, i) => {
+      const u = r.tukey[i];
+      ok(u.a === t.a && u.b === t.b, `${m} Tukey par ${t.a}-${t.b}`);
+      perto(u.dif, t.dif, `${m} Tukey ${t.a}-${t.b} diferenca`); pval(u.p, t.p, `${m} Tukey ${t.a}-${t.b}`);
+      perto(u.icInf, t.icInf, `${m} Tukey ${t.a}-${t.b} IC inf`); perto(u.icSup, t.icSup, `${m} Tukey ${t.a}-${t.b} IC sup`);
+    });
+    perto(r.premissas.shapiro.W, E.shapiro.W, `${m} Shapiro W`); pval(r.premissas.shapiro.p, E.shapiro.p, `${m} Shapiro`);
+    perto(r.premissas.levene.F, E.levene.F, `${m} Levene F`); pval(r.premissas.levene.p, E.levene.p, `${m} Levene`);
+  }
+
+  // ---- leitura de CSV --------------------------------------------------------
+  const c1 = lerCSV('﻿fator;y\r\nA;12,5\r\n"B";"1,0e3"\r\n\r\n');
+  ok(c1.sep === ";" && c1.colunas.join() === "fator,y" && colunaNumerica(c1, "y").join() === "12.5,1000", "CSV com ; e virgula decimal");
+  const c2 = lerCSV('a,b\n"12,5","x""y"\n');
+  ok(numeroCSV(c2.linhas[0][0]) === 12.5 && c2.linhas[0][1] === 'x"y', "CSV com , e aspas");
+  ok([numeroCSV("12abc"), numeroCSV("1,2,3"), numeroCSV(""), numeroCSV("1.234,5")].every(Number.isNaN), "numero invalido rejeitado");
+  let erroLinha = ""; try { colunaNumerica(lerCSV("x;y\n1;2\n3;abc\n"), "y"); } catch (e) { erroLinha = e.message; }
+  ok(/linha 3: "abc"/.test(erroLinha), "mensagem aponta a linha do valor invalido");
 
   return { nOK, falhas };
 }

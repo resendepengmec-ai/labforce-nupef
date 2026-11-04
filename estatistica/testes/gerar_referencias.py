@@ -67,7 +67,55 @@ def algebra():
             "N": N.tolist(), "invN": np.linalg.inv(N).tolist(), "detN": float(np.linalg.det(N))}
 
 
-SECOES = {"distribuicoes": distribuicoes, "algebra": algebra}
+def ler_csv(nome):
+    import csv
+    with open(os.path.join(AQUI, "..", "exemplos", nome), encoding="utf-8-sig") as arq:
+        linhas = list(csv.reader(arq))
+    return linhas[0], linhas[1:]
+
+
+def ref_anova1(grupos, alfa=0.05):
+    import pandas as pd
+    import statsmodels.formula.api as smf
+    from statsmodels.stats.anova import anova_lm
+    nomes = list(grupos)
+    df = pd.DataFrame([(g, y) for g in nomes for y in grupos[g]], columns=["g", "y"])
+    mod = smf.ols("y ~ C(g)", data=df).fit()
+    tab = anova_lm(mod, typ=1)
+    desc = []
+    for g in nomes:
+        v = np.array(grupos[g])
+        ic = stats.t.interval(1 - alfa, len(v) - 1, loc=v.mean(), scale=stats.sem(v))
+        desc.append({"nome": g, "n": len(v), "media": v.mean(), "dp": v.std(ddof=1), "mediana": float(np.median(v)),
+                     "min": v.min(), "max": v.max(), "cv": 100 * v.std(ddof=1) / abs(v.mean()), "icInf": ic[0], "icSup": ic[1]})
+    th = stats.tukey_hsd(*[grupos[g] for g in nomes])
+    ci = th.confidence_interval(1 - alfa)
+    tukey = [{"a": nomes[i], "b": nomes[j], "dif": th.statistic[i, j], "p": th.pvalue[i, j],
+              "icInf": ci.low[i, j], "icSup": ci.high[i, j]}
+             for i in range(len(nomes)) for j in range(i + 1, len(nomes))]
+    sw = stats.shapiro(mod.resid)
+    lev = stats.levene(*[grupos[g] for g in nomes], center="median")
+    r = {"grupos": [{"nome": g, "valores": grupos[g]} for g in nomes], "alfa": alfa, "desc": desc,
+         "entre": {"gl": tab.df.iloc[0], "sq": tab.sum_sq.iloc[0], "F": tab.F.iloc[0], "p": tab["PR(>F)"].iloc[0]},
+         "dentro": {"gl": tab.df.iloc[1], "sq": tab.sum_sq.iloc[1]},
+         "R2": mod.rsquared, "R2aj": mod.rsquared_adj, "tukey": tukey,
+         "shapiro": {"W": sw.statistic, "p": sw.pvalue}, "levene": {"F": lev.statistic, "p": lev.pvalue}}
+    return json.loads(json.dumps(r, default=float))
+
+
+def anova1():
+    cab, linhas = ler_csv("exemplo_anova_univariado.csv")
+    ex = {}
+    for g, y in linhas:
+        ex.setdefault(g, []).append(float(y))
+    rng = np.random.default_rng(SEMENTE + 2)
+    desb = {}
+    for nome, n, mu in [("T1", 5, 50), ("T2", 8, 53), ("T3", 6, 49), ("T4", 10, 56)]:
+        desb[nome] = [round(float(v), 3) for v in rng.normal(mu, 3, n)]
+    return {"exemplo": ref_anova1(ex), "desbalanceado": ref_anova1(desb, alfa=0.10)}
+
+
+SECOES = {"distribuicoes": distribuicoes, "algebra": algebra, "anova1": anova1}
 
 if __name__ == "__main__":
     ref = {"_gerado_por": f"gerar_referencias.py | python {sys.version.split()[0]} | numpy {np.__version__} | "
