@@ -7,6 +7,7 @@ import * as A from "./algebra.js";
 import { anova1 } from "./anova1.js";
 import { fatorial2k } from "./fatorial2k.js";
 import { ccd, ccdMatriz } from "./ccd.js";
+import { manova } from "./manova.js";
 import { lerCSV, numeroCSV, colunaNumerica } from "./dados.js";
 
 export async function autoteste() {
@@ -137,6 +138,18 @@ export async function autoteste() {
   }
   let msgSing = ""; try { ccd([[0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0]], [[1], [2], [3], [4], [5], [6], [7]]); } catch (e) { msgSing = e.message; }
   ok(/X'X é singular/.test(msgSing), "CCD: X'X singular com mensagem");
+
+  // ---- MANOVA de um fator (statsmodels MANOVA.mv_test) ------------------------
+  for (const [caso, E] of Object.entries(REF.manova)) {
+    const r = manova(E.grupos, E.respostas, E.alfa), m = `MANOVA ${caso}`;
+    for (const [k, e] of Object.entries(E.estatisticas)) {
+      const u = r.estatisticas[k];
+      perto(u.valor, e.valor, `${m} ${k} valor`); perto(u.F, e.F, `${m} ${k} F`);
+      perto(u.df1, e.df1, `${m} ${k} GL1`); perto(u.df2, e.df2, `${m} ${k} GL2`); pval(u.p, e.p, `${m} ${k}`);
+    }
+    E.univariadas.forEach((e, j) => { perto(r.univariadas[j].F, e.F, `${m} ANOVA ${E.respostas[j]} F`); pval(r.univariadas[j].p, e.p, `${m} ANOVA ${E.respostas[j]}`); });
+    ok(Math.abs(r.alfaB - E.alfa / E.respostas.length) < 1e-15, `${m} Bonferroni alfa/p`);
+  }
 
   // ---- leitura de CSV --------------------------------------------------------
   const c1 = lerCSV('﻿fator;y\r\nA;12,5\r\n"B";"1,0e3"\r\n\r\n');

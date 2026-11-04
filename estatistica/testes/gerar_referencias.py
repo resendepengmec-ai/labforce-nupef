@@ -254,7 +254,38 @@ def ccd():
     return {"exemplo": ref_ccd(X, Y, cab[2:]), "k3": ref_ccd(X3, Y3, ["rendimento", "custo"])}
 
 
-SECOES = {"distribuicoes": distribuicoes, "algebra": algebra, "anova1": anova1, "fatorial2k": fatorial, "ccd": ccd}
+def ref_manova(grupos, respostas, alfa=0.05):
+    import pandas as pd
+    from statsmodels.multivariate.manova import MANOVA
+    linhas = [(g, *y) for g, Y in grupos.items() for y in Y]
+    cols = [f"y{j + 1}" for j in range(len(respostas))]
+    df = pd.DataFrame(linhas, columns=["g"] + cols)
+    t = MANOVA.from_formula(" + ".join(cols) + " ~ C(g)", data=df).mv_test().results["C(g)"]["stat"]
+    nomes = {"wilks": "Wilks' lambda", "pillai": "Pillai's trace", "hotelling": "Hotelling-Lawley trace", "roy": "Roy's greatest root"}
+    est = {k: {"valor": t.loc[v, "Value"], "F": t.loc[v, "F Value"], "df1": t.loc[v, "Num DF"], "df2": t.loc[v, "Den DF"],
+               "p": t.loc[v, "Pr > F"]} for k, v in nomes.items()}
+    uni = []
+    for j in range(len(respostas)):
+        f = stats.f_oneway(*[[y[j] for y in Y] for Y in grupos.values()])
+        uni.append({"F": f.statistic, "p": f.pvalue})
+    out = {"grupos": [{"nome": g, "Y": Y} for g, Y in grupos.items()], "respostas": respostas, "alfa": alfa,
+           "estatisticas": est, "univariadas": uni}
+    return json.loads(json.dumps(out, default=float))
+
+
+def manova():
+    rng = np.random.default_rng(SEMENTE + 5)
+    cov = [[4, 1.5], [1.5, 2]]
+    g3 = {nome: [[round(v, 3) for v in rng.multivariate_normal(mu, cov)] for _ in range(n)]
+          for nome, n, mu in [("G1", 8, [20, 10]), ("G2", 7, [22, 10.5]), ("G3", 9, [21, 12])]}
+    cov3 = [[3, 1, 0.5], [1, 2, 0.3], [0.5, 0.3, 1]]
+    g4 = {nome: [[round(v, 3) for v in rng.multivariate_normal(mu, cov3)] for _ in range(n)]
+          for nome, n, mu in [("A", 6, [5, 8, 3]), ("B", 6, [6, 8, 3.5]), ("C", 7, [5, 9.5, 3]), ("D", 6, [7, 9, 4])]}
+    return {"g3r2": ref_manova(g3, ["dureza", "rugosidade"]), "g4r3": ref_manova(g4, ["Fc", "Ff", "Ra"], alfa=0.10)}
+
+
+SECOES = {"distribuicoes": distribuicoes, "algebra": algebra, "anova1": anova1, "fatorial2k": fatorial, "ccd": ccd,
+          "manova": manova}
 
 if __name__ == "__main__":
     ref = {"_gerado_por": f"gerar_referencias.py | python {sys.version.split()[0]} | numpy {np.__version__} | "
