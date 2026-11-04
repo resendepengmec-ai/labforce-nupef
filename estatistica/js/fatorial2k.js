@@ -89,6 +89,12 @@ export function fatorial2k(X, y, op = {}) {
   };
 }
 
+// Previsao do modelo (termos escolhidos) num ponto codificado x: media + soma coef * sinal
+export function preditorFatorial(r) {
+  const efs = r.efeitos.filter((e) => r.termos.includes(e.rotulo));
+  return (x) => efs.reduce((s, e) => s + e.coef * sinalDe(e.mascara, x), r.media);
+}
+
 // Lenth (1989): s0 = 1,5 mediana|c|; PSE = 1,5 mediana{|c| : |c| < 2,5 s0}; d = m/3;
 // ME = t(1-alfa/2; d) PSE; SME = t(gama; d) PSE, gama = (1 + (1-alfa)^(1/m))/2.
 export function metodoLenth(efeitos, alfa = 0.05) {

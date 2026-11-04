@@ -59,7 +59,7 @@ export function conclusoesFatorial(r, resposta = "a resposta") {
   const sig = efs.filter((e) => e.signif).sort((a, b) => Math.abs(b.efeito) - Math.abs(a.efeito));
   for (const e of sig) {
     const pv = r.lenth ? `Lenth, ${pTxt(e.pLenth)}` : pTxt(e.p);
-    if (e.rotulo.length === 1) f.push(`${nomeDe(e.rotulo)} é significativo (${pv}): passar de −1 para +1 ${e.efeito > 0 ? "aumenta" : "diminui"} ${resposta} em ${num(Math.abs(e.efeito))} unidades.`);
+    if (e.rotulo.length === 1) f.push(`${nomeDe(e.rotulo)} é significativo (${pv}): passar de −1 para +1 ${e.efeito > 0 ? "aumenta" : "diminui"} a média de ${resposta} em ${num(Math.abs(e.efeito))} unidades.`);
     else f.push(`${nomeDe(e.rotulo)} é significativa (${pv}): o efeito de um fator depende do nível do outro (veja o gráfico de interação); interprete os efeitos principais envolvidos com cuidado.`);
   }
   // fator sem efeito principal: separa quem participa de interacao significativa

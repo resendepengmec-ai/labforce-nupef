@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Planejamento de experimentos · LabForce NUPEF</title>
+<meta name="description" content="Planejamento e análise de experimentos no navegador: ANOVA, MANOVA, fatorial 2^k, composto central (superfície de resposta) e otimização com várias respostas. Os dados não saem do computador.">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: blob:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
+<script src="../comum/js/quadro.js"></script>
+<link rel="icon" href="../assets/icone.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../comum/css/modulo.css">
+<link rel="stylesheet" href="../comum/css/instituicao.css">
+<link rel="stylesheet" href="css/estatistica.css">
+</head>
+<body class="mod-estatistica">
+<header class="barra">
+  <div class="barra-in">
+    <a class="marca" href="../"><img class="logo-nupef" src="../assets/logo-nupef.webp" alt="" width="40" height="38">LabForce <span>NUPEF</span></a>
+    <span class="modulo">Planejamento de experimentos</span>
+    <nav aria-label="Navegação do módulo">
+      <a href="./" aria-current="page">Análise</a>
+      <a href="manual.html">Manual</a>
+      <a href="../quem-somos.html">Quem somos</a>
+      <a href="../">Início</a>
+    </nav>
+    <a class="marca-ifg" href="https://www.ifg.edu.br/goiania" rel="noopener noreferrer"><img src="../assets/simbolo-ifg.png" alt="" width="27" height="36"><span>Instituto Federal de Goiás<small>Câmpus Goiânia</small></span></a>
+  </div>
+</header>
+
+<main id="app">
+  <div class="titulo-pag">
+    <div>
+      <h1>Planejamento de experimentos</h1>
+      <p>ANOVA, MANOVA, fatorial 2<sup>k</sup> e superfície de resposta. Todos os cálculos rodam neste navegador, por métodos estatísticos convencionais. Nenhum dado é enviado para servidor.</p>
+    </div>
+    <a class="bt-manual" href="manual.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v17H6.5A2.5 2.5 0 0 0 4 21.5zM4 21.5A2.5 2.5 0 0 1 6.5 19H20v3H6.5A2.5 2.5 0 0 1 4 21.5zM8 6h8M8 9.5h6"/></svg>Manual técnico</a>
+  </div>
+  <noscript><p class="aviso">Esta página precisa de JavaScript.</p></noscript>
+  <p id="avisoNavegador" class="aviso" hidden></p>
+
+  <ol class="etapas" aria-label="Etapas da análise">
+    <li>Tipo de análise</li><li>Dados</li><li>Revisar</li><li>Analisar</li><li>Resultados</li>
+  </ol>
+
+  <!-- 1. Tipo de analise -->
+  <section class="cartao" id="secTipo" aria-labelledby="h1tipo">
+    <h2 id="h1tipo"><span class="num">1</span>Tipo de análise</h2>
+    <fieldset class="tipos">
+      <legend class="sr">Escolha a análise</legend>
+      <label class="tipo"><input type="radio" name="tipo" value="anova" checked>
+        <span><b>ANOVA de um fator</b>Compara as médias de 2 ou mais grupos (tratamentos) para uma resposta. Inclui Tukey e o teste das premissas.</span></label>
+      <label class="tipo"><input type="radio" name="tipo" value="manova">
+        <span><b>MANOVA de um fator</b>Compara grupos em 2 ou mais respostas ao mesmo tempo, quando as respostas estão correlacionadas.</span></label>
+      <label class="tipo"><input type="radio" name="tipo" value="fatorial">
+        <span><b>Fatorial 2<sup>k</sup></b>Mede o efeito de 2 a 7 fatores, em 2 níveis cada, e das interações entre eles. Use para triar os fatores importantes.</span></label>
+      <label class="tipo"><input type="radio" name="tipo" value="ccd">
+        <span><b>Composto central (superfície de resposta)</b>Ajusta um modelo quadrático para achar a condição ótima de 2 a 6 fatores. Use depois de triar os fatores.</span></label>
+    </fieldset>
+    <div class="acoes"><button id="btTipo" class="prim" type="button">Continuar</button></div>
+  </section>
+
+  <!-- 2. Dados -->
+  <section class="cartao" id="secDados" aria-labelledby="h2dad" hidden>
+    <h2 id="h2dad"><span class="num">2</span>Dados</h2>
+    <div class="grade2">
+      <div>
+        <h3>Arquivo (.csv ou .txt)</h3>
+        <label class="soltar" id="soltar">
+          <input type="file" id="arquivos" accept=".csv,.txt,text/plain,text/csv">
+          <span>Arraste o arquivo aqui ou <u>clique para escolher</u>. Primeira linha com os nomes das colunas; separador <code>;</code>, <code>,</code> ou tab; vírgula decimal aceita.</span>
+        </label>
+        <ul id="listaArq" class="lista"></ul>
+        <div class="acoes"><button id="btExemplo" class="sec" type="button">Carregar exemplo</button></div>
+        <details class="colar">
+          <summary>Colar ou digitar os dados</summary>
+          <label class="lin">Dados no mesmo formato do arquivo<textarea id="txtDados" rows="8" spellcheck="false"></textarea></label>
+          <div class="acoes"><button id="btColar" class="sec" type="button">Usar estes dados</button></div>
+        </details>
+        <details class="gerar" id="blocoGerar" hidden>
+          <summary>Gerar a matriz do planejamento</summary>
+          <div class="grade-gerar">
+            <label class="lin">Fatores (k)<select id="gK"></select></label>
+            <label class="lin" id="rotRep">Réplicas<input id="gRep" inputmode="numeric" value="1"></label>
+            <label class="lin">Pontos centrais<input id="gCen" inputmode="numeric" value="0"></label>
+            <label class="lin">Respostas<input id="gResp" inputmode="numeric" value="1"></label>
+          </div>
+          <p class="nota" id="notaGerar"></p>
+          <div class="acoes"><button id="btGerar" class="sec" type="button">Gerar matriz</button></div>
+          <div class="tabela-rolar"><table id="tabGerar" class="tabela matriz"></table></div>
+          <div class="acoes"><button id="btUsarMatriz" class="sec" type="button" hidden>Usar a matriz preenchida</button></div>
+        </details>
+      </div>
+      <div>
+        <h3>Pasta de resultados</h3>
+        <div id="pastaDireta">
+          <p class="nota">Cada análise cria <code>resultados_AAAAMMDD_hhmmss</code> dentro desta pasta. O navegador lembra a pasta. Sem pasta, os resultados vão para um <code>.zip</code>.</p>
+          <div class="acoes">
+            <button id="btPasta" class="sec" type="button">Escolher pasta…</button>
+            <button id="btPastaLembrada" class="sec" type="button" hidden></button>
+          </div>
+          <p id="pastaAtual" class="ok"></p>
+        </div>
+        <div id="pastaZip" hidden>
+          <p class="nota">Este navegador não grava direto em pasta. Os resultados vão para um <code>.zip</code>. Para gravar direto na pasta, use Chrome ou Edge no computador.</p>
+        </div>
+        <p id="resumoDados" class="info" aria-live="polite"></p>
+      </div>
+    </div>
+    <p id="erroDados" class="erro" role="alert"></p>
+    <div class="acoes"><button id="btDados" class="prim" type="button" disabled>Continuar</button></div>
+  </section>
+
+  <!-- 3. Revisar -->
+  <section class="cartao" id="secRevisar" aria-labelledby="h3rev" hidden>
+    <h2 id="h3rev"><span class="num">3</span>Revisar</h2>
+    <h3>Colunas</h3>
+    <p class="nota" id="notaPapeis"></p>
+    <div class="tabela-rolar"><table id="tabPapeis" class="tabela papeis"></table></div>
+    <div class="grade3 opcoes">
+      <label class="lin">Nível de significância α<input id="alfa" inputmode="decimal" value="0,05"><span class="campo-erro" id="e-alfa"></span></label>
+      <label class="lin" id="rotSemente" hidden>Semente do gerador (otimização)<input id="semente" inputmode="numeric" value="12345"><span class="campo-erro" id="e-semente"></span></label>
+    </div>
+    <fieldset id="blocoTermos" hidden>
+      <legend>Termos do modelo (fatorial 2<sup>k</sup>)</legend>
+      <p class="nota">Desmarque os termos que não quer no modelo: eles vão para o erro (modelo reduzido). Mantenha os efeitos principais das interações escolhidas.</p>
+      <div id="termos" class="termos-modelo"></div>
+      <button id="btTodosTermos" class="lnk" type="button">Marcar todos</button>
+    </fieldset>
+    <fieldset id="blocoObjetivos" hidden>
+      <legend>Objetivos da otimização (2 ou mais respostas)</legend>
+      <p class="nota">Desejabilidade de Derringer e Suich: abaixo de L (maximizar) ou acima de U (minimizar) a resposta é inaceitável (d = 0). Expoente s ou t &gt; 1 exige chegar mais perto do ideal. Importância pondera a desejabilidade global; peso pondera o TOPSIS.</p>
+      <div class="tabela-rolar"><table id="tabObjetivos" class="tabela objetivos"></table></div>
+    </fieldset>
+    <p id="erroRevisar" class="erro" role="alert"></p>
+    <div class="acoes"><button id="btAnalisar" class="prim" type="button">Analisar</button></div>
+  </section>
+
+  <!-- 4. Analisar -->
+  <section class="cartao" id="secAnalise" aria-labelledby="h4ana" hidden>
+    <h2 id="h4ana"><span class="num">4</span>Analisar</h2>
+    <p id="progAnalise" class="progresso" role="status" hidden></p>
+    <p id="erroAnalise" class="erro" role="alert"></p>
+    <div class="acoes"><button id="btVoltarRevisar" class="sec" type="button" hidden>Voltar à revisão</button></div>
+  </section>
+
+  <!-- 5. Resultados -->
+  <section class="cartao" id="secResultados" aria-labelledby="h5res" hidden>
+    <h2 id="h5res"><span class="num">5</span>Resultados</h2>
+    <p id="destinoInfo" class="info"></p>
+    <div id="resultado"></div>
+    <details class="relatorio">
+      <summary>Relatório (relatorio.txt)</summary>
+      <pre id="log" class="log"></pre>
+    </details>
+    <div class="acoes">
+      <button id="btZip" class="sec" type="button">Baixar tudo em .zip</button>
+      <button id="btNova" class="prim" type="button">Nova análise</button>
+    </div>
+  </section>
+</main>
+
+<footer class="rodape">
+  <p>NUPEF, Laboratório de Usinagem do IFG Câmpus Goiânia. Os modelos valem dentro da região ensaiada; confirme a condição escolhida com novos ensaios.</p>
+  <p>Módulo derivado do eStat (TCC). Créditos no <a href="manual.html#referencias">manual técnico</a>.</p>
+  <p id="versao"></p>
+  <div class="inst">
+    <div class="logos-inst">
+      <a class="logo-ifg" href="https://www.ifg.edu.br/goiania" rel="noopener noreferrer"><img src="../assets/logo-ifg-goiania.png" alt="Instituto Federal de Goiás, Câmpus Goiânia" width="52" height="72" loading="lazy"></a>
+      <a class="logo-nupef-rod" href="../quem-somos.html"><img src="../assets/logo-nupef.webp" alt="NUPEF, Núcleo de Pesquisas em Processos de Fabricação" width="76" height="72" loading="lazy"></a>
+    </div>
+    <address><strong>Instituto Federal de Goiás · Câmpus Goiânia</strong>NUPEF, Núcleo de Pesquisa em Fabricação<br>Rua 75, nº 46, Centro, Goiânia-GO, CEP 74055-110<br>Telefone (62) 3227-2700</address>
+    <nav aria-label="Links institucionais"><a href="../quem-somos.html">Quem somos</a><a href="https://www.ifg.edu.br/goiania" rel="noopener noreferrer">ifg.edu.br/goiania</a><a href="https://ifgproduz.ifg.edu.br/informacoes-grupo/70" rel="noopener noreferrer">NUPEF no IFG Produz</a></nav>
+  </div>
+</footer>
+<script type="module" src="js/app.js"></script>
+</body>
+</html>

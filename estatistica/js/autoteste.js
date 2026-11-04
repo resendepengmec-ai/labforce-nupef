@@ -10,6 +10,8 @@ import { ccd, ccdMatriz } from "./ccd.js";
 import { manova } from "./manova.js";
 import * as Op from "./otimizacao.js";
 import * as C from "./conclusoes.js";
+import * as Res from "./resultados.js";
+import { EXEMPLOS } from "../exemplos/exemplos.js";
 import { lerCSV, numeroCSV, colunaNumerica } from "./dados.js";
 
 export async function autoteste() {
@@ -207,6 +209,34 @@ export async function autoteste() {
       ["rendimento", "custo"], 3, { tipo: "esfera", raio: cc.alfaAxial }, { pop: 40, geracoes: 30, semente: 9 });
     const to = C.conclusoesOtimizacao(ot, ["x1", "x2", "x3"]);
     limpo(to, "conclusões otimização"); ok(/Semente do gerador: 9/.test(to[to.length - 1]), "conclusões otimização: semente registrada");
+  }
+
+  // ---- fluxo completo nos exemplos (CSV -> secoes -> relatorio) -----------------
+  for (const [tipo, txt] of Object.entries(EXEMPLOS)) {
+    const tab = lerCSV(txt), papeis = Res.sugerirPapeis(tab, tipo), m = `exemplo ${tipo}`;
+    const objetivos = {};
+    for (const c of tab.colunas) if (papeis[c] === "resposta") {
+      const y = colunaNumerica(tab, c);
+      objetivos[c] = { tipo: "max", L: Math.min(...y), U: Math.max(...y) };
+    }
+    const res = Res.executar({ tipo, tab, papeis, alfa: 0.05, objetivos, semente: 7, nomeArquivo: tipo + ".csv", data: new Date(2026, 10, 4, 10, 0) });
+    const nResp = Object.values(papeis).filter((p) => p === "resposta").length;
+    const esperado = tipo === "manova" ? 1 : tipo === "ccd" ? nResp + 1 : nResp + (nResp >= 2 ? 1 : 0);
+    ok(res.secoes.length === esperado, `${m}: ${res.secoes.length} seções (esperado ${esperado})`);
+    const texto = res.log.join("\n");
+    ok(!/NaN|undefined|Infinity|\[object/.test(texto), `${m}: relatório sem NaN/undefined`);
+    ok(res.secoes.every((s) => s.tabelas.every((t) => Res.csvTabela(t).length === t.linhas.length + 1 && t.linhas.every((l) => l.length === t.cab.length))), `${m}: tabelas e CSV consistentes`);
+    if (tipo === "ccd") ok(/Semente do gerador .*: 7/.test(texto) && res.secoes.at(-1).titulo.startsWith("Otimização"), `${m}: otimização com semente no relatório`);
+  }
+  ok(Res.sugerirPapeis(lerCSV(EXEMPLOS.ccd), "ccd").conversao === "resposta", "CCD: conversão sugerida como resposta (eStat sugeria entrada)");
+  ok(JSON.stringify(Res.sugerirNiveis([60, 80, 70, 60, 80], "fatorial")) === '{"baixo":60,"alto":80}' && Res.sugerirNiveis([-1, 1, 0], "fatorial") === null, "níveis sugeridos (reais e codificados)");
+  {   // unidades reais: mesmo resultado do codificado
+    const tabR = lerCSV("T;P;y\n60;1;10\n80;1;14\n60;3;11\n80;3;19\n70;2;13\n70;2;13,4\n");
+    const tabC = lerCSV("T;P;y\n-1;-1;10\n1;-1;14\n-1;1;11\n1;1;19\n0;0;13\n0;0;13,4\n");
+    const p = { T: "fator", P: "fator", y: "resposta" };
+    const a = Res.executar({ tipo: "fatorial", tab: tabR, papeis: p, niveis: { T: { baixo: 60, alto: 80 }, P: { baixo: 1, alto: 3 } } });
+    const b = Res.executar({ tipo: "fatorial", tab: tabC, papeis: p });
+    ok(JSON.stringify(a.secoes[0].tabelas[0].linhas) === JSON.stringify(b.secoes[0].tabelas[0].linhas), "2^k em unidades reais = codificado");
   }
 
   // ---- leitura de CSV --------------------------------------------------------

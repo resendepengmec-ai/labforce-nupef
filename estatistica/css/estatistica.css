@@ -1,0 +1,47 @@
+/* estatistica.css - complementos do modulo de planejamento de experimentos */
+body.mod-estatistica { --acento: #5b45a8; }
+@media (prefers-color-scheme: dark) { body.mod-estatistica { --acento: #a993f0; } }
+
+/* tipos de analise: cartoes de escolha com frase de uso */
+.tipos { border: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.tipo { display: flex; gap: 12px; align-items: flex-start; border: 1px solid var(--linha); border-radius: 8px; padding: 12px 14px; cursor: pointer; min-height: 44px; }
+.tipo:has(input:checked) { border-color: var(--acento); box-shadow: inset 3px 0 0 var(--acento); }
+.tipo input { margin-top: 4px; width: 18px; height: 18px; accent-color: var(--acento); flex: none; min-height: 0; }
+.tipo b { display: block; margin-bottom: 2px; }
+.tipo span { color: var(--cinza); font-size: .92rem; }
+.tipo span b { color: var(--tinta); font-size: 1rem; }
+
+textarea { font: .85rem/1.4 var(--mono); color: var(--tinta); background: var(--painel); border: 1px solid var(--linha); border-radius: 6px; padding: 8px 10px; width: 100%; resize: vertical; }
+textarea:focus-visible { outline: 2px solid var(--acento); outline-offset: 2px; }
+details.colar, details.gerar { margin-top: 12px; }
+details.colar summary, details.gerar summary { cursor: pointer; font-weight: 600; min-height: 44px; display: flex; align-items: center; }
+.grade-gerar { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+.matriz input { width: 6.5em; min-height: 34px; padding: 4px 6px; text-align: right; font-variant-numeric: tabular-nums; }
+
+/* revisar */
+.papeis select, .papeis input, .objetivos select, .objetivos input { min-height: 36px; padding: 4px 6px; }
+.papeis input.nivel, .objetivos input { width: 6.5em; text-align: right; font-variant-numeric: tabular-nums; }
+.papeis input.unid { width: 7em; }
+.opcoes { margin-top: 14px; }
+#blocoTermos, #blocoObjetivos { margin-top: 14px; }
+.termos-modelo { display: flex; flex-wrap: wrap; gap: 2px 16px; }
+.termos-modelo label.chk { min-height: 32px; }
+
+/* resultados */
+.analise { border-top: 1px solid var(--linha); padding-top: 16px; margin-top: 16px; }
+.analise > h3 { font-size: 1.12rem; margin-bottom: 8px; }
+.conclusoes { margin: 8px 0 14px; padding-left: 20px; max-width: 95ch; }
+.conclusoes li { margin: 4px 0; }
+.bloco-tab { margin: 12px 0; }
+.bloco-tab h4, .bloco-fig h4 { font-size: .95rem; margin: 0 0 6px; color: var(--tinta); }
+.bloco-fig { margin: 16px 0; }
+.bloco-fig canvas { width: 100%; height: auto; border: 1px solid var(--linha); border-radius: 6px; background: #fff; display: block; }
+.bloco-fig details { margin-top: 6px; }
+.bloco-fig details summary { cursor: pointer; color: var(--cinza); font-size: .88rem; min-height: 36px; display: flex; align-items: center; }
+.dica { position: fixed; z-index: 10; pointer-events: none; background: var(--tinta); color: var(--painel); font: .8rem/1.35 var(--fonte); padding: 5px 8px; border-radius: 5px; white-space: pre; max-width: 320px; }
+.st-SIG { background: color-mix(in srgb, var(--ok) 16%, transparent); color: var(--ok); }
+.st-NS { background: color-mix(in srgb, var(--cinza) 16%, transparent); color: var(--cinza); }
+
+@media (max-width: 860px) {
+  .tipos, .grade-gerar { grid-template-columns: minmax(0, 1fr); }
+}
