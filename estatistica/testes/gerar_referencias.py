@@ -115,7 +115,76 @@ def anova1():
     return {"exemplo": ref_anova1(ex), "desbalanceado": ref_anova1(desb, alfa=0.10)}
 
 
-SECOES = {"distribuicoes": distribuicoes, "algebra": algebra, "anova1": anova1}
+LETRAS = "ABCDEFG"
+
+
+def ref_fat2k(X, y, alfa=0.05, termos=None):
+    """OLS do statsmodels com colunas +-1 por efeito e indicador de ponto central."""
+    import itertools
+    import pandas as pd
+    import statsmodels.api as sm
+    from statsmodels.stats.anova import anova_lm
+    X, y = np.array(X, float), np.array(y, float)
+    k = X.shape[1]
+    masks = list(range(1, 2 ** k))                      # ordem de Yates
+    rot = ["".join(LETRAS[j] for j in range(k) if m >> j & 1) for m in masks]
+    cols = {r: np.prod([X[:, j] for j in range(k) if m >> j & 1], axis=0) for m, r in zip(masks, rot)}
+    usados = [r for r in rot if termos is None or r in termos]
+    centro = np.all(X == 0, axis=1).astype(float)
+    df = pd.DataFrame({r: cols[r] for r in usados})
+    if centro.any():
+        df["ctr"] = centro
+    df["y"] = y
+    formula = "y ~ " + " + ".join(list(usados) + (["ctr"] if centro.any() else []))
+    mod = __import__("statsmodels.formula.api", fromlist=["ols"]).ols(formula, data=df).fit()
+    efe = {r: 2 * mod.params[r] for r in usados}
+    out = {"X": X.tolist(), "y": y.tolist(), "alfa": alfa, "termos": termos,
+           "efeitos": [{"rotulo": r, "efeito": efe[r]} for r in usados],
+           "R2": mod.rsquared, "glE": mod.df_resid}
+    if mod.df_resid > 0:
+        tab = anova_lm(mod, typ=1)
+        for e in out["efeitos"]:
+            e.update({"sq": tab.sum_sq[e["rotulo"]], "F": tab.F[e["rotulo"]], "p": tab["PR(>F)"][e["rotulo"]]})
+        out["sqE"] = tab.sum_sq["Residual"]
+        out["R2aj"] = mod.rsquared_adj
+        if centro.any():
+            out["curvatura"] = {"sq": tab.sum_sq["ctr"], "F": tab.F["ctr"], "p": tab["PR(>F)"]["ctr"]}
+    else:                                               # sem erro: Lenth (1989) sobre os efeitos do OLS
+        a = np.abs([efe[r] for r in usados])
+        m = len(a)
+        s0 = 1.5 * np.median(a)
+        pse = 1.5 * np.median(a[a < 2.5 * s0])
+        d = m / 3
+        out["lenth"] = {"PSE": pse, "d": d, "ME": stats.t.ppf(1 - alfa / 2, d) * pse,
+                        "SME": stats.t.ppf((1 + (1 - alfa) ** (1 / m)) / 2, d) * pse}
+        for e in out["efeitos"]:
+            e["pLenth"] = 2 * stats.t.sf(abs(e["efeito"]) / pse, d)
+    return json.loads(json.dumps(out, default=float))
+
+
+def fatorial():
+    cab, linhas = ler_csv("exemplo_2k_fatorial.csv")
+    X = [[float(v) for v in l[:3]] for l in linhas]
+    y = [float(l[3]) for l in linhas]
+    rng = np.random.default_rng(SEMENTE + 3)
+    # 2^4 sem replica: A = 8, C = -6, AD = 4 (efeitos), ruido DP 1,5
+    X4 = [[1 if c >> j & 1 else -1 for j in range(4)] for c in range(16)]
+    y4 = [round(60 + 4 * x[0] - 3 * x[2] + 2 * x[0] * x[3] + rng.normal(0, 1.5), 3) for x in X4]
+    # 2^2 com 2 replicas e 5 pontos centrais, resposta com curvatura
+    Xc, yc = [], []
+    for c in range(4):
+        x = [1 if c >> j & 1 else -1 for j in range(2)]
+        for _ in range(2):
+            Xc.append(x)
+            yc.append(round(40 + 3 * x[0] + 1.5 * x[1] - 2 * x[0] ** 2 + rng.normal(0, 0.5), 3))
+    for _ in range(5):
+        Xc.append([0, 0])
+        yc.append(round(40 + rng.normal(0, 0.5), 3))
+    return {"exemplo": ref_fat2k(X, y), "exemplo_reduzido": ref_fat2k(X, y, termos=["A", "B", "C", "AB"]),
+            "sem_replica": ref_fat2k(X4, y4, alfa=0.05), "centrais": ref_fat2k(Xc, yc, alfa=0.05)}
+
+
+SECOES = {"distribuicoes": distribuicoes, "algebra": algebra, "anova1": anova1, "fatorial2k": fatorial}
 
 if __name__ == "__main__":
     ref = {"_gerado_por": f"gerar_referencias.py | python {sys.version.split()[0]} | numpy {np.__version__} | "

@@ -5,6 +5,7 @@ import REF from "../testes/referencias.js";
 import * as D from "./distribuicoes.js";
 import * as A from "./algebra.js";
 import { anova1 } from "./anova1.js";
+import { fatorial2k } from "./fatorial2k.js";
 import { lerCSV, numeroCSV, colunaNumerica } from "./dados.js";
 
 export async function autoteste() {
@@ -74,6 +75,26 @@ export async function autoteste() {
     perto(r.premissas.shapiro.W, E.shapiro.W, `${m} Shapiro W`); pval(r.premissas.shapiro.p, E.shapiro.p, `${m} Shapiro`);
     perto(r.premissas.levene.F, E.levene.F, `${m} Levene F`); pval(r.premissas.levene.p, E.levene.p, `${m} Levene`);
   }
+
+  // ---- fatorial 2^k (OLS do statsmodels; Lenth sobre os efeitos) ---------------
+  for (const [caso, E] of Object.entries(REF.fatorial2k)) {
+    const r = fatorial2k(E.X, E.y, { alfa: E.alfa, termos: E.termos || undefined }), m = `2^k ${caso}`;
+    ok(r.erro.gl === E.glE, `${m} GL do erro: ${r.erro.gl} != ${E.glE}`);
+    perto(r.R2, E.R2, `${m} R2`);
+    for (const e of E.efeitos) {
+      const u = r.efeitos.find((x) => x.rotulo === e.rotulo);
+      perto(u.efeito, e.efeito, `${m} efeito ${e.rotulo}`, 1e-9);
+      if ("sq" in e) { perto(u.sq, e.sq, `${m} SQ ${e.rotulo}`); perto(u.F, e.F, `${m} F ${e.rotulo}`); pval(u.p, e.p, `${m} ${e.rotulo}`); }
+      if ("pLenth" in e) pval(u.pLenth, e.pLenth, `${m} Lenth ${e.rotulo}`);
+    }
+    if (E.sqE !== undefined) { perto(r.erro.sq, E.sqE, `${m} SQ do erro`); perto(r.R2aj, E.R2aj, `${m} R2 ajustado`); }
+    if (E.curvatura) { perto(r.curvatura.sq, E.curvatura.sq, `${m} SQ curvatura`); pval(r.curvatura.p, E.curvatura.p, `${m} curvatura`); }
+    if (E.lenth) for (const k of ["PSE", "d", "ME", "SME"]) perto(r.lenth[k], E.lenth[k], `${m} Lenth ${k}`);
+  }
+  let falta = ""; try { fatorial2k([[-1, -1], [1, -1], [-1, 1]], [1, 2, 3]); } catch (e) { falta = e.message; }
+  ok(/falta \(\+,\+\)/.test(falta), `2^k: combinação faltando apontada (${falta})`);
+  let desb = ""; try { fatorial2k([[-1, -1], [1, -1], [-1, 1], [1, 1], [1, 1]], [1, 2, 3, 4, 5]); } catch (e) { desb = e.message; }
+  ok(/mesmo número de réplicas/.test(desb), "2^k: réplicas desiguais apontadas");
 
   // ---- leitura de CSV --------------------------------------------------------
   const c1 = lerCSV('﻿fator;y\r\nA;12,5\r\n"B";"1,0e3"\r\n\r\n');
