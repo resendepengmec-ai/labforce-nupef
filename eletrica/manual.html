@@ -108,7 +108,7 @@
   <tbody>
     <tr><td>Ensaio</td><td>Um arquivo <code>.txt</code> de aquisição do ESP32 (exemplo: <code>E1R1.txt</code>).</td></tr>
     <tr><td>Faixa</td><td>Um intervalo de tempo do ensaio que o operador seleciona para a análise.</td></tr>
-    <tr><td>Região de interesse</td><td>O intervalo que os 2 primeiros limites delimitam no modo com zoom.</td></tr>
+    <tr><td>Região de interesse</td><td>O intervalo que os 2 primeiros limites delimitam no modo com zoom. Com zoom em cada faixa, cada faixa tem a sua região.</td></tr>
     <tr><td>Rodada</td><td>Uma análise completa, do botão <strong>Iniciar análise</strong> até a mensagem <code>Concluído</code>.</td></tr>
     <tr><td>Pasta de resultados</td><td>A pasta <code>resultados_AAAAMMDD_hhmmss</code> que o módulo cria em cada rodada.</td></tr>
     <tr><td>Canal</td><td>Uma entrada do ESP32: Va, Vb, Vc, Ia, Ib ou Ic.</td></tr>
@@ -305,6 +305,7 @@
   <li>Confirme o fator de cada canal. Se necessário, digite o fator correto. Use vírgula ou ponto decimal.</li>
   <li>Em <strong>Quantidade de faixas</strong>, escolha quantas faixas vai avaliar em cada ensaio (1 a 8).</li>
   <li>Para delimitar antes uma região de interesse, marque <strong>Delimitar antes uma região de interesse (zoom)</strong>.</li>
+  <li>Para escolher um zoom diferente para cada faixa, marque também <strong>Zoom em cada faixa</strong>.</li>
   <li>Marque as grandezas da análise.</li>
   <li>Se necessário, abra <strong>Parâmetros avançados</strong> e altere os campos (seção 8).</li>
   <li>Clique em <strong>Continuar</strong>.</li>
@@ -342,6 +343,7 @@
   <li>Clique em <strong>Analisar faixas</strong>.</li>
 </ol>
 <p>Sem zoom, faça os passos 3 a 7.</p>
+<p>Com zoom em cada faixa, cada faixa tem a sua região: depois de marcar uma faixa, o gráfico volta à potência do ensaio completo. Clique no início e no fim da região da próxima faixa e marque a faixa dentro dela. A tabela mostra uma linha <strong>Região fN</strong> antes de cada faixa.</p>
 <p>Para usar o teclado:</p>
 <ol class="passos">
   <li>Digite o tempo [s] no campo <strong>Início</strong> ou <strong>Fim</strong> da linha da tabela.</li>

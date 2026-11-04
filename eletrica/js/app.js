@@ -10,7 +10,7 @@ import { temPastaDireta, criarDestino, nomeRodada, baixar } from "../../comum/js
 import { criarSelecao } from "../../comum/js/selecao.js";
 import { criarTarefa } from "../../comum/js/tarefa.js";
 import {
-  $, virg, numero, esperar, marcarEtapa, recolher, expandir, mostrar, progresso, ligarArquivos, ligarPasta, chip, tabelaHTML, nomeUnico, gravarTodos,
+  $, virg, numero, esperar, marcarEtapa, recolher, expandir, mostrar, progresso, ligarArquivos, ligarPasta, chip, tabelaHTML, nomeUnico, gravarTodos, ligarZoom, lerZoom, textoZoom,
 } from "../../comum/js/ui.js";
 
 const CANAIS = ["Va", "Vb", "Vc", "Ia", "Ib", "Ic"];
@@ -46,7 +46,7 @@ function montarConfig() {
   aplicarPreset(s.preset || "amarela", s.k);
   $("calPreset").addEventListener("change", (e) => aplicarPreset(e.target.value));
   $("nFaixas").value = String(s.nFaixas || 1);
-  $("zoom").checked = !!s.zoom;
+  ligarZoom(s);
   if (s.op) { $("opFFT").checked = s.op.fft; $("op519").checked = s.op.ieee519; $("op1459").checked = s.op.ieee1459; $("opGraf").checked = s.op.graficos; }
   preencherAvancado(s.av || {});
   $("btPadrao").addEventListener("click", () => preencherAvancado({}));
@@ -96,9 +96,9 @@ function validarConfig() {
   if (erros.length) { document.querySelector("#secConfig [aria-invalid]")?.focus(); return null; }
   const op = { fft: $("opFFT").checked, ieee519: $("op519").checked, ieee1459: $("op1459").checked, graficos: $("opGraf").checked };
   const av = { fRede, nCicVis: nCic, duracaoMin: dur, IscIL: isc, IL519: ilTxt === "" ? null : il, atrasoUs: at };
-  salvar({ preset: $("calPreset").value, k, nFaixas: Number($("nFaixas").value), zoom: $("zoom").checked, op, av });
+  salvar({ preset: $("calPreset").value, k, nFaixas: Number($("nFaixas").value), ...lerZoom(), op, av });
   return {
-    k, nFaixas: Number($("nFaixas").value), zoom: $("zoom").checked, op,
+    k, nFaixas: Number($("nFaixas").value), ...lerZoom(), op,
     p: { ...PADRAO, kV: k.slice(0, 3), kI: k.slice(3), fRede, nCicVis: nCic, duracaoMin: dur, IscIL: isc,
       IL519: Number.isNaN(il) ? NaN : il, atrasoCanal: at.map((u) => u * 1e-6) },
     atrasoUs: at,
@@ -108,7 +108,7 @@ function validarConfig() {
 function resumoConfig(c) {
   const ops = [c.op.fft && "FFT", c.op.ieee519 && "IEEE 519", c.op.ieee1459 && "IEEE 1459", c.op.graficos && "gráficos"].filter(Boolean);
   const cal = $("calPreset").selectedOptions[0].textContent.replace(/ \(.*/, "");
-  return `${cal}; ${c.nFaixas} faixa(s)${c.zoom ? " com zoom" : ""}; ${ops.join(", ") || "só potências básicas"}`;
+  return `${cal}; ${c.nFaixas} faixa(s)${textoZoom(c)}; ${ops.join(", ") || "só potências básicas"}`;
 }
 
 function atualizarIniciar() {
@@ -130,8 +130,8 @@ async function iniciarRodada() {
   log.push(sprintf("Potencias_Eletricas %s | %d arquivo(s) | resultados em %s", VERSAO, arquivos.length,
     destino.modo === "pasta" ? `${pasta.name}/${nome}` : `${nome}.zip`));
   log.push("Calibracao [Va Vb Vc Ia Ib Ic]: " + c.k.map(String).join(" "));
-  log.push(sprintf("Faixas por ensaio: %d (%s zoom) | FFT: %s | IEEE 519: %s | IEEE 1459: %s | graficos: %s",
-    c.nFaixas, c.zoom ? "com" : "sem", sn(c.op.fft), sn(c.op.ieee519), sn(c.op.ieee1459), sn(c.op.graficos)));
+  log.push(sprintf("Faixas por ensaio: %d (%s) | FFT: %s | IEEE 519: %s | IEEE 1459: %s | graficos: %s",
+    c.nFaixas, c.zoom ? (c.zoomPorFaixa ? "com zoom em cada faixa" : "com zoom") : "sem zoom", sn(c.op.fft), sn(c.op.ieee519), sn(c.op.ieee1459), sn(c.op.graficos)));
   log.push(sprintf("Parametros: rede %g Hz | media movel %d ciclos | faixa minima %g s | Isc/IL %g | IL %s | atraso [us] %s",
     c.p.fRede, c.p.nCicVis, c.p.duracaoMin, c.p.IscIL, Number.isNaN(c.p.IL519) ? "auto" : String(c.p.IL519), c.atrasoUs.join(" ")));
   rodada = { destino, log, i: 0, matPot: [], matQ: [], mat59: [], nomes: [], linhasTab: [], usados: new Set(), salvoZip: false };
@@ -181,7 +181,7 @@ async function proximoEnsaio() {
   $("infoEnsaio").textContent = `${E.N.toLocaleString("pt-BR")} amostras · fs = ${sprintf("%.6g", E.fs).replace(".", ",")} Hz` +
     (E.regra ? ` (${E.regra})` : " (estimada, sem valor redondo)") + ` · duração ${virg(t[E.N - 1], 1)} s`;
   ensaio = { E, t, nome };
-  sel.iniciar({ t, fs: E.fs, series: [{ y: E.Pinst, cor: "rgb(0,0,205)", rotulo: "P" }], nome, n: cfg.nFaixas, zoom: cfg.zoom,
+  sel.iniciar({ t, fs: E.fs, series: [{ y: E.Pinst, cor: "rgb(0,0,205)", rotulo: "P" }], nome, n: cfg.nFaixas, zoom: cfg.zoom, zoomPorFaixa: cfg.zoomPorFaixa,
     durMin: cfg.p.duracaoMin, rotY: rotY(), unidade: "W" });
   $("cvSel").focus({ preventScroll: true });
 }

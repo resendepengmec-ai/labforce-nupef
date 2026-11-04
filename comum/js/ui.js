@@ -7,6 +7,16 @@ export const virg = (x, d) => (Number.isFinite(x) ? x.toFixed(d).replace(".", ",
 export const numero = (s) => { const t = String(s).trim().replace(",", "."); return t === "" ? NaN : Number(t); };
 export const esperar = () => new Promise((ok) => setTimeout(ok, 30));
 
+// Caixas de zoom: "zoom em cada faixa" so vale com o zoom marcado (fica desabilitada sem ele)
+export function ligarZoom(salvo) {
+  const z = $("zoom"), zf = $("zoomFaixa");
+  z.checked = !!salvo.zoom; zf.checked = !!salvo.zoomPorFaixa;
+  const sinc = () => { zf.disabled = !z.checked; };
+  z.addEventListener("change", sinc); sinc();
+}
+export const lerZoom = () => ({ zoom: $("zoom").checked, zoomPorFaixa: $("zoom").checked && $("zoomFaixa").checked });
+export const textoZoom = (c) => (c.zoom ? (c.zoomPorFaixa ? " com zoom em cada faixa" : " com zoom") : "");
+
 // Grava os resumos da rodada, um a um, sem lancar: um arquivo aberto no Excel (bloqueado
 // pelo Windows) nao impede os outros nem prende a tela em "Analisando…"; vira aviso.
 export async function gravarTodos(R, arqs) {

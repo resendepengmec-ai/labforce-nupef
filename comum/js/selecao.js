@@ -3,8 +3,11 @@
 //   - clique no grafico (o clique preenche o proximo limite vazio);
 //   - digitacao do tempo [s] na tabela (alternativa por teclado, WCAG 2.5.7).
 // Com zoom, os 2 primeiros limites delimitam a regiao de interesse; as faixas
-// ficam limitadas a ela. Faixa menor que durMin fica marcada "(curta)" e nao e
-// analisada; as demais mantem o numero escolhido.
+// ficam limitadas a ela. Com zoom em cada faixa (zoomPorFaixa), cada faixa tem a
+// sua regiao: a tela volta ao sinal completo depois de cada faixa, o usuario
+// delimita a proxima regiao e marca a faixa dentro dela.
+// Faixa menor que durMin fica marcada "(curta)" e nao e analisada; as demais
+// mantem o numero escolhido.
 import { painel, desenharFaixas } from "./graficos.js";
 import { virg, numero } from "./ui.js";
 
@@ -20,38 +23,55 @@ export function criarSelecao(el) {
     return tt - t[a] < t[b] - tt ? a : b;
   }
 
+  // chave da regiao de interesse da faixa j: uma so ("z") ou uma por faixa ("z0", "z1"...)
+  const chaveZoom = (j) => (S.zoomPorFaixa ? "z" + j : "z");
   function vagas() {                   // ordem de preenchimento dos limites
     const v = [];
-    if (S.zoom) v.push(["z", 0], ["z", 1]);
-    for (let j = 0; j < S.n; j++) v.push(["f" + j, 0], ["f" + j, 1]);
+    if (S.zoom && !S.zoomPorFaixa) v.push(["z", 0], ["z", 1]);
+    for (let j = 0; j < S.n; j++) {
+      if (S.zoom && S.zoomPorFaixa) v.push(["z" + j, 0], ["z" + j, 1]);
+      v.push(["f" + j, 0], ["f" + j, 1]);
+    }
     return v;
   }
   const valor = ([k, p]) => (S.lim[k] ? S.lim[k][p] : null);
   const definir = ([k, p], v) => { if (!S.lim[k]) S.lim[k] = [null, null]; S.lim[k][p] = v; };
+  // [i1, i2] de uma regiao completa (e com pelo menos 3 amostras), ou null
+  function regiao(k) {
+    const z = S.lim[k];
+    if (!z || z[0] === null || z[1] === null) return null;
+    const a = idx(Math.min(...z)), b = idx(Math.max(...z));
+    return b - a < 2 ? null : [a, b];
+  }
 
   function calcular() {
-    const N = S.N;
-    let i1 = 0, i2 = N - 1;
-    const z = S.lim.z;
-    S.zoomFeito = !S.zoom || (z && z[0] !== null && z[1] !== null);
-    if (S.zoom && S.zoomFeito) { i1 = idx(Math.min(...z)); i2 = idx(Math.max(...z)); if (i2 - i1 < 2) { i1 = 0; i2 = N - 1; S.zoomFeito = false; } }
-    S.i1 = i1; S.i2 = i2;
+    const N = S.N, inteiro = [0, N - 1];
     S.faixas = [];
     for (let j = 0; j < S.n; j++) {
       const f = S.lim["f" + j];
       if (!f || f[0] === null || f[1] === null) continue;
-      const c1 = Math.max(idx(Math.min(...f)), i1), c2 = Math.min(idx(Math.max(...f)), i2);
+      const [r1, r2] = (S.zoom && regiao(chaveZoom(j))) || inteiro;
+      const c1 = Math.max(idx(Math.min(...f)), r1), c2 = Math.min(idx(Math.max(...f)), r2);
       S.faixas.push({ c1, c2, num: j + 1, curta: S.t[c2] - S.t[c1] < S.durMin });
     }
     const prox = vagas().find((v) => valor(v) === null);
     S.prox = prox || null;
     S.pronto = !prox && S.faixas.some((f) => !f.curta);
+    // vista: zoom unico fica na regiao; zoom por faixa so enquanto se marca a faixa dela
+    // (depois volta ao sinal completo para delimitar a proxima regiao)
+    let vista = null;
+    if (S.zoom && !S.zoomPorFaixa) vista = regiao("z");
+    else if (S.zoom && prox && prox[0][0] === "f") vista = regiao(chaveZoom(Number(prox[0].slice(1))));
+    S.zoomFeito = !!vista;
+    S.vistaFaixa = S.zoomPorFaixa && vista ? Number(prox[0].slice(1)) + 1 : null;
+    [S.i1, S.i2] = vista || inteiro;
   }
 
   function mensagem() {
     const p = S.prox;
     let m;
-    if (p && p[0] === "z") m = `Região de interesse: clique no ${p[1] ? "FIM" : "INÍCIO"} da região (ou digite o tempo na tabela).`;
+    if (p && p[0][0] === "z" && S.zoomPorFaixa) m = `Região de interesse da faixa ${Number(p[0].slice(1)) + 1} de ${S.n}: clique no ${p[1] ? "FIM" : "INÍCIO"} da região (ou digite o tempo na tabela).`;
+    else if (p && p[0] === "z") m = `Região de interesse: clique no ${p[1] ? "FIM" : "INÍCIO"} da região (ou digite o tempo na tabela).`;
     else if (p) m = `Faixa ${Number(p[0].slice(1)) + 1} de ${S.n}: clique no ${p[1] ? "FIM" : "INÍCIO"} da faixa (ou digite o tempo na tabela).`;
     else m = S.pronto ? "Faixas prontas. Confira a tabela e clique em “Analisar faixas”."
       : "Todas as faixas ficaram menores que a faixa mínima. Altere os tempos ou desfaça.";
@@ -66,8 +86,11 @@ export function criarSelecao(el) {
     for (const c of ["", "Início [s]", "Fim [s]", "Duração [s]", "Situação"]) { const th = document.createElement("th"); th.textContent = c; cab.appendChild(th); }
     const corpo = tb.createTBody();
     const linhas = [];
-    if (S.zoom) linhas.push(["z", "Região"]);
-    for (let j = 0; j < S.n; j++) linhas.push(["f" + j, `f${j + 1}`]);
+    if (S.zoom && !S.zoomPorFaixa) linhas.push(["z", "Região"]);
+    for (let j = 0; j < S.n; j++) {
+      if (S.zoom && S.zoomPorFaixa) linhas.push(["z" + j, `Região f${j + 1}`]);
+      linhas.push(["f" + j, `f${j + 1}`]);
+    }
     for (const [k, rot] of linhas) {
       const tr = corpo.insertRow();
       tr.insertCell().textContent = rot;
@@ -87,9 +110,10 @@ export function criarSelecao(el) {
         td.appendChild(inp);
       }
       const dur = tr.insertCell(), est = tr.insertCell(); est.className = "est";
-      if (k === "z") {
-        dur.textContent = S.zoomFeito && S.zoom ? virg(S.t[S.i2] - S.t[S.i1], 2) : "";
-        est.textContent = S.zoomFeito && S.zoom ? "delimita as faixas" : "";
+      if (k[0] === "z") {
+        const r = regiao(k);
+        dur.textContent = r ? virg(S.t[r[1]] - S.t[r[0]], 2) : "";
+        est.textContent = r ? (k === "z" ? "delimita as faixas" : `delimita a faixa f${Number(k.slice(1)) + 1}`) : "";
       } else {
         const f = S.faixas.find((x) => x.num === Number(k.slice(1)) + 1);
         dur.textContent = f ? virg(S.t[f.c2] - S.t[f.c1], 2) : "";
@@ -123,12 +147,13 @@ export function criarSelecao(el) {
     for (const s of S.series) for (let i = i1; i <= i2; i++) { const v = s.y[i]; if (v < mn) mn = v; if (v > mx) mx = v; }
     const d = (mx - mn) || Math.abs(mx) || 1;
     S.T = painel(ctx, { x: 0, y: 0, w, h }, {
-      titulo: `${S.nome}${S.zoom && S.zoomFeito ? " - região de interesse" : ""}`, xlabel: "t [s]", ylabel: S.rotY,
+      titulo: `${S.nome}${S.zoomFeito ? ` - região de interesse${S.vistaFaixa ? ` da faixa f${S.vistaFaixa}` : ""}` : ""}`, xlabel: "t [s]", ylabel: S.rotY,
       xlim: [t[i1], t[i2]], ylim: [mn - 0.05 * d, mx + 0.12 * d], legenda: S.series.length > 1 ? "ne" : undefined,
       series: S.series.map((s) => ({ x: t.subarray(i1, i2 + 1), y: s.y.subarray(i1, i2 + 1), cor: s.cor, largura: 1, rotulo: S.series.length > 1 ? s.rotulo : undefined })),
     });
     desenharFaixas(ctx, S.T, S.faixas, t);
-    if (S.zoom && !S.zoomFeito && S.lim.z) for (const v of S.lim.z) if (v !== null) linha(v, "rgb(130,130,130)");
+    // regiao sendo delimitada (um limite ja marcado): linha cinza
+    if (S.prox && S.prox[0][0] === "z" && S.lim[S.prox[0]]) for (const v of S.lim[S.prox[0]]) if (v !== null) linha(v, "rgb(130,130,130)");
     for (let j = 0; j < S.n; j++) {               // faixa com 1 limite so: linha pendente
       const f = S.lim["f" + j];
       if (f && (f[0] === null) !== (f[1] === null)) linha(f[0] ?? f[1], "rgb(20,20,20)", 2, [6, 3]);
@@ -177,7 +202,7 @@ export function criarSelecao(el) {
   window.addEventListener("resize", () => { if (S) desenhar(); });
 
   return {
-    // cfg: {t, fs, series:[{y, cor, rotulo}], nome, n, zoom, durMin, rotY, unidade}
+    // cfg: {t, fs, series:[{y, cor, rotulo}], nome, n, zoom, zoomPorFaixa, durMin, rotY, unidade}
     iniciar(cfg) {
       S = { ...cfg, N: cfg.t.length, lim: {}, hist: [], hover: null, T: null };
       atualizar(true);

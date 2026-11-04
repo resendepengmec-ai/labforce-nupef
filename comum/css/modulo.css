@@ -67,6 +67,8 @@ legend { font-weight: 600; padding: 0 6px; }
 label.lin { display: flex; flex-direction: column; gap: 4px; margin: 8px 0; font-size: .92rem; color: var(--cinza); }
 label.chk { display: flex; gap: 10px; align-items: flex-start; margin: 4px 0; min-height: 36px; padding-top: 6px; cursor: pointer; }
 label.chk input { margin-top: 3px; width: 18px; height: 18px; accent-color: var(--acento); flex: none; }
+label.chk.sub { margin-left: 28px; font-size: .94rem; }          /* opcao que depende da de cima */
+label.chk:has(input:disabled) { color: var(--cinza); cursor: not-allowed; }
 input, select { font: inherit; color: var(--tinta); background: var(--painel); border: 1px solid var(--linha); border-radius: 6px; padding: 8px 10px; min-height: 42px; min-width: 0; }
 input[type="checkbox"] { min-height: 0; }
 input:focus-visible, select:focus-visible, button:focus-visible, a:focus-visible, canvas:focus-visible, .soltar:focus-within { outline: 2px solid var(--acento); outline-offset: 2px; }

@@ -10,7 +10,7 @@ import { temPastaDireta, criarDestino, nomeRodada, baixar } from "../../comum/js
 import { criarSelecao } from "../../comum/js/selecao.js";
 import { criarTarefa } from "../../comum/js/tarefa.js";
 import {
-  $, virg, numero, esperar, marcarEtapa, recolher, expandir, mostrar, progresso, ligarArquivos, ligarPasta, tabelaHTML, nomeUnico, gravarTodos,
+  $, virg, numero, esperar, marcarEtapa, recolher, expandir, mostrar, progresso, ligarArquivos, ligarPasta, tabelaHTML, nomeUnico, gravarTodos, ligarZoom, lerZoom, textoZoom,
 } from "../../comum/js/ui.js";
 
 const CHAVE = "forcas-config-v1";
@@ -51,7 +51,7 @@ function montarConfig() {
   $("btCal1").addEventListener("click", () => { for (const c of ["fx", "fy", "fz"]) { $("k" + c).value = "1,0"; $("k" + c).removeAttribute("aria-invalid"); } });
   for (let n = 1; n <= 8; n++) $("nFaixas").add(new Option(String(n), String(n)));
   $("nFaixas").value = String(s.nFaixas || 1);
-  $("zoom").checked = !!s.zoom;
+  ligarZoom(s);
   if (s.op) { $("opFFT").checked = s.op.fft; $("opGraf").checked = s.op.graficos; $("opTeo").checked = s.op.teorico; }
   const t = { ...PADRAO.teorico, ...(s.teorico || {}) };
   for (const [id, c] of TEO) $(id).value = txt(t[c]);
@@ -122,8 +122,8 @@ function validarConfig() {
   const op = { fft: $("opFFT").checked, graficos: $("opGraf").checked, teorico: opTeo };
   const tipo = tipoEnsaio(), modelo = $("modelo").value;
   if (tipo !== "torneamento") op.teorico = false;
-  salvar({ mapa, k, nFaixas: Number($("nFaixas").value), zoom: $("zoom").checked, op, teorico: teo, duracaoMin: dur, tipo, modelo });
-  return { nFaixas: Number($("nFaixas").value), zoom: $("zoom").checked, op, tipo, modelo, p: { mapa, k, duracaoMin: dur, teorico: teo, modelo } };
+  salvar({ mapa, k, nFaixas: Number($("nFaixas").value), ...lerZoom(), op, teorico: teo, duracaoMin: dur, tipo, modelo });
+  return { nFaixas: Number($("nFaixas").value), ...lerZoom(), op, tipo, modelo, p: { mapa, k, duracaoMin: dur, teorico: teo, modelo } };
 }
 
 function tipoEnsaio() { return document.querySelector('input[name="tipo"]:checked').value; }
@@ -156,7 +156,7 @@ function mostrarFicha() {
 function resumoConfig(c) {
   const k = c.p.k, cal = [k.fx, k.fy, k.fz].every((v) => v === 1) ? "sem calibração (1,0)" : `calibração ${[k.fx, k.fy, k.fz].map((v) => txt(v)).join(" / ")}`;
   const ops = [c.op.fft && "FFT", c.op.graficos && "gráficos", c.op.teorico && "força teórica"].filter(Boolean);
-  return `${cal}; ${c.nFaixas} faixa(s)${c.zoom ? " com zoom" : ""}; ${ops.join(", ") || "só estatística"}`;
+  return `${cal}; ${c.nFaixas} faixa(s)${textoZoom(c)}; ${ops.join(", ") || "só estatística"}`;
 }
 
 function atualizarIniciar() {
@@ -179,8 +179,8 @@ async function iniciarRodada() {
     destino.modo === "pasta" ? `${pasta.name}/${nome}` : `${nome}.zip`));
   log.push(`Ensaio: ${c.tipo === "torneamento" ? "torneamento" : "fresamento, furacao ou rosqueamento"} | dinamometro Kistler ${c.modelo}`);
   log.push(`Colunas: ${c.p.mapa.join(" ")} | calibracao [Fx Fy Fz]: ${[c.p.k.fx, c.p.k.fy, c.p.k.fz].join(" ")}`);
-  log.push(sprintf("Faixas por ensaio: %d (%s zoom) | faixa minima %g s | FFT: %s | graficos: %s | forca teorica: %s",
-    c.nFaixas, c.zoom ? "com" : "sem", c.p.duracaoMin, c.op.fft ? "sim" : "nao", c.op.graficos ? "sim" : "nao", c.op.teorico ? "sim" : "nao"));
+  log.push(sprintf("Faixas por ensaio: %d (%s) | faixa minima %g s | FFT: %s | graficos: %s | forca teorica: %s",
+    c.nFaixas, c.zoom ? (c.zoomPorFaixa ? "com zoom em cada faixa" : "com zoom") : "sem zoom", c.p.duracaoMin, c.op.fft ? "sim" : "nao", c.op.graficos ? "sim" : "nao", c.op.teorico ? "sim" : "nao"));
   if (c.op.teorico) {
     const q = c.p.teorico;
     log.push(sprintf("Teorico: ap %g mm | fn %g mm/rot | vc %g m/min | kr %g graus | g0 %g graus | kc1 %g N/mm2 | mc %g | canal %s",
@@ -222,7 +222,7 @@ async function proximoEnsaio() {
   progresso($("progEnsaio")); mostrarLog();
   $("infoEnsaio").textContent = `${E.N.toLocaleString("pt-BR")} amostras · fs = ${sprintf("%.6g", E.fs).replace(".", ",")} Hz (pela coluna de tempo) · ${virg(E.t[0], 2)} s a ${virg(E.t[E.N - 1], 2)} s`;
   ensaio = { E, nome };
-  sel.iniciar({ t: E.t, fs: E.fs, nome, n: cfg.nFaixas, zoom: cfg.zoom, durMin: cfg.p.duracaoMin, rotY: "força [N]", unidade: "N",
+  sel.iniciar({ t: E.t, fs: E.fs, nome, n: cfg.nFaixas, zoom: cfg.zoom, zoomPorFaixa: cfg.zoomPorFaixa, durMin: cfg.p.duracaoMin, rotY: "força [N]", unidade: "N",
     series: [{ y: E.F.fx, cor: CORES.fx, rotulo: "Fx" }, { y: E.F.fy, cor: CORES.fy, rotulo: "Fy" }, { y: E.F.fz, cor: CORES.fz, rotulo: "Fz" }] });
   $("cvSel").focus({ preventScroll: true });
 }

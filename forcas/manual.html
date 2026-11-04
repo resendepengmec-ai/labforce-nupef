@@ -109,7 +109,7 @@
   <tbody>
     <tr><td>Ensaio</td><td>Um arquivo de forças de uma operação de usinagem (exemplo: <code>E1.3.txt</code>).</td></tr>
     <tr><td>Faixa</td><td>Um intervalo de tempo do ensaio que o operador seleciona para a análise.</td></tr>
-    <tr><td>Região de interesse</td><td>O intervalo que os 2 primeiros limites delimitam no modo com zoom.</td></tr>
+    <tr><td>Região de interesse</td><td>O intervalo que os 2 primeiros limites delimitam no modo com zoom. Com zoom em cada faixa, cada faixa tem a sua região.</td></tr>
     <tr><td>Rodada</td><td>Uma análise completa, do botão <strong>Iniciar análise</strong> até a mensagem <code>Concluído</code>.</td></tr>
     <tr><td>Pasta de resultados</td><td>A pasta <code>resultados_AAAAMMDD_hhmmss</code> que o módulo cria em cada rodada.</td></tr>
     <tr><td>Canal</td><td>Uma força do arquivo: Fx, Fy ou Fz [N].</td></tr>
@@ -245,6 +245,7 @@
     <tr><td>Fatores Fx, Fy, Fz</td><td>1,0</td><td>-</td><td>Quando o arquivo não estiver em N ou quando houver um ganho conhecido a corrigir. Um fator negativo inverte o sentido do canal. O fator não pode ser 0.</td></tr>
     <tr><td>Faixas por ensaio</td><td>1</td><td>-</td><td>Para analisar mais trechos do mesmo ensaio (1 a 8).</td></tr>
     <tr><td>Zoom</td><td>desmarcado</td><td>-</td><td>Para delimitar antes uma região de interesse em ensaios longos.</td></tr>
+    <tr><td>Zoom em cada faixa</td><td>desmarcado</td><td>-</td><td>Só com o zoom marcado. Depois de cada faixa, o gráfico volta ao sinal completo para delimitar a região da próxima faixa.</td></tr>
     <tr><td>Espectro (FFT)</td><td>marcado</td><td>-</td><td>Desmarque para não gerar o gráfico do espectro.</td></tr>
     <tr><td>Salvar gráficos (PNG)</td><td>marcado</td><td>-</td><td>Desmarque para gravar só os arquivos de texto.</td></tr>
     <tr><td>Faixa mínima</td><td>0,5</td><td>s</td><td>Para aceitar faixas mais curtas ou exigir faixas mais longas.</td></tr>
@@ -308,6 +309,7 @@
   <li>Em <strong>Calibração por canal</strong>, confirme os fatores. Para voltar ao padrão, clique em <strong>Voltar todos para 1,0</strong>.</li>
   <li>Em <strong>Faixas por ensaio</strong>, escolha quantas faixas vai avaliar em cada ensaio.</li>
   <li>Para delimitar antes uma região de interesse, marque <strong>Delimitar antes uma região de interesse (zoom)</strong>.</li>
+  <li>Para escolher um zoom diferente para cada faixa, marque também <strong>Zoom em cada faixa</strong>.</li>
   <li>Marque ou desmarque <strong>Espectro de amplitude (FFT)</strong> e <strong>Salvar gráficos (PNG)</strong>.</li>
   <li>Para comparar com a força teórica, marque <strong>Força de corte teórica</strong> e preencha os campos (seção 8).</li>
   <li>Clique em <strong>Continuar</strong>.</li>
@@ -329,7 +331,7 @@
 </figure>
 <p>O gráfico mostra Fx (azul), Fy (verde) e Fz (vermelho) no tempo. A linha acima do gráfico mostra a próxima ação. Cada limite pode ser marcado de duas formas: com um clique no gráfico ou com o tempo digitado na tabela.</p>
 <ol class="passos">
-  <li>Com zoom, clique no início e no fim da região de interesse.</li>
+  <li>Com zoom, clique no início e no fim da região de interesse. Com zoom em cada faixa, faça este passo antes de cada faixa: depois de marcar uma faixa, o gráfico volta ao sinal completo.</li>
   <li>Clique no início da faixa 1. Escolha um trecho de corte estável, sem a entrada e a saída da ferramenta.</li>
   <li>Clique no fim da faixa 1. O módulo marca a faixa com a cor e o rótulo f1.</li>
   <li>Faça os passos 2 e 3 para cada faixa seguinte.</li>
