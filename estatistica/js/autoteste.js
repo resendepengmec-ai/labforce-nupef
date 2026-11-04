@@ -6,6 +6,7 @@ import * as D from "./distribuicoes.js";
 import * as A from "./algebra.js";
 import { anova1 } from "./anova1.js";
 import { fatorial2k } from "./fatorial2k.js";
+import { ccd, ccdMatriz } from "./ccd.js";
 import { lerCSV, numeroCSV, colunaNumerica } from "./dados.js";
 
 export async function autoteste() {
@@ -95,6 +96,47 @@ export async function autoteste() {
   ok(/falta \(\+,\+\)/.test(falta), `2^k: combinação faltando apontada (${falta})`);
   let desb = ""; try { fatorial2k([[-1, -1], [1, -1], [-1, 1], [1, 1], [1, 1]], [1, 2, 3, 4, 5]); } catch (e) { desb = e.message; }
   ok(/mesmo número de réplicas/.test(desb), "2^k: réplicas desiguais apontadas");
+
+  // ---- composto central (OLS quadratico do statsmodels) ------------------------
+  for (const [caso, E] of Object.entries(REF.ccd)) {
+    const r = ccd(E.X, E.Y, { respostas: E.respostas, alfa: E.alfa });
+    E.r.forEach((e, ir) => {
+      const u = r.respostas[ir], m = `CCD ${caso} ${e.nome}`;
+      u.coefs.forEach((c, j) => {
+        perto(c.coef, e.coef[j], `${m} coef ${c.rotulo}`, 1e-8); perto(c.ep, e.ep[j], `${m} EP ${c.rotulo}`);
+        perto(c.t, e.t[j], `${m} t ${c.rotulo}`, 1e-6); pval(c.p, e.p[j], `${m} ${c.rotulo}`);
+      });
+      perto(u.R2, e.R2, `${m} R2`); perto(u.R2aj, e.R2aj, `${m} R2 ajustado`); perto(u.R2pred, e.R2pred, `${m} R2 predicao`);
+      perto(u.press, e.press, `${m} PRESS`); perto(u.anova.residuo.sq, e.sqRes, `${m} SQ residuo`);
+      perto(u.anova.regressao.F, e.F, `${m} F regressao`); pval(u.anova.regressao.p, e.pF, `${m} regressao`);
+      perto(u.anova.erroPuro.sq, e.sqEP, `${m} SQ erro puro`); ok(u.anova.erroPuro.gl === e.glEP, `${m} GL erro puro`);
+      perto(u.anova.faltaAjuste.F, e.FLoF, `${m} F falta de ajuste`); pval(u.anova.faltaAjuste.p, e.pLoF, `${m} falta de ajuste`);
+      u.estacionario.xs.forEach((v, j) => perto(v, e.xs[j], `${m} x_s ${j + 1}`, 1e-8));
+      perto(u.estacionario.ys, e.ys, `${m} y no ponto estacionario`, 1e-9);
+      u.estacionario.autovalores.forEach((v, j) => perto(v, e.autovalores[j], `${m} autovalor ${j + 1}`, 1e-8));
+    });
+  }
+  // matriz do CCD: k = 2..4 completo; k = 5 e 6 meia fracao com alfa = nF^(1/4)
+  for (const [k, nF, alf] of [[2, 4, Math.SQRT2], [3, 8, 8 ** 0.25], [4, 16, 2], [5, 16, 2], [6, 32, 32 ** 0.25]]) {
+    const d = ccdMatriz(k, 5);
+    ok(d.nF === nF && d.X.length === nF + 2 * k + 5 && Math.abs(d.alfa - alf) < 1e-12, `CCD k = ${k}: ${nF} fatoriais, alfa ${alf.toFixed(4)}`);
+  }
+  {
+    const d = ccdMatriz(5, 0), F = d.X.slice(0, 16);     // resolucao V: efeitos principais e interacoes de 2 nao confundidos
+    let ortog = true;
+    const cols = [];
+    for (let i = 0; i < 5; i++) cols.push(F.map((x) => x[i]));
+    for (let i = 0; i < 5; i++) for (let j = i + 1; j < 5; j++) cols.push(F.map((x) => x[i] * x[j]));
+    for (let a = 0; a < cols.length; a++) for (let b = a + 1; b < cols.length; b++) if (cols[a].reduce((s, v, n) => s + v * cols[b][n], 0) !== 0) ortog = false;
+    ok(ortog, "CCD k = 5: meia fração de resolução V (15 colunas ortogonais)");
+  }
+  {  // unidades reais: -1/+1 = niveis informados (ex.: 60-80 graus C e 1-3 bar)
+    const E = REF.ccd.exemplo, r = ccd(E.X, E.Y, { niveis: [{ baixo: 60, alto: 80 }, { baixo: 1, alto: 3 }] });
+    const xs = r.respostas[0].estacionario.xs, xr = r.respostas[0].estacionario.xsReal;
+    ok(Math.abs(xr[0] - (70 + 10 * xs[0])) < 1e-9 && Math.abs(xr[1] - (2 + xs[1])) < 1e-9, "CCD: ponto estacionário em unidades reais");
+  }
+  let msgSing = ""; try { ccd([[0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0]], [[1], [2], [3], [4], [5], [6], [7]]); } catch (e) { msgSing = e.message; }
+  ok(/X'X é singular/.test(msgSing), "CCD: X'X singular com mensagem");
 
   // ---- leitura de CSV --------------------------------------------------------
   const c1 = lerCSV('﻿fator;y\r\nA;12,5\r\n"B";"1,0e3"\r\n\r\n');

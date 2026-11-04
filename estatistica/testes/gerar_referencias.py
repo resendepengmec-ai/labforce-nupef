@@ -184,7 +184,77 @@ def fatorial():
             "sem_replica": ref_fat2k(X4, y4, alfa=0.05), "centrais": ref_fat2k(Xc, yc, alfa=0.05)}
 
 
-SECOES = {"distribuicoes": distribuicoes, "algebra": algebra, "anova1": anova1, "fatorial2k": fatorial}
+def ref_ccd(X, Y, respostas, alfa=0.05):
+    """OLS quadratico completo (statsmodels) por resposta; erro puro de todos os pontos repetidos."""
+    import pandas as pd
+    import statsmodels.formula.api as smf
+    X = np.array(X, float)
+    k = X.shape[1]
+    nomes = [f"x{j + 1}" for j in range(k)]
+    lin = nomes
+    quad = [f"I({n} ** 2)" for n in nomes]
+    inter = [f"{nomes[i]}:{nomes[j]}" for i in range(k) for j in range(i + 1, k)]
+    ordem = ["Intercept"] + lin + quad + inter          # mesma ordem de ccd.js
+    out = {"X": X.tolist(), "Y": [list(map(float, l)) for l in Y], "respostas": respostas, "alfa": alfa, "r": []}
+    chaves = [tuple(np.round(x, 6)) for x in X]
+    for r, nome in enumerate(respostas):
+        y = np.array([l[r] for l in Y], float)
+        df = pd.DataFrame(X, columns=nomes)
+        df["y"] = y
+        mod = smf.ols("y ~ " + " + ".join(lin + quad + inter), data=df).fit()
+        h = mod.get_influence().hat_matrix_diag
+        press = float(np.sum((mod.resid / (1 - h)) ** 2))
+        sqT = float(np.sum((y - y.mean()) ** 2))
+        sqEP, glEP = 0.0, 0
+        for c in set(chaves):
+            idx = [i for i, ch in enumerate(chaves) if ch == c]
+            if len(idx) > 1:
+                sqEP += float(np.sum((y[idx] - y[idx].mean()) ** 2))
+                glEP += len(idx) - 1
+        glLoF = int(mod.df_resid) - glEP
+        sqLoF = mod.ssr - sqEP
+        FLoF = (sqLoF / glLoF) / (sqEP / glEP)
+        b = np.array([mod.params[n] for n in lin])
+        B = np.zeros((k, k))
+        for i in range(k):
+            B[i, i] = mod.params[quad[i]]
+        for i in range(k):
+            for j in range(i + 1, k):
+                B[i, j] = B[j, i] = mod.params[f"{nomes[i]}:{nomes[j]}"] / 2
+        xs = -0.5 * np.linalg.solve(B, b)
+        out["r"].append({
+            "nome": nome, "coef": [mod.params[t] for t in ordem], "ep": [mod.bse[t] for t in ordem],
+            "t": [mod.tvalues[t] for t in ordem], "p": [mod.pvalues[t] for t in ordem],
+            "R2": mod.rsquared, "R2aj": mod.rsquared_adj, "F": mod.fvalue, "pF": mod.f_pvalue, "sqRes": mod.ssr,
+            "glRes": mod.df_resid, "sqEP": sqEP, "glEP": glEP, "FLoF": FLoF, "pLoF": stats.f.sf(FLoF, glLoF, glEP),
+            "press": press, "R2pred": 1 - press / sqT, "xs": xs.tolist(),
+            "ys": float(mod.params["Intercept"] + 0.5 * xs @ b), "autovalores": np.linalg.eigvalsh(B)[::-1].tolist()})
+    return json.loads(json.dumps(out, default=float))
+
+
+def ccd():
+    cab, linhas = ler_csv("exemplo_ccd.csv")
+    X = [[float(v) for v in l[:2]] for l in linhas]
+    Y = [[float(v) for v in l[2:]] for l in linhas]
+    # CCD k = 3 rotacional (alfa = 8^(1/4)), 6 centrais e um ponto fatorial repetido
+    rng = np.random.default_rng(SEMENTE + 4)
+    a = 8 ** 0.25
+    X3 = [[1 if c >> j & 1 else -1 for j in range(3)] for c in range(8)] + [[1, 1, 1]]
+    for j in range(3):
+        for s in (-a, a):
+            x = [0.0, 0.0, 0.0]
+            x[j] = s
+            X3.append(x)
+    X3 += [[0.0, 0.0, 0.0]] * 6
+    Y3 = []
+    for x1, x2, x3 in X3:
+        y1 = 80 + 2 * x1 + 1.5 * x2 - x3 - 3 * x1 ** 2 - 2 * x2 ** 2 - 1.5 * x3 ** 2 + 0.8 * x1 * x2 + rng.normal(0, 0.6)
+        y2 = 20 + x1 - 0.5 * x2 + 2 * x1 ** 2 - 1.5 * x2 ** 2 + 0.5 * x3 ** 2 + x2 * x3 + rng.normal(0, 0.4)
+        Y3.append([round(y1, 3), round(y2, 3)])
+    return {"exemplo": ref_ccd(X, Y, cab[2:]), "k3": ref_ccd(X3, Y3, ["rendimento", "custo"])}
+
+
+SECOES = {"distribuicoes": distribuicoes, "algebra": algebra, "anova1": anova1, "fatorial2k": fatorial, "ccd": ccd}
 
 if __name__ == "__main__":
     ref = {"_gerado_por": f"gerar_referencias.py | python {sys.version.split()[0]} | numpy {np.__version__} | "
