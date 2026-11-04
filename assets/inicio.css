@@ -9,13 +9,14 @@
   --forca-2: #c43b2f;
   --forca-3: #8f9aa3;
   --eletrica: #0b5cad;   /* mesma cor da pagina eletrica */
+  --doe: #5b45a8;        /* mesma cor do modulo de estatistica */
   --fase-a: #0000cd; --fase-b: #008000; --fase-c: #dc0000;
   --fonte: "Bahnschrift", "DIN Alternate", "D-DIN", "Barlow", "Roboto", system-ui, sans-serif;
   color-scheme: light;
 }
 @media (prefers-color-scheme: dark) {
   :root { --papel: #131816; --tinta: #e4ebe7; --cinza: #9aa7a0; --linha: #2c3531;
-    --forca: #4fb3a5; --forca-2: #ef6f62; --forca-3: #9aa6ae; --eletrica: #5aa5f0;
+    --forca: #4fb3a5; --forca-2: #ef6f62; --forca-3: #9aa6ae; --eletrica: #5aa5f0; --doe: #a993f0;
     --fase-a: #6f8dff; --fase-b: #4cc46a; --fase-c: #ff6b6b; color-scheme: dark; }
 }
 * { box-sizing: border-box; }
@@ -81,7 +82,9 @@ h1 { margin: 0; font-weight: 600; font-stretch: 87.5%; font-size: clamp(2rem, 4.
 .opcao-breve .s1 { stroke: var(--cinza); }
 .opcao-breve:hover { border-bottom-color: var(--linha); }
 .selo-breve { display: inline-block; vertical-align: middle; font-size: .78rem; font-weight: 600; padding: 2px 9px; border-radius: 999px; border: 1px solid var(--cinza); color: var(--cinza); margin-left: 6px; font-stretch: 100%; }
-.opcao-doe .pontos circle { fill: var(--cinza); }
+.opcao-doe { --c: var(--doe); }
+.opcao-doe .pontos circle { fill: var(--c); opacity: .55; }
+.opcao-doe .s1 { stroke: var(--c); }
 .opcao-desg .inserto { fill: none; stroke: var(--cinza); stroke-width: 2; vector-effect: non-scaling-stroke; }
 .opcao-desg .desgaste { fill: color-mix(in srgb, var(--forca-2) 35%, transparent); }
 .opcao-desg .cota { stroke: var(--cinza); stroke-width: 2; }
