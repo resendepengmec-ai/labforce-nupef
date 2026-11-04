@@ -3,7 +3,7 @@
 // ANOVA com F e p quando ha erro (replicas, pontos centrais ou termos fora do modelo);
 // sem erro, metodo de Lenth (1989): PSE, ME e SME. Pontos centrais: teste de curvatura.
 // Modelo reduzido: os termos nao escolhidos vao para o erro.
-import { pfC, qt, ptBilateral, qnorm } from "./distribuicoes.js";
+import { pfC, qt, ptBilateral, qnorm, shapiroWilk } from "./distribuicoes.js";
 
 const LETRAS = "ABCDEFGHJK";
 export const rotuloEfeito = (mask, k) => [...Array(k).keys()].filter((j) => mask & (1 << j)).map((j) => LETRAS[j]).join("");
@@ -85,6 +85,7 @@ export function fatorial2k(X, y, op = {}) {
     R2: sqModelo / sqT, R2aj: glE > 0 ? 1 - qmE / (sqT / (N - 1)) : NaN,
     tCrit: glE > 0 ? qt(1 - alfa / 2, glE) : NaN,
     media: yF, residuos, ajustados, meioNormal, principais, interacoes,
+    premissas: { shapiro: glE > 2 ? shapiroWilk(residuos) : null },
   };
 }
 

@@ -9,6 +9,7 @@ import { fatorial2k } from "./fatorial2k.js";
 import { ccd, ccdMatriz } from "./ccd.js";
 import { manova } from "./manova.js";
 import * as Op from "./otimizacao.js";
+import * as C from "./conclusoes.js";
 import { lerCSV, numeroCSV, colunaNumerica } from "./dados.js";
 
 export async function autoteste() {
@@ -180,6 +181,32 @@ export async function autoteste() {
     ok(esf.frente.every((p) => Math.hypot(...p.x) <= Math.SQRT2 + 1e-9), "NSGA-II: busca dentro da esfera de raio alfa");
     let msg = ""; try { Op.conferirObjetivo({ tipo: "alvo", L: 0, U: 10, T: 12 }, "Ra"); } catch (e) { msg = e.message; }
     ok(/Ra: o alvo precisa ficar entre/.test(msg), "objetivo inválido apontado");
+  }
+
+  // ---- conclusoes em texto (regras) ---------------------------------------------
+  {
+    ok([C.fmtP(0.04996), C.fmtP(0.003), C.fmtP(0.41), C.fmtP(0.00002), C.fmtP(1)].join("|") === "0,04996|0,003|0,41|< 0,0001|1", `valor-p formatado (${[C.fmtP(0.04996), C.fmtP(0.003), C.fmtP(0.41), C.fmtP(0.00002), C.fmtP(1)].join("|")})`);
+    ok(C.num(4.2) === "4,2" && C.num(-1234.567) === "−1235" && C.num(0.0012346) === "0,001235", `número com vírgula decimal (${C.num(4.2)} ${C.num(-1234.567)} ${C.num(0.0012346)})`);
+    const fe = C.conclusoesFatorial(fatorial2k(REF.fatorial2k.exemplo.X, REF.fatorial2k.exemplo.y));
+    ok(fe.some((s) => /O fator B \(B\) não tem efeito principal significativo, mas participa de AB, BC/.test(s)), "conclusões 2^k: fator só em interações");
+    const limpo = (fr, m) => ok(fr.length > 0 && fr.every((s) => !/NaN|undefined|Infinity|\[object/.test(s)), `${m}: texto sem NaN/undefined (${fr.find((s) => /NaN|undefined|Infinity/.test(s)) || ""})`);
+    const a = C.conclusoesAnova1(anova1(REF.anova1.exemplo.grupos), "o resultado");
+    limpo(a, "conclusões ANOVA"); ok(/As médias dos grupos diferem/.test(a[0]) && a.some((s) => /^Tukey: a média de D supera a de A/.test(s)), "conclusões ANOVA: F e Tukey");
+    const fs = C.conclusoesFatorial(fatorial2k(REF.fatorial2k.sem_replica.X, REF.fatorial2k.sem_replica.y));
+    limpo(fs, "conclusões 2^k sem réplica"); ok(/método de Lenth/.test(fs[0]) && fs.some((s) => /^O fator A \(A\) é significativo .*aumenta/.test(s)), "conclusões 2^k: Lenth e efeito de A");
+    const fc = C.conclusoesFatorial(fatorial2k(REF.fatorial2k.centrais.X, REF.fatorial2k.centrais.y));
+    limpo(fc, "conclusões 2^k com centrais"); ok(fc.some((s) => /^Há curvatura/.test(s)), "conclusões 2^k: curvatura detectada");
+    const cc = ccd(REF.ccd.k3.X, REF.ccd.k3.Y, { respostas: REF.ccd.k3.respostas });
+    const t1 = C.conclusoesCcd(cc.respostas[0], 0.05, cc.alfaAxial), t2 = C.conclusoesCcd(cc.respostas[1], 0.05, cc.alfaAxial);
+    limpo([...t1, ...t2], "conclusões CCD");
+    ok(t1.some((s) => /é um máximo/.test(s)) && t2.some((s) => /ponto de sela/.test(s)), "conclusões CCD: máximo (rendimento) e sela (custo)");
+    ok(t1.some((s) => /falta de ajuste/i.test(s)), "conclusões CCD: falta de ajuste comentada");
+    const mv = C.conclusoesManova(manova(REF.manova.g3r2.grupos, REF.manova.g3r2.respostas));
+    limpo(mv, "conclusões MANOVA");
+    const ot = Op.otimizar([cc.respostas[0].prever, cc.respostas[1].prever], [{ tipo: "max", L: 70, U: 85 }, { tipo: "min", L: 15, U: 30 }],
+      ["rendimento", "custo"], 3, { tipo: "esfera", raio: cc.alfaAxial }, { pop: 40, geracoes: 30, semente: 9 });
+    const to = C.conclusoesOtimizacao(ot, ["x1", "x2", "x3"]);
+    limpo(to, "conclusões otimização"); ok(/Semente do gerador: 9/.test(to[to.length - 1]), "conclusões otimização: semente registrada");
   }
 
   // ---- leitura de CSV --------------------------------------------------------

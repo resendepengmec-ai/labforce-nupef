@@ -4,7 +4,7 @@
 // ANOVA (regressao, residuo, falta de ajuste, erro puro, total); R2, R2 ajustado e
 // R2 de predicao (PRESS); ponto estacionario x_s = -1/2 B^-1 b e autovalores de B.
 // Erro puro: TODOS os pontos repetidos do planejamento (nao so os centrais).
-import { pfC, ptBilateral, qt } from "./distribuicoes.js";
+import { pfC, ptBilateral, shapiroWilk } from "./distribuicoes.js";
 import { inversa, autoSimetrica } from "./algebra.js";
 
 // Matriz do CCD codificada. k <= 4: fatorial completo; k = 5 e 6: meia fracao 2^(k-1)
@@ -81,6 +81,7 @@ export function ccd(X, Y, op = {}) {
     return {
       nome, coefs, anova, R2: sqReg / sqT, R2aj: 1 - (sqRes / glRes) / (sqT / (N - 1)), press, R2pred: 1 - press / sqT,
       s: Math.sqrt(s2), residuos: res, ajustados: ajust, y,
+      premissas: { shapiro: glRes > 2 ? shapiroWilk(res) : null },
       estacionario: pontoEstacionario(b, termos, k, alfaAx, paraReal),
       prever: (x) => termos.reduce((s, t, j) => s + t.f(x) * b[j], 0),
     };
