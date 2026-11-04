@@ -97,6 +97,14 @@ export async function autoteste() {
     if (E.curvatura) { perto(r.curvatura.sq, E.curvatura.sq, `${m} SQ curvatura`); pval(r.curvatura.p, E.curvatura.p, `${m} curvatura`); }
     if (E.lenth) for (const k of ["PSE", "d", "ME", "SME"]) perto(r.lenth[k], E.lenth[k], `${m} Lenth ${k}`);
   }
+  {  // literatura: teste de curvatura de Montgomery e Runger (2016), 2^2 + 5 centrais, como
+     // publicado no TCC da DOE4u (Resende e Silva, 2017, tabelas 5.10, 5.12 e 5.13)
+    const r = fatorial2k([[-1, -1], [1, -1], [-1, 1], [1, 1], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0]], [39.3, 40.9, 40.0, 41.5, 40.3, 40.5, 40.7, 40.2, 40.6]);
+    const e = Object.fromEntries(r.efeitos.map((x) => [x.rotulo, x]));
+    ok(Math.abs(r.media - 40.425) < 1e-9 && Math.abs(e.A.coef - 0.775) < 1e-9 && Math.abs(e.B.coef - 0.325) < 1e-9 && Math.abs(e.AB.coef + 0.025) < 1e-9, "DOE4u: coeficientes 40,425; 0,775; 0,325; −0,025");
+    ok([[e.A.sq, 2.4025], [e.B.sq, 0.4225], [e.AB.sq, 0.0025], [r.curvatura.sq, 0.0027], [r.erro.sq, 0.172]].every(([a, b]) => Math.abs(a - b) < 5e-5) && r.erro.gl === 4, "DOE4u: SQ de A, B, AB, curvatura e erro");
+    ok([[e.A.p, 0.0017], [e.B.p, 0.035], [e.AB.p, 0.8213], [r.curvatura.p, 0.8137]].every(([a, b]) => Math.abs(a - b) < 5e-5), "DOE4u: valores-p 0,0017; 0,0350; 0,8213; 0,8137");
+  }
   let falta = ""; try { fatorial2k([[-1, -1], [1, -1], [-1, 1]], [1, 2, 3]); } catch (e) { falta = e.message; }
   ok(/falta \(\+,\+\)/.test(falta), `2^k: combinação faltando apontada (${falta})`);
   let desb = ""; try { fatorial2k([[-1, -1], [1, -1], [-1, 1], [1, 1], [1, 1]], [1, 2, 3, 4, 5]); } catch (e) { desb = e.message; }
