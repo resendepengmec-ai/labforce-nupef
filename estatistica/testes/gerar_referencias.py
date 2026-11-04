@@ -284,8 +284,42 @@ def manova():
     return {"g3r2": ref_manova(g3, ["dureza", "rugosidade"]), "g4r3": ref_manova(g4, ["Fc", "Ff", "Ra"], alfa=0.10)}
 
 
+def otimizacao():
+    """Desejabilidade (Derringer e Suich 1980) e TOPSIS (Hwang e Yoon 1981) em numpy, independentes do JS."""
+    def d(y, o):
+        L, U, s, t = o["L"], o["U"], o.get("s", 1), o.get("t", 1)
+        if o["tipo"] == "max":
+            return 0.0 if y <= L else 1.0 if y >= U else ((y - L) / (U - L)) ** s
+        if o["tipo"] == "min":
+            return 1.0 if y <= L else 0.0 if y >= U else ((U - y) / (U - L)) ** s
+        if y < L or y > U:
+            return 0.0
+        T = o["T"]
+        return ((y - L) / (T - L)) ** s if y <= T else ((U - y) / (U - T)) ** t
+    objs = [{"tipo": "max", "L": 60, "U": 90, "s": 2, "r": 3}, {"tipo": "min", "L": 0.4, "U": 1.6, "s": 0.5, "r": 1},
+            {"tipo": "alvo", "L": 18, "U": 26, "T": 21, "s": 1, "t": 3, "r": 2}]
+    rng = np.random.default_rng(SEMENTE + 6)
+    casos = []
+    for _ in range(12):
+        ys = [float(round(rng.uniform(55, 95), 3)), float(round(rng.uniform(0.2, 1.8), 3)), float(round(rng.uniform(17, 27), 3))]
+        ds = [d(y, o) for y, o in zip(ys, objs)]
+        r = np.array([o["r"] for o in objs], float)
+        D = 0.0 if min(ds) <= 0 else float(np.exp(np.sum(r * np.log(ds)) / r.sum()))
+        casos.append({"y": ys, "d": ds, "D": D})
+    M = rng.uniform(1, 10, (8, 3)).round(3)
+    benef = [True, False, True]
+    w = np.array([0.5, 0.3, 0.2])
+    V = w * M / np.sqrt((M ** 2).sum(axis=0))
+    ideal = np.where(benef, V.max(axis=0), V.min(axis=0))
+    anti = np.where(benef, V.min(axis=0), V.max(axis=0))
+    dp = np.sqrt(((V - ideal) ** 2).sum(axis=1))
+    dn = np.sqrt(((V - anti) ** 2).sum(axis=1))
+    return {"objetivos": objs, "desejabilidade": casos,
+            "topsis": {"M": M.tolist(), "beneficio": benef, "pesos": w.tolist(), "proximidade": (dn / (dp + dn)).tolist()}}
+
+
 SECOES = {"distribuicoes": distribuicoes, "algebra": algebra, "anova1": anova1, "fatorial2k": fatorial, "ccd": ccd,
-          "manova": manova}
+          "manova": manova, "otimizacao": otimizacao}
 
 if __name__ == "__main__":
     ref = {"_gerado_por": f"gerar_referencias.py | python {sys.version.split()[0]} | numpy {np.__version__} | "

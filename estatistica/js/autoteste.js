@@ -8,6 +8,7 @@ import { anova1 } from "./anova1.js";
 import { fatorial2k } from "./fatorial2k.js";
 import { ccd, ccdMatriz } from "./ccd.js";
 import { manova } from "./manova.js";
+import * as Op from "./otimizacao.js";
 import { lerCSV, numeroCSV, colunaNumerica } from "./dados.js";
 
 export async function autoteste() {
@@ -149,6 +150,36 @@ export async function autoteste() {
     }
     E.univariadas.forEach((e, j) => { perto(r.univariadas[j].F, e.F, `${m} ANOVA ${E.respostas[j]} F`); pval(r.univariadas[j].p, e.p, `${m} ANOVA ${E.respostas[j]}`); });
     ok(Math.abs(r.alfaB - E.alfa / E.respostas.length) < 1e-15, `${m} Bonferroni alfa/p`);
+  }
+
+  // ---- otimizacao ---------------------------------------------------------------
+  {
+    const O = REF.otimizacao;
+    O.desejabilidade.forEach((c, i) => {
+      c.d.forEach((v, j) => perto(Op.desejabilidade(c.y[j], O.objetivos[j]), v, `desejabilidade caso ${i + 1} resposta ${j + 1}`, 1e-12));
+      perto(Op.desejabilidadeGlobal(c.y, O.objetivos), c.D, `D global caso ${i + 1}`, 1e-12);
+    });
+    const t = Op.topsis(O.topsis.M, O.topsis.beneficio, O.topsis.pesos);
+    t.proximidade.forEach((v, i) => perto(v, O.topsis.proximidade[i], `TOPSIS proximidade ${i + 1}`, 1e-12));
+    // alvo nao da mais NaN (eStat)
+    ok(Op.desejabilidade(5, { tipo: "alvo", L: 0, U: 10, T: 5 }) === 1 && Op.desejabilidade(2.5, { tipo: "alvo", L: 0, U: 10, T: 5 }) === 0.5, "desejabilidade alvo (eStat dava NaN)");
+    // desejabilidade: maximo conhecido de y = 10 - (x1 - 0,3)^2 - (x2 + 0,2)^2
+    const r = Op.otimizarDesejabilidade([(x) => 10 - (x[0] - 0.3) ** 2 - (x[1] + 0.2) ** 2], [{ tipo: "max", L: 0, U: 10 }], 2, { tipo: "cubo" }, 7);
+    ok(Math.abs(r.x[0] - 0.3) < 1e-4 && Math.abs(r.x[1] + 0.2) < 1e-4 && r.D > 0.99999, `desejabilidade acha o máximo (${r.x.map((v) => v.toFixed(5))})`);
+    // NSGA-II: f1 = x^2, f2 = (x-1)^2 -> frente em [0, 1]; mesma semente, mesmo resultado
+    const ns = Op.nsga2((x) => [x[0] ** 2, (x[0] - 1) ** 2], 1, { tipo: "cubo" }, { pop: 60, geracoes: 60, semente: 42 });
+    const xs = ns.frente.map((p) => p.x[0]);
+    // frente aproximada: pontos a menos de 0,01 do conjunto de Pareto exato [0, 1]
+    ok(xs.length >= 40 && xs.every((v) => v >= -0.01 && v <= 1.01) && Math.min(...xs) < 0.02 && Math.max(...xs) > 0.98, `NSGA-II: frente cobre [0, 1] (${xs.length} pontos)`);
+    const F = ns.frente.map((p) => p.f);
+    ok(F.every((a) => !F.some((b) => b[0] <= a[0] && b[1] <= a[1] && (b[0] < a[0] || b[1] < a[1]))), "NSGA-II: frente sem pontos dominados");
+    const ns2 = Op.nsga2((x) => [x[0] ** 2, (x[0] - 1) ** 2], 1, { tipo: "cubo" }, { pop: 60, geracoes: 60, semente: 42 });
+    ok(JSON.stringify(ns2.frente.map((p) => p.x)) === JSON.stringify(ns.frente.map((p) => p.x)), "NSGA-II: mesma semente, mesmo resultado");
+    // regiao esferica do CCD respeitada
+    const esf = Op.nsga2((x) => [-x[0], -x[1]], 2, { tipo: "esfera", raio: Math.SQRT2 }, { pop: 40, geracoes: 30, semente: 3 });
+    ok(esf.frente.every((p) => Math.hypot(...p.x) <= Math.SQRT2 + 1e-9), "NSGA-II: busca dentro da esfera de raio alfa");
+    let msg = ""; try { Op.conferirObjetivo({ tipo: "alvo", L: 0, U: 10, T: 12 }, "Ra"); } catch (e) { msg = e.message; }
+    ok(/Ra: o alvo precisa ficar entre/.test(msg), "objetivo inválido apontado");
   }
 
   // ---- leitura de CSV --------------------------------------------------------
