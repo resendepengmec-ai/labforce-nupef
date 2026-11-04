@@ -1,0 +1,332 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Manual · Planejamento de experimentos · LabForce NUPEF</title>
+<meta name="description" content="Manual técnico de uso do módulo de planejamento de experimentos: ANOVA, MANOVA, fatorial 2^k, composto central e otimização (ASD-STE100 adaptado ao português).">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
+<script src="../comum/js/quadro.js"></script>
+<link rel="icon" href="../assets/icone.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../comum/css/modulo.css">
+<link rel="stylesheet" href="../comum/css/instituicao.css">
+<link rel="stylesheet" href="../comum/css/manual.css">
+<link rel="stylesheet" href="css/estatistica.css">
+</head>
+<body class="mod-estatistica">
+<header class="barra">
+  <div class="barra-in">
+    <a class="marca" href="../"><img class="logo-nupef" src="../assets/logo-nupef.webp" alt="" width="40" height="38">LabForce <span>NUPEF</span></a>
+    <span class="modulo">Planejamento de experimentos</span>
+    <nav aria-label="Navegação do módulo">
+      <a href="./">Análise</a>
+      <a href="manual.html" aria-current="page">Manual</a>
+      <a href="../quem-somos.html">Quem somos</a>
+      <a href="../">Início</a>
+    </nav>
+    <a class="marca-ifg" href="https://www.ifg.edu.br/goiania" rel="noopener noreferrer"><img src="../assets/simbolo-ifg.png" alt="" width="27" height="36"><span>Instituto Federal de Goiás<small>Câmpus Goiânia</small></span></a>
+  </div>
+</header>
+
+<div class="manual">
+<nav class="indice" aria-label="Índice do manual">
+  <p>Índice</p>
+  <ol>
+    <li><a href="#s1">1 Escopo e aplicação</a></li>
+    <li><a href="#s2">2 Convenções de formatação</a></li>
+    <li><a href="#s3">3 Termos e símbolos</a></li>
+    <li><a href="#s4">4 Advertências e cuidados gerais</a></li>
+    <li><a href="#s5">5 Acesso e arquivos</a></li>
+    <li><a href="#s6">6 Teste de verificação</a></li>
+    <li><a href="#s7">7 Escolha do planejamento</a></li>
+    <li><a href="#s8">8 Parâmetros</a></li>
+    <li><a href="#s9">9 Formato dos dados</a></li>
+    <li><a href="#s10">10 Procedimento de uso</a></li>
+    <li><a href="#s11">11 Resultados</a></li>
+    <li><a href="#s12">12 Interpretação e limites</a></li>
+    <li><a href="#s13">13 Falhas e soluções</a></li>
+    <li><a href="#referencias">14 Referências e créditos</a></li>
+  </ol>
+  <button id="btImprimir" class="sec imprimir" type="button">Imprimir ou salvar em PDF</button>
+</nav>
+
+<article class="doc">
+<header>
+  <h1>Manual técnico de uso: planejamento de experimentos</h1>
+  <p>Módulo de planejamento de experimentos do LabForce NUPEF, versão web 1.0.0. Redação conforme a ASD-STE100, adaptada ao português.</p>
+</header>
+
+<section id="s1">
+<h2>1 Escopo e aplicação</h2>
+<p>Este manual dá as instruções de uso do módulo de planejamento de experimentos.</p>
+<p>O módulo analisa os resultados de experimentos planejados. Os dados de entrada são uma tabela de texto (<code>.csv</code> ou <code>.txt</code>), com uma linha por ensaio. O módulo funciona no navegador. Os dados não saem do computador.</p>
+<p>O módulo faz estas tarefas:</p>
+<ul>
+  <li>ANOVA de um fator: descritivas por grupo, tabela ANOVA com valor-p, R², comparações de Tukey-Kramer e teste das premissas (Shapiro–Wilk e Levene).</li>
+  <li>MANOVA de um fator: estatísticas de Wilks, Pillai, Hotelling-Lawley e Roy, e ANOVAs univariadas com correção de Bonferroni.</li>
+  <li>Fatorial 2<sup>k</sup> (2 a 7 fatores): efeitos, ANOVA, método de Lenth sem réplica, teste de curvatura com pontos centrais e modelo reduzido.</li>
+  <li>Composto central (2 a 6 fatores): modelo quadrático de cada resposta, falta de ajuste, R² de predição, ponto estacionário e curvas de nível.</li>
+  <li>Otimização com 2 ou mais respostas: desejabilidade, frente de Pareto (NSGA-II) e escolha pelo TOPSIS.</li>
+  <li>Conclusões em texto, gráficos e gravação dos resultados (CSV, PNG e TXT) numa pasta do computador.</li>
+</ul>
+<p>O módulo não faz estas tarefas:</p>
+<ul>
+  <li>Não usa inteligência artificial. Todos os números e todas as frases vêm de métodos estatísticos convencionais e de regras fixas.</li>
+  <li>Não gera planejamentos fracionados para o fatorial 2<sup>k</sup>, nem blocos. O composto central usa meia fração só com 5 ou 6 fatores.</li>
+  <li>Não faz ANOVA com 2 ou mais fatores categóricos, nem testes não paramétricos. O texto indica quando eles são necessários.</li>
+  <li>Não garante a condição ótima fora da região ensaiada.</li>
+</ul>
+</section>
+
+<section id="s2">
+<h2>2 Convenções de formatação</h2>
+<p>Este manual usa a mesma formatação em todas as seções.</p>
+<div class="tabela-rolar"><table>
+  <thead><tr><th>Elemento</th><th>Formatação</th><th>Exemplo</th></tr></thead>
+  <tbody>
+    <tr><td>Arquivo, coluna, mensagem</td><td>Fonte de código</td><td><code>relatorio.txt</code>, <code>resposta</code></td></tr>
+    <tr><td>Botão ou opção da tela</td><td>Negrito</td><td><strong>Continuar</strong>, <strong>Analisar</strong></td></tr>
+    <tr><td>Número decimal</td><td>Vírgula decimal</td><td>α = 0,05</td></tr>
+    <tr><td>Valor-p muito pequeno</td><td>Limite inferior</td><td>&lt; 0,0001</td></tr>
+    <tr><td>Procedimento</td><td>Lista numerada, uma ação por passo</td><td>1. Abra o módulo.</td></tr>
+    <tr><td>Instrução de segurança</td><td>Rótulo em negrito antes do texto</td><td><strong>CUIDADO:</strong>, <strong>NOTA:</strong></td></tr>
+  </tbody>
+</table></div>
+<ul>
+  <li><strong>ADVERTÊNCIA:</strong> instrução que evita lesão ou morte.</li>
+  <li><strong>CUIDADO:</strong> instrução que evita conclusão errada ou perda de dados.</li>
+  <li><strong>NOTA:</strong> informação útil que não é uma instrução de segurança.</li>
+</ul>
+</section>
+
+<section id="s3">
+<h2>3 Termos e símbolos</h2>
+<div class="tabela-rolar"><table>
+  <thead><tr><th>Termo</th><th>Significado</th></tr></thead>
+  <tbody>
+    <tr><td>Fator</td><td>Variável de entrada que o experimentador controla (exemplo: velocidade de corte).</td></tr>
+    <tr><td>Nível</td><td>Valor de um fator no ensaio. No 2<sup>k</sup>: −1 (baixo) e +1 (alto).</td></tr>
+    <tr><td>Resposta</td><td>Variável de saída medida em cada ensaio (exemplo: rugosidade Ra).</td></tr>
+    <tr><td>Codificado</td><td>Fator na escala −1 a +1: x = (valor − centro) / (meia amplitude).</td></tr>
+    <tr><td>Réplica</td><td>Repetição completa de uma combinação de níveis.</td></tr>
+    <tr><td>Ponto central</td><td>Ensaio com todos os fatores no nível 0.</td></tr>
+    <tr><td>Ponto axial</td><td>Ensaio do composto central com um fator em ±α e os outros em 0.</td></tr>
+    <tr><td>α (significância)</td><td>Probabilidade de declarar um efeito que não existe. Padrão 0,05.</td></tr>
+    <tr><td>α (axial)</td><td>Distância dos pontos axiais ao centro. Rotacional: α = n<sub>F</sub><sup>1/4</sup>.</td></tr>
+    <tr><td>GL, SQ, QM</td><td>Graus de liberdade, soma de quadrados e quadrado médio (QM = SQ/GL).</td></tr>
+    <tr><td>Valor-p</td><td>Probabilidade de um resultado tão extremo se o efeito não existir.</td></tr>
+    <tr><td>Efeito</td><td>Variação da média da resposta quando o fator passa de −1 para +1.</td></tr>
+    <tr><td>Resíduo</td><td>Resposta medida menos a resposta ajustada pelo modelo.</td></tr>
+    <tr><td>R², R² ajustado</td><td>Fração da variação explicada pelo modelo; o ajustado penaliza termos a mais.</td></tr>
+    <tr><td>R² de predição</td><td>1 − PRESS/SQ total: capacidade do modelo de prever ensaios novos.</td></tr>
+    <tr><td>Falta de ajuste</td><td>Parte do resíduo que o modelo não explica, comparada com o erro puro.</td></tr>
+    <tr><td>Erro puro</td><td>Variação entre ensaios repetidos na mesma combinação de níveis.</td></tr>
+    <tr><td>PSE, ME, SME</td><td>Pseudo-erro padrão, margem de erro e margem simultânea de Lenth.</td></tr>
+    <tr><td>d, D</td><td>Desejabilidade de uma resposta (0 a 1) e desejabilidade global.</td></tr>
+    <tr><td>Semente</td><td>Número que inicia o gerador pseudoaleatório. A mesma semente dá o mesmo resultado.</td></tr>
+  </tbody>
+</table></div>
+</section>
+
+<section id="s4">
+<h2>4 Advertências e cuidados gerais</h2>
+<p class="seg seg-adv"><strong>ADVERTÊNCIA:</strong> Faça os ensaios do planejamento com as proteções da máquina fechadas. Um nível alto dos parâmetros de corte pode quebrar a ferramenta.</p>
+<p class="seg seg-cui"><strong>CUIDADO:</strong> Faça os ensaios em ordem aleatória. A ordem padrão da tabela não é a ordem de execução. Uma deriva no tempo (desgaste, temperatura) pode aparecer como efeito de um fator.</p>
+<p class="seg seg-cui"><strong>CUIDADO:</strong> Não conclua sobre a condição ótima fora da região ensaiada. O modelo só vale entre os níveis usados.</p>
+<p class="seg seg-cui"><strong>CUIDADO:</strong> Confira as premissas antes de usar o valor-p. Resíduos fora da normal ou variâncias diferentes invalidam o teste F.</p>
+<p class="seg seg-cui"><strong>CUIDADO:</strong> Sem gravação direta em pasta (seção 5), baixe o <code>.zip</code> antes de fechar a aba.</p>
+<p class="seg seg-nota"><strong>NOTA:</strong> Confirme a condição escolhida com ensaios de confirmação.</p>
+</section>
+
+<section id="s5">
+<h2>5 Acesso e arquivos</h2>
+<p>O módulo é uma página web. O endereço é <code>https://resendepengmec-ai.github.io/labforce-nupef/estatistica/</code>. Chrome e Edge no computador gravam direto na pasta escolhida. Os outros navegadores gravam num <code>.zip</code>.</p>
+<div class="tabela-rolar"><table>
+  <thead><tr><th>Arquivo</th><th>Função</th></tr></thead>
+  <tbody>
+    <tr><td><code>estatistica/index.html</code>, <code>js/app.js</code></td><td>Tela e fluxo da análise.</td></tr>
+    <tr><td><code>js/dados.js</code>, <code>js/resultados.js</code></td><td>Leitura do CSV; montagem das tabelas, das conclusões e do relatório.</td></tr>
+    <tr><td><code>js/distribuicoes.js</code>, <code>js/algebra.js</code></td><td>Distribuições de probabilidade e álgebra linear.</td></tr>
+    <tr><td><code>js/anova1.js</code>, <code>js/manova.js</code>, <code>js/fatorial2k.js</code>, <code>js/ccd.js</code>, <code>js/otimizacao.js</code></td><td>Uma análise em cada arquivo.</td></tr>
+    <tr><td><code>js/conclusoes.js</code>, <code>js/figuras.js</code></td><td>Frases por regras e gráficos.</td></tr>
+    <tr><td><code>js/autoteste.js</code>, <code>testes/</code></td><td>Teste de verificação (seção 6) e respostas de referência do SciPy e do statsmodels.</td></tr>
+    <tr><td><code>exemplos/</code></td><td>Arquivos de exemplo (ANOVA, MANOVA, 2<sup>3</sup> e composto central).</td></tr>
+  </tbody>
+</table></div>
+</section>
+
+<section id="s6">
+<h2>6 Teste de verificação</h2>
+<p>Faça este teste no primeiro uso de um computador e após cada atualização do módulo. O teste compara os resultados do módulo com respostas calculadas pelo SciPy, pelo statsmodels e pelo numpy (arquivo <code>testes/referencias.json</code>), e roda os exemplos do início ao fim.</p>
+<ol class="passos">
+  <li>Clique em <strong>Executar a verificação</strong>.</li>
+  <li>Aguarde o fim do teste. O tempo é menor que 15 s.</li>
+  <li>Confirme que a mensagem mostra <code>Planejamento de experimentos: 753 verificações OK</code>.</li>
+</ol>
+<div class="verif">
+  <button id="btVerificar" class="prim" type="button" data-modulo="js/autoteste.js" data-nome="Planejamento de experimentos">Executar a verificação</button>
+  <p id="resVerificar" class="res" role="status" aria-live="polite"></p>
+</div>
+<p class="seg seg-cui"><strong>CUIDADO:</strong> Se a mensagem mostrar <code>FALHA</code>, não use o módulo. Pressione <strong>Ctrl+F5</strong> e faça o teste outra vez.</p>
+<p class="seg seg-nota"><strong>NOTA:</strong> O responsável pelo módulo executa o mesmo teste com <code>npm test</code>. As referências são regeneradas com <code>python estatistica/testes/gerar_referencias.py</code>.</p>
+</section>
+
+<section id="s7">
+<h2>7 Escolha do planejamento</h2>
+<div class="tabela-rolar"><table>
+  <thead><tr><th>Objetivo</th><th>Análise</th><th>Dados</th></tr></thead>
+  <tbody>
+    <tr><td>Comparar 2 ou mais tratamentos (ferramentas, fluidos, materiais) numa resposta</td><td>ANOVA de um fator</td><td>1 coluna de grupo e 1 ou mais respostas</td></tr>
+    <tr><td>Comparar tratamentos em várias respostas correlacionadas (exemplo: Fc e Ra)</td><td>MANOVA de um fator</td><td>1 coluna de grupo e 2 ou mais respostas</td></tr>
+    <tr><td>Triar quais parâmetros afetam a resposta</td><td>Fatorial 2<sup>k</sup></td><td>k fatores em −1 e +1 (todas as 2<sup>k</sup> combinações)</td></tr>
+    <tr><td>Achar a condição ótima de poucos fatores importantes</td><td>Composto central</td><td>Pontos fatoriais, axiais e centrais</td></tr>
+  </tbody>
+</table></div>
+<p class="seg seg-nota"><strong>NOTA:</strong> Inclua réplicas ou pontos centrais. Sem eles, o 2<sup>k</sup> usa o método de Lenth e o composto central fica sem teste de falta de ajuste.</p>
+</section>
+
+<section id="s8">
+<h2>8 Parâmetros</h2>
+<div class="tabela-rolar"><table>
+  <thead><tr><th>Parâmetro</th><th>Padrão</th><th>Efeito</th></tr></thead>
+  <tbody>
+    <tr><td>Nível de significância α</td><td>0,05</td><td>Limite do valor-p para declarar um efeito. Também define os IC (1 − α) e o t crítico.</td></tr>
+    <tr><td>Níveis −1 e +1 de cada fator</td><td>Sugeridos a partir dos dados</td><td>Convertem as unidades reais para a escala codificada. Em branco: coluna já codificada.</td></tr>
+    <tr><td>Termos do modelo (2<sup>k</sup>)</td><td>Todos</td><td>Termos desmarcados vão para o erro (modelo reduzido).</td></tr>
+    <tr><td>Objetivo de cada resposta</td><td>Maximizar</td><td>Maximizar, minimizar, atingir o alvo T ou não otimizar.</td></tr>
+    <tr><td>L, U, T</td><td>Mínimo, máximo e meio dos dados</td><td>Limites da desejabilidade e alvo.</td></tr>
+    <tr><td>s, t</td><td>1</td><td>Expoentes da desejabilidade. Maior que 1: exige chegar mais perto do ideal.</td></tr>
+    <tr><td>Importância</td><td>1</td><td>Peso r de cada resposta na desejabilidade global.</td></tr>
+    <tr><td>Peso TOPSIS</td><td>1</td><td>Peso de cada resposta na escolha da solução da frente de Pareto.</td></tr>
+    <tr><td>Semente</td><td>12345</td><td>Inicia o gerador do NSGA-II e da busca. Fica registrada no relatório.</td></tr>
+  </tbody>
+</table></div>
+</section>
+
+<section id="s9">
+<h2>9 Formato dos dados</h2>
+<ul>
+  <li>A primeira linha tem os nomes das colunas. Os nomes não podem repetir.</li>
+  <li>O separador é <code>;</code>, <code>,</code> ou tab. Com <code>;</code> ou tab, a vírgula decimal é aceita. Com <code>,</code> como separador, use ponto decimal ou aspas (<code>"12,5"</code>).</li>
+  <li>Uma linha por ensaio (réplica). Célula vazia ou com texto numa coluna numérica é um erro: a mensagem mostra a linha e o valor.</li>
+  <li>2<sup>k</sup>: os fatores em −1 e +1 (0 nos pontos centrais), ou em unidades reais com os níveis informados na revisão.</li>
+  <li>Composto central: fatores codificados (axiais em ±α) ou em unidades reais com os níveis −1 e +1 informados.</li>
+</ul>
+<p class="formula">tratamento;resultado        fator_A;fator_B;fator_C;resposta
+A;12,3                       -1;-1;-1;23,4
+A;13,1                       1;-1;-1;27,8</p>
+</section>
+
+<section id="s10">
+<h2>10 Procedimento de uso</h2>
+<ol class="passos">
+  <li>Na etapa 1, escolha o tipo de análise. Clique em <strong>Continuar</strong>.</li>
+  <li>Na etapa 2, escolha o arquivo, cole os dados, clique em <strong>Carregar exemplo</strong> ou gere a matriz do planejamento e preencha as respostas.</li>
+  <li>Clique em <strong>Escolher pasta…</strong> (Chrome ou Edge). Clique em <strong>Continuar</strong>.</li>
+  <li>Na etapa 3, confira o papel de cada coluna (fator, resposta ou ignorar), as unidades e os níveis −1 e +1.</li>
+  <li>Ajuste α, os termos do modelo (2<sup>k</sup>) e os objetivos da otimização (2 ou mais respostas).</li>
+  <li>Clique em <strong>Analisar</strong>. Leia as conclusões, as tabelas e os gráficos da etapa 5.</li>
+  <li>Sem pasta escolhida, clique em <strong>Baixar tudo em .zip</strong>.</li>
+</ol>
+</section>
+
+<section id="s11">
+<h2>11 Resultados</h2>
+<div class="tabela-rolar"><table>
+  <thead><tr><th>Arquivo</th><th>Conteúdo</th></tr></thead>
+  <tbody>
+    <tr><td><code>&lt;análise&gt;_&lt;resposta&gt;_&lt;tabela&gt;.csv</code></td><td>Uma tabela por arquivo, separador <code>;</code> e vírgula decimal, com precisão total.</td></tr>
+    <tr><td><code>&lt;análise&gt;_&lt;resposta&gt;_&lt;gráfico&gt;.png</code></td><td>Um gráfico por arquivo, igual ao da tela.</td></tr>
+    <tr><td><code>relatorio.txt</code></td><td>Versão, data, dados, α, semente, conclusões e todas as tabelas.</td></tr>
+  </tbody>
+</table></div>
+<p>Gráficos: médias com IC (ANOVA), Pareto dos efeitos, meio-normal, efeitos principais e interações (2<sup>k</sup>), curvas de nível com o ponto estacionário (composto central), frente de Pareto (otimização), resíduos × ajustados e Q–Q normal dos resíduos (todas as análises). Passe o mouse sobre o gráfico para ver o valor exato. Abaixo de cada gráfico, <strong>Ver os números do gráfico</strong> mostra uma tabela com os mesmos valores.</p>
+</section>
+
+<section id="s12">
+<h2>12 Interpretação e limites</h2>
+<h3>12.1 ANOVA de um fator e Tukey-Kramer</h3>
+<p class="formula">SQ entre = Σ nᵢ (ȳᵢ − ȳ)²     SQ erro = ΣΣ (yᵢⱼ − ȳᵢ)²     F = QM entre / QM erro
+Tukey-Kramer: q = |ȳᵢ − ȳⱼ| / √(QM erro/2 · (1/nᵢ + 1/nⱼ)),  p pela amplitude studentizada</p>
+<p>Premissas: Shapiro–Wilk (algoritmo AS R94 de Royston) nos resíduos e Levene centrado na mediana (Brown–Forsythe) nos grupos.</p>
+<h3>12.2 MANOVA</h3>
+<p>H e E são as matrizes de somas de quadrados e produtos entre e dentro dos grupos. Os autovalores λ de E⁻¹H dão Λ = Π 1/(1+λ) (Wilks), V = Σ λ/(1+λ) (Pillai), U = Σ λ (Hotelling-Lawley) e θ = máx λ (Roy). As aproximações por F são as da documentação do SAS/STAT. Prefira Pillai quando as covariâncias dos grupos diferem. O F de Roy é um limite superior.</p>
+<h3>12.3 Fatorial 2<sup>k</sup></h3>
+<p class="formula">efeito = (ȳ₊ − ȳ₋) = contraste / (n · 2^(k−1))     SQ = contraste² / (n · 2^k)
+curvatura: SQ = n_F · n_C · (ȳ_F − ȳ_C)² / (n_F + n_C), 1 GL
+Lenth: s₀ = 1,5 · mediana|c|;  PSE = 1,5 · mediana{|c| : |c| &lt; 2,5 s₀};  d = m/3
+       ME = t(1−α/2; d) · PSE;  SME = t(γ; d) · PSE,  γ = (1 + (1−α)^(1/m))/2</p>
+<p class="seg seg-cui"><strong>CUIDADO:</strong> Interação significativa: o efeito de um fator depende do nível do outro. Não interprete o efeito principal sozinho.</p>
+<h3>12.4 Composto central e superfície de resposta</h3>
+<p class="formula">y = b₀ + Σ bᵢxᵢ + Σ bᵢᵢxᵢ² + ΣΣ bᵢⱼxᵢxⱼ,   β = (X'X)⁻¹ X'y
+PRESS = Σ (eᵢ / (1 − hᵢᵢ))²,   R²pred = 1 − PRESS / SQ total
+x_s = −½ B⁻¹ b,   ŷ_s = b₀ + ½ x_s' b
+B com autovalores &lt; 0: máximo;  &gt; 0: mínimo;  sinais diferentes: sela</p>
+<p>Fatorial completo com 2 a 4 fatores; meia fração 2<sup>k−1</sup> com 5 fatores (I = ABCDE, resolução V) e 6 fatores (I = ABCDEF, resolução VI). α axial rotacional = n<sub>F</sub><sup>1/4</sup>. O erro puro vem de todos os pontos repetidos.</p>
+<h3>12.5 Otimização</h3>
+<p class="formula">maximizar: d = ((y − L)/(U − L))^s     minimizar: d = ((U − y)/(U − L))^s
+alvo: d = ((y − L)/(T − L))^s se y ≤ T;  ((U − y)/(U − T))^t se y &gt; T
+D = (Π dᵢ^rᵢ)^(1/Σrᵢ)</p>
+<p>A busca fica na região do planejamento: cubo de −1 a +1 no 2<sup>k</sup> e esfera de raio α no composto central. O NSGA-II usa cruzamento SBX e mutação polinomial. O TOPSIS escolhe a solução da frente mais próxima do ideal.</p>
+<p class="seg seg-cui"><strong>CUIDADO:</strong> O modelo do 2<sup>k</sup> é linear com interações. Ele não prevê curvatura. Use o composto central para otimizar.</p>
+</section>
+
+<section id="s13">
+<h2>13 Falhas e soluções</h2>
+<div class="tabela-rolar"><table>
+  <thead><tr><th>Mensagem ou sintoma</th><th>Causa provável</th><th>Ação</th></tr></thead>
+  <tbody>
+    <tr><td><code>a linha N tem X campo(s); o cabeçalho tem Y</code></td><td>Separador diferente do cabeçalho ou vírgula decimal com separador vírgula.</td><td>Use <code>;</code> como separador.</td></tr>
+    <tr><td><code>valor não numérico na linha N</code></td><td>Célula vazia ou com texto.</td><td>Corrija a célula indicada.</td></tr>
+    <tr><td><code>o planejamento 2^k precisa de … combinações; faltam (+,−,+)</code></td><td>Falta uma combinação de níveis.</td><td>Faça o ensaio que falta ou confira os níveis.</td></tr>
+    <tr><td><code>mesmo número de réplicas</code></td><td>Uma combinação tem mais réplicas que as outras.</td><td>Use o mesmo número de réplicas em todas as combinações.</td></tr>
+    <tr><td><code>nível fora de −1, 0 e +1</code></td><td>Fator em unidades reais sem níveis informados.</td><td>Informe os níveis −1 e +1 na revisão.</td></tr>
+    <tr><td><code>a matriz X'X é singular</code></td><td>Colunas repetidas, fator que não varia ou poucos ensaios.</td><td>Confira os papéis e os níveis das colunas.</td></tr>
+    <tr><td>Resíduos não normais</td><td>Resposta assimétrica ou ponto atípico.</td><td>Transforme a resposta (log, raiz) ou confira o ensaio atípico.</td></tr>
+    <tr><td>Falta de ajuste significativa</td><td>O modelo não descreve a curvatura real.</td><td>Confira pontos atípicos; transforme a resposta.</td></tr>
+    <tr><td>Ponto estacionário fora da região</td><td>O ótimo está além dos níveis ensaiados.</td><td>Faça novos ensaios na direção indicada.</td></tr>
+    <tr><td><code>D = 0</code></td><td>Nenhuma combinação atende todos os limites L e U.</td><td>Alargue os limites das respostas.</td></tr>
+    <tr><td><code>ERRO ao gravar</code></td><td>Arquivo aberto no Excel ou pasta sem permissão.</td><td>Feche o arquivo e analise de novo, ou escolha outra pasta.</td></tr>
+  </tbody>
+</table></div>
+</section>
+
+<section id="referencias">
+<h2>14 Referências e créditos</h2>
+<h3>14.1 Créditos</h3>
+<p>Este módulo deriva do eStat, aplicativo desenvolvido em trabalho de conclusão de curso (TCC), com a colaboração do Prof. Anselmo Elcana de Oliveira, do Prof. Ildeu Lúcio Siqueira e de Silane Neves. No LabForce, todos os cálculos que o eStat pedia a um serviço de inteligência artificial passaram a ser feitos por métodos estatísticos convencionais, validados contra o SciPy e o statsmodels.</p>
+<h3>14.2 Referências</h3>
+<ul class="ref">
+  <li>BROWN, M. B.; FORSYTHE, A. B. Robust tests for the equality of variances. <em>Journal of the American Statistical Association</em>, v. 69, n. 346, p. 364-367, 1974. DOI: 10.1080/01621459.1974.10482955.</li>
+  <li>COPENHAVER, M. D.; HOLLAND, B. Computation of the distribution of the maximum studentized range statistic with application to multiple significance testing of simple effects. <em>Journal of Statistical Computation and Simulation</em>, v. 30, n. 1, p. 1-15, 1988. DOI: 10.1080/00949658808811082.</li>
+  <li>DEB, K. <em>et al.</em> A fast and elitist multiobjective genetic algorithm: NSGA-II. <em>IEEE Transactions on Evolutionary Computation</em>, v. 6, n. 2, p. 182-197, 2002. DOI: 10.1109/4235.996017.</li>
+  <li>DERRINGER, G.; SUICH, R. Simultaneous optimization of several response variables. <em>Journal of Quality Technology</em>, v. 12, n. 4, p. 214-219, 1980. DOI: 10.1080/00224065.1980.11980968.</li>
+  <li>HWANG, C.-L.; YOON, K. <em>Multiple attribute decision making</em>: methods and applications. Berlin: Springer, 1981. (Lecture Notes in Economics and Mathematical Systems, 186). ISBN 978-3-540-10558-9. DOI: 10.1007/978-3-642-48318-9.</li>
+  <li>LENTH, R. V. Quick and easy analysis of unreplicated factorials. <em>Technometrics</em>, v. 31, n. 4, p. 469-473, 1989. DOI: 10.1080/00401706.1989.10488595.</li>
+  <li>MONTGOMERY, D. C. <em>Design and analysis of experiments</em>. 10. ed. Hoboken: Wiley, 2020. ISBN 978-1-119-72210-6.</li>
+  <li>MYERS, R. H.; MONTGOMERY, D. C.; ANDERSON-COOK, C. M. <em>Response surface methodology</em>: process and product optimization using designed experiments. 4. ed. Hoboken: Wiley, 2016. ISBN 978-1-118-91601-8.</li>
+  <li>RENCHER, A. C.; CHRISTENSEN, W. F. <em>Methods of multivariate analysis</em>. 3. ed. Hoboken: Wiley, 2012. ISBN 978-0-470-17896-6.</li>
+  <li>RODRIGUES, M. I.; IEMMA, A. F. <em>Experimental design and process optimization</em>. Boca Raton: CRC Press, 2014. ISBN 978-1-4822-9955-7. Edição em português: <em>Planejamento de experimentos e otimização de processos</em>, Campinas (ISBN não confirmado).</li>
+  <li>ROYSTON, P. Remark AS R94: a remark on algorithm AS 181: the W-test for normality. <em>Applied Statistics</em>, v. 44, n. 4, p. 547-551, 1995. DOI: 10.2307/2986146.</li>
+  <li>SAS INSTITUTE. <em>SAS/STAT user's guide</em>: multivariate tests. Cary: SAS Institute. Disponível em: <a href="https://support.sas.com/documentation/cdl/en/statug/63033/HTML/default/viewer.htm#statug_introreg_sect012.htm" rel="noopener noreferrer">https://support.sas.com/documentation/</a>. Acesso em: 4 nov. 2026.</li>
+  <li>WICHURA, M. J. Algorithm AS 241: the percentage points of the normal distribution. <em>Applied Statistics</em>, v. 37, n. 3, p. 477-484, 1988. DOI: 10.2307/2347330.</li>
+</ul>
+</section>
+</article>
+</div>
+
+<footer class="rodape">
+  <p>LabForce NUPEF, IFG Câmpus Goiânia. Módulo de planejamento de experimentos, versão web 1.0.0.</p>
+  <div class="inst">
+    <div class="logos-inst">
+      <a class="logo-ifg" href="https://www.ifg.edu.br/goiania" rel="noopener noreferrer"><img src="../assets/logo-ifg-goiania.png" alt="Instituto Federal de Goiás, Câmpus Goiânia" width="52" height="72" loading="lazy"></a>
+      <a class="logo-nupef-rod" href="../quem-somos.html"><img src="../assets/logo-nupef.webp" alt="NUPEF, Núcleo de Pesquisas em Processos de Fabricação" width="76" height="72" loading="lazy"></a>
+    </div>
+    <address><strong>Instituto Federal de Goiás · Câmpus Goiânia</strong>NUPEF, Núcleo de Pesquisa em Fabricação<br>Rua 75, nº 46, Centro, Goiânia-GO, CEP 74055-110<br>Telefone (62) 3227-2700</address>
+    <nav aria-label="Links institucionais"><a href="../quem-somos.html">Quem somos</a><a href="https://www.ifg.edu.br/goiania" rel="noopener noreferrer">ifg.edu.br/goiania</a><a href="https://ifgproduz.ifg.edu.br/informacoes-grupo/70" rel="noopener noreferrer">NUPEF no IFG Produz</a></nav>
+  </div>
+</footer>
+<script type="module" src="../comum/js/manual.js"></script>
+</body>
+</html>
