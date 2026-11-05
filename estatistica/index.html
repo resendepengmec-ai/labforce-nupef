@@ -71,7 +71,11 @@
           <span>Arraste o arquivo aqui ou <u>clique para escolher</u>. Primeira linha com os nomes das colunas; separador <code>;</code>, <code>,</code> ou tab; vírgula decimal aceita.</span>
         </label>
         <ul id="listaArq" class="lista"></ul>
-        <div class="acoes"><button id="btExemplo" class="sec" type="button">Carregar exemplo</button></div>
+        <div class="acoes">
+          <label class="lin">Exemplo<select id="selExemplo"></select></label>
+          <button id="btExemplo" class="sec" type="button">Carregar exemplo</button>
+        </div>
+        <p class="nota" id="notaExemplo">Exemplos da bibliografia vêm das notas de aula do Prof. Anselmo E. de Oliveira (IQ/UFG). Fontes no manual técnico.</p>
         <details class="colar">
           <summary>Colar ou digitar os dados</summary>
           <label class="lin">Dados no mesmo formato do arquivo<textarea id="txtDados" rows="8" spellcheck="false"></textarea></label>
@@ -162,7 +166,7 @@
 
 <footer class="rodape">
   <p>NUPEF, Laboratório de Usinagem do IFG Câmpus Goiânia. Os modelos valem dentro da região ensaiada; confirme a condição escolhida com novos ensaios.</p>
-  <p>Módulo derivado da DOE4u (TCC de Paulo Vinicius da Silva Resende e Silane Neves da Silva, IFG, 2017) e do eStat. Créditos no <a href="manual.html#referencias">manual técnico</a>.</p>
+  <p>Módulo derivado da DOE4u (TCC de Paulo Vinicius da Silva Resende e Silane Neves da Silva, IFG, 2017) e do eStat. Exemplos da bibliografia das notas de aula de Planejamento e Otimização de Experimentos do Prof. Anselmo E. de Oliveira (IQ/UFG). Créditos no <a href="manual.html#referencias">manual técnico</a>.</p>
   <p id="versao"></p>
   <div class="inst">
     <div class="logos-inst">

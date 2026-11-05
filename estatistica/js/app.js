@@ -6,7 +6,7 @@ import { executar, sugerirPapeis, sugerirNiveis, csvTabela, celTela, TIPOS, VERS
 import { rotuloEfeito } from "./fatorial2k.js";
 import { ccdMatriz } from "./ccd.js";
 import { desenharFigura } from "./figuras.js";
-import { EXEMPLOS, ARQUIVOS } from "../exemplos/exemplos.js";
+import { EXEMPLOS, ARQUIVOS, BIBLIOGRAFIA } from "../exemplos/exemplos.js";
 import { paraPNG } from "../../comum/js/graficos.js";
 import { temPastaDireta, criarDestino, nomeRodada, baixar } from "../../comum/js/saida.js";
 import { $, numero, esperar, marcarEtapa, recolher, expandir, mostrar, progresso, ligarArquivos, ligarPasta, chip, tabelaHTML } from "../../comum/js/ui.js";
@@ -20,6 +20,7 @@ function escolherTipo() {
   recolher($("secTipo"), TIPOS[tipo], () => { marcarEtapa(1); ["secDados", "secRevisar", "secAnalise", "secResultados"].forEach((s) => { $(s).hidden = true; }); });
   $("blocoGerar").hidden = !(tipo === "fatorial" || tipo === "ccd");
   prepararGerar();
+  prepararExemplos();
   if (tab) mostrarResumoDados();
   marcarEtapa(2); mostrar($("secDados"));
 }
@@ -33,6 +34,29 @@ function carregarTexto(texto, nome) {
 }
 function mostrarResumoDados() {
   $("resumoDados").textContent = `${nomeArquivo || "Dados digitados"}: ${tab.linhas.length} linhas e ${tab.colunas.length} colunas (${tab.colunas.join(", ")}).`;
+}
+
+// exemplo sintetico do modulo + exemplos da bibliografia do mesmo tipo de analise
+function prepararExemplos() {
+  const sel = $("selExemplo"); sel.replaceChildren();
+  sel.add(new Option(`Exemplo do módulo (${ARQUIVOS[tipo]})`, ""));
+  const lista = BIBLIOGRAFIA.filter((e) => e.tipo === tipo);
+  if (lista.length) {
+    const g = document.createElement("optgroup"); g.label = "Bibliografia (notas de aula, Prof. Anselmo/UFG)";
+    for (const e of lista) g.append(new Option(e.nome, e.id));
+    sel.append(g);
+  }
+  mostrarFonteExemplo();
+}
+function mostrarFonteExemplo() {
+  const e = BIBLIOGRAFIA.find((x) => x.id === $("selExemplo").value);
+  $("notaExemplo").textContent = e ? `Fonte: ${e.fonte}`
+    : BIBLIOGRAFIA.some((x) => x.tipo === tipo) ? "Exemplo sintético do módulo. A lista também traz exemplos da bibliografia, com a fonte." : "Exemplo sintético do módulo.";
+}
+function carregarExemplo() {
+  const e = BIBLIOGRAFIA.find((x) => x.id === $("selExemplo").value);
+  const csv = e ? e.csv : EXEMPLOS[tipo], nome = e ? e.arquivo.split("/").pop() : ARQUIVOS[tipo];
+  $("txtDados").value = csv; carregarTexto(csv, nome);
 }
 
 function prepararGerar() {
@@ -285,7 +309,8 @@ function iniciar() {
   ligarArquivos($("soltar"), $("arquivos"), $("listaArq"), async (a) => { if (a.length) carregarTexto(await a[0].text(), a[0].name); });
   ligarPasta({ chave: "pasta-estatistica", blocoDireto: $("pastaDireta"), blocoZip: $("pastaZip"), btEscolher: $("btPasta"),
     btLembrada: $("btPastaLembrada"), rotulo: $("pastaAtual"), erro: $("erroDados"), aoDefinir: (h) => { pasta = h; } });
-  $("btExemplo").addEventListener("click", () => { $("txtDados").value = EXEMPLOS[tipo]; carregarTexto(EXEMPLOS[tipo], ARQUIVOS[tipo]); });
+  $("btExemplo").addEventListener("click", carregarExemplo);
+  $("selExemplo").addEventListener("change", mostrarFonteExemplo);
   $("btColar").addEventListener("click", () => carregarTexto($("txtDados").value, "dados colados"));
   $("btGerar").addEventListener("click", gerarMatriz);
   $("btUsarMatriz").addEventListener("click", usarMatriz);

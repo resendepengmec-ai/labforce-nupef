@@ -151,7 +151,7 @@
     <tr><td><code>js/anova1.js</code>, <code>js/manova.js</code>, <code>js/fatorial2k.js</code>, <code>js/ccd.js</code>, <code>js/otimizacao.js</code></td><td>Uma análise em cada arquivo.</td></tr>
     <tr><td><code>js/conclusoes.js</code>, <code>js/figuras.js</code></td><td>Frases por regras e gráficos.</td></tr>
     <tr><td><code>js/autoteste.js</code>, <code>testes/</code></td><td>Teste de verificação (seção 6) e respostas de referência do SciPy e do statsmodels.</td></tr>
-    <tr><td><code>exemplos/</code></td><td>Arquivos de exemplo (ANOVA, MANOVA, 2<sup>3</sup> e composto central).</td></tr>
+    <tr><td><code>exemplos/</code></td><td>Arquivos de exemplo (ANOVA, MANOVA, 2<sup>3</sup> e composto central), exemplos da bibliografia em <code>exemplos/bibliografia/</code> (seção 14.2) e <code>gerar_exemplos.mjs</code>, que gera <code>exemplos.js</code> a partir dos .csv.</td></tr>
   </tbody>
 </table></div>
 </section>
@@ -222,7 +222,7 @@ A;13,1                       1;-1;-1;27,8</p>
 <h2>10 Procedimento de uso</h2>
 <ol class="passos">
   <li>Na etapa 1, escolha o tipo de análise. Clique em <strong>Continuar</strong>.</li>
-  <li>Na etapa 2, escolha o arquivo, cole os dados, clique em <strong>Carregar exemplo</strong> ou gere a matriz do planejamento e preencha as respostas.</li>
+  <li>Na etapa 2, escolha o arquivo, cole os dados, escolha um exemplo na lista <strong>Exemplo</strong> (do módulo ou da bibliografia) e clique em <strong>Carregar exemplo</strong>, ou gere a matriz do planejamento e preencha as respostas.</li>
   <li>Clique em <strong>Escolher pasta…</strong> (Chrome ou Edge). Clique em <strong>Continuar</strong>.</li>
   <li>Na etapa 3, confira o papel de cada coluna (fator, resposta ou ignorar), as unidades e os níveis −1 e +1.</li>
   <li>Ajuste α, os termos do modelo (2<sup>k</sup>) e os objetivos da otimização (2 ou mais respostas).</li>
@@ -297,16 +297,38 @@ D = (Π dᵢ^rᵢ)^(1/Σrᵢ)</p>
 <h3>14.1 Créditos</h3>
 <p>Este módulo tem origem no trabalho de conclusão de curso (TCC) <em>Desenvolvimento da ferramenta livre DOE4u para planejamento experimental: fatorial completo e composto central</em>, de Paulo Vinicius da Silva Resende e Silane Neves da Silva (Bacharelado em Engenharia Mecânica, IFG Câmpus Goiânia, 2017). Orientador: Prof. Dr. Ildeu Lúcio Siqueira (IFG). Coorientador: Prof. Dr. Anselmo Elcana de Oliveira (UFG).</p>
 <p>A DOE4u era um conjunto de planilhas do LibreOffice Calc para fatorial completo (2<sup>3</sup> a 2<sup>5</sup>) e composto central com 2 fatores. Ela deu origem ao eStat, aplicativo web, e depois a este módulo. No LabForce, todos os cálculos que o eStat pedia a um serviço de inteligência artificial passaram a ser feitos por métodos estatísticos convencionais, validados contra o SciPy e o statsmodels.</p>
-<h3>14.2 Referências</h3>
+<p>Os exemplos da bibliografia (seção 14.2) e as referências do curso foram extraídos das notas de aula e do plano de curso da disciplina <em>Planejamento e Otimização de Experimentos</em>, do Prof. Dr. Anselmo Elcana de Oliveira (Programa de Pós-Graduação em Química, IQ/UFG), publicados em <a href="https://anselmo.quimica.ufg.br/p/11868-planejamento-e-otimizacao-de-experimentos" rel="noopener noreferrer">anselmo.quimica.ufg.br</a>. Os dados originais são dos livros e do artigo citados em cada exemplo.</p>
+<h3>14.2 Exemplos da bibliografia</h3>
+<p>Na etapa 2, a lista <strong>Exemplo</strong> mostra o exemplo sintético do módulo e os exemplos da bibliografia do tipo de análise escolhido. A fonte aparece abaixo da lista. O teste de verificação (seção 6) confere o resultado de cada um com o valor publicado.</p>
+<div class="tabela-rolar"><table>
+  <thead><tr><th>Análise</th><th>Exemplo (arquivo em <code>exemplos/bibliografia/</code>)</th><th>Fonte</th><th>Resultado publicado</th></tr></thead>
+  <tbody>
+    <tr><td>ANOVA</td><td>Taxa de corrosão por plasma × potência de RF, 4 níveis e 5 réplicas (<code>montgomery_plasma_anova.csv</code>)</td><td>Montgomery (2012), p. 66; notas de aula 4</td><td>F = 66,80; Tukey: todas as médias diferem</td></tr>
+    <tr><td>2<sup>k</sup></td><td>Planta piloto 2<sup>3</sup> com 2 réplicas: temperatura, concentração e catalisador (−1 = A, +1 = B) (<code>box_planta_piloto_2k.csv</code>)</td><td>Box, Hunter e Hunter (2005); notas de aula 6</td><td>Efeitos T = 23, C = −5, T×K = 10; QM do erro = 8</td></tr>
+    <tr><td>2<sup>k</sup></td><td>Taxa de filtração 2<sup>4</sup> sem réplica (<code>montgomery_filtracao_2k.csv</code>)</td><td>Montgomery (2012), p. 257; notas de aula 6</td><td>A, C, D, AC e AD ativos (método de Lenth)</td></tr>
+    <tr><td>Composto central</td><td>Rendimento × tempo e temperatura, 2 fatores, α = √2 (<code>montgomery_rendimento_ccd.csv</code>)</td><td>Montgomery (2012), cap. 11; notas de aula 9</td><td>ŷ = 87,375 − 1,384x<sub>1</sub> + 0,362x<sub>2</sub> − 2,144x<sub>1</sub><sup>2</sup> − 3,094x<sub>2</sub><sup>2</sup> − 4,875x<sub>1</sub>x<sub>2</sub></td></tr>
+    <tr><td>Composto central</td><td>Extração de antioxidantes do alecrim, 3 fatores em unidades reais, 4 respostas (<code>oliveira_alecrim_ccd.csv</code>)</td><td>Oliveira <em>et al.</em> (2016), tabela 1</td><td>Otimização multirresposta por desejabilidade</td></tr>
+  </tbody>
+</table></div>
+<p>As notas de aula usam o R (pacotes <code>DoE.base</code> e <code>rsm</code>). Exemplos de blocagem, quadrado latino e fatorial fracionado das notas não entram na lista: o módulo não faz essas análises.</p>
+<h3>14.3 Referências</h3>
 <ul class="ref">
+  <li>BARROS NETO, B.; SCARMINIO, I. S.; BRUNS, R. E. <em>Como fazer experimentos</em>: pesquisa e desenvolvimento na ciência e na indústria. 4. ed. Porto Alegre: Bookman, 2010.</li>
+  <li>BOX, G. E. P.; HUNTER, W. G.; HUNTER, J. S. <em>Statistics for experimenters</em>: design, innovation, and discovery. 2. ed. Hoboken: Wiley, 2005.</li>
   <li>BROWN, M. B.; FORSYTHE, A. B. Robust tests for the equality of variances. <em>Journal of the American Statistical Association</em>, v. 69, n. 346, p. 364-367, 1974. DOI: 10.1080/01621459.1974.10482955.</li>
   <li>COPENHAVER, M. D.; HOLLAND, B. Computation of the distribution of the maximum studentized range statistic with application to multiple significance testing of simple effects. <em>Journal of Statistical Computation and Simulation</em>, v. 30, n. 1, p. 1-15, 1988. DOI: 10.1080/00949658808811082.</li>
   <li>DEB, K. <em>et al.</em> A fast and elitist multiobjective genetic algorithm: NSGA-II. <em>IEEE Transactions on Evolutionary Computation</em>, v. 6, n. 2, p. 182-197, 2002. DOI: 10.1109/4235.996017.</li>
   <li>DERRINGER, G.; SUICH, R. Simultaneous optimization of several response variables. <em>Journal of Quality Technology</em>, v. 12, n. 4, p. 214-219, 1980. DOI: 10.1080/00224065.1980.11980968.</li>
+  <li>GRÖMPING, U. <em>CRAN Task View</em>: design of experiments (DoE) &amp; analysis of experimental data. Disponível em: <a href="https://CRAN.R-project.org/view=ExperimentalDesign" rel="noopener noreferrer">https://CRAN.R-project.org/view=ExperimentalDesign</a>. Acesso em: 4 nov. 2026.</li>
   <li>HWANG, C.-L.; YOON, K. <em>Multiple attribute decision making</em>: methods and applications. Berlin: Springer, 1981. (Lecture Notes in Economics and Mathematical Systems, 186). ISBN 978-3-540-10558-9. DOI: 10.1007/978-3-642-48318-9.</li>
+  <li>LAWSON, J. <em>Design and analysis of experiments with R</em>. Boca Raton: CRC Press, 2015.</li>
   <li>LENTH, R. V. Quick and easy analysis of unreplicated factorials. <em>Technometrics</em>, v. 31, n. 4, p. 469-473, 1989. DOI: 10.1080/00401706.1989.10488595.</li>
+  <li>MILLER, J. N.; MILLER, J. C. <em>Statistics and chemometrics for analytical chemistry</em>. 5. ed. Harlow: Pearson Education, 2005.</li>
+  <li>MONTGOMERY, D. C. <em>Design and analysis of experiments</em>. 8. ed. Hoboken: Wiley, 2012. (Edição usada nas notas de aula e nos exemplos da seção 14.2.)</li>
   <li>MONTGOMERY, D. C. <em>Design and analysis of experiments</em>. 10. ed. Hoboken: Wiley, 2020. ISBN 978-1-119-72210-6.</li>
   <li>MYERS, R. H.; MONTGOMERY, D. C.; ANDERSON-COOK, C. M. <em>Response surface methodology</em>: process and product optimization using designed experiments. 4. ed. Hoboken: Wiley, 2016. ISBN 978-1-118-91601-8.</li>
+  <li>OLIVEIRA, A. E. <em>Planejamento e otimização de experimentos</em>: notas de aula e plano de curso. Goiânia: Programa de Pós-Graduação em Química, Instituto de Química, Universidade Federal de Goiás, 2019. Disponível em: <a href="https://anselmo.quimica.ufg.br/p/11868-planejamento-e-otimizacao-de-experimentos" rel="noopener noreferrer">https://anselmo.quimica.ufg.br/p/11868-planejamento-e-otimizacao-de-experimentos</a>. Acesso em: 4 nov. 2026.</li>
+  <li>OLIVEIRA, G. A. R.; OLIVEIRA, A. E.; CONCEIÇÃO, E. C.; LELES, M. I. G. Multiresponse optimization of an extraction procedure of carnosol and rosmarinic and carnosic acids from rosemary. <em>Food Chemistry</em>, v. 211, p. 465-473, 2016. DOI: 10.1016/j.foodchem.2016.05.042.</li>
   <li>RENCHER, A. C.; CHRISTENSEN, W. F. <em>Methods of multivariate analysis</em>. 3. ed. Hoboken: Wiley, 2012. ISBN 978-0-470-17896-6.</li>
   <li>RESENDE, P. V. S.; SILVA, S. N. <em>Desenvolvimento da ferramenta livre DOE4u para planejamento experimental</em>: fatorial completo e composto central. 2017. 99 f. Trabalho de Conclusão de Curso (Bacharelado em Engenharia Mecânica) – Instituto Federal de Educação, Ciência e Tecnologia de Goiás, Goiânia, 2017.</li>
   <li>RODRIGUES, M. I.; IEMMA, A. F. <em>Planejamento de experimentos e otimização de processos</em>. 3. ed. Campinas: Cárita, 2014 (ISBN não confirmado). Edição em inglês: <em>Experimental design and process optimization</em>. Boca Raton: CRC Press, 2014. ISBN 978-1-4822-9955-7.</li>

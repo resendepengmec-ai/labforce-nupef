@@ -45,3 +45,7 @@ details.colar summary, details.gerar summary { cursor: pointer; font-weight: 600
 @media (max-width: 860px) {
   .tipos, .grade-gerar { grid-template-columns: minmax(0, 1fr); }
 }
+/* seletor de exemplos (modulo + bibliografia): nomes longos quebram em telas estreitas */
+#secDados .acoes { align-items: flex-end; }
+#secDados .acoes label.lin { margin: 0; flex: 1 1 260px; min-width: 0; }
+#selExemplo { width: 100%; min-height: 36px; padding: 4px 6px; }

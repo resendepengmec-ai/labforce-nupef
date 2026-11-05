@@ -11,7 +11,7 @@ import { manova } from "./manova.js";
 import * as Op from "./otimizacao.js";
 import * as C from "./conclusoes.js";
 import * as Res from "./resultados.js";
-import { EXEMPLOS } from "../exemplos/exemplos.js";
+import { EXEMPLOS, BIBLIOGRAFIA } from "../exemplos/exemplos.js";
 import { lerCSV, numeroCSV, colunaNumerica } from "./dados.js";
 
 export async function autoteste() {
@@ -235,6 +235,36 @@ export async function autoteste() {
     ok(!/NaN|undefined|Infinity|\[object/.test(texto), `${m}: relatório sem NaN/undefined`);
     ok(res.secoes.every((s) => s.tabelas.every((t) => Res.csvTabela(t).length === t.linhas.length + 1 && t.linhas.every((l) => l.length === t.cab.length))), `${m}: tabelas e CSV consistentes`);
     if (tipo === "ccd") ok(/Semente do gerador .*: 7/.test(texto) && res.secoes.at(-1).titulo.startsWith("Otimização"), `${m}: otimização com semente no relatório`);
+  }
+  // ---- exemplos da bibliografia: conferidos com os valores publicados nas fontes ----
+  {
+    const rodar = (id) => {
+      const e = BIBLIOGRAFIA.find((x) => x.id === id), tab = lerCSV(e.csv), papeis = Res.sugerirPapeis(tab, e.tipo), niveis = {}, objetivos = {};
+      for (const c of tab.colunas) {
+        if (papeis[c] === "fator" && e.tipo !== "anova") { const n = Res.sugerirNiveis(colunaNumerica(tab, c), e.tipo); if (n) niveis[c] = n; }
+        if (papeis[c] === "resposta") { const y = colunaNumerica(tab, c); objetivos[c] = { tipo: "max", L: Math.min(...y), U: Math.max(...y) }; }
+      }
+      const res = Res.executar({ tipo: e.tipo, tab, papeis, niveis, alfa: 0.05, objetivos, semente: 7, nomeArquivo: e.arquivo, data: new Date(2026, 10, 4, 10, 0) });
+      ok(!/NaN|undefined|Infinity|\[object/.test(res.log.join("\n")), `bibliografia ${id}: relatório sem NaN/undefined`);
+      return (titulo, s = 0) => res.secoes[s].tabelas.find((t) => t.titulo.startsWith(titulo)).linhas.map((l) => l.map((c) => (c && typeof c === "object" ? c.v : c)));
+    };
+    const perto = (a, b, tol) => Math.abs(a - b) <= tol;
+    ok(BIBLIOGRAFIA.length === 5 && BIBLIOGRAFIA.every((e) => e.nome && e.fonte && ["anova", "manova", "fatorial", "ccd"].includes(e.tipo)), "bibliografia: 5 exemplos com nome, fonte e tipo válido");
+    let t = rodar("plasma");
+    ok(perto(t("Tabela ANOVA")[0][4], 66.80, 0.005) && perto(t("Tabela ANOVA")[1][2], 5339.2, 1e-6), "bibliografia plasma: F = 66,80 e SQ erro = 5339,2 (Montgomery, p. 66)");
+    ok(perto(t("Tukey")[0][4], 0.0294279, 1e-6) && t("Tukey").every((l) => l[7] === true), "bibliografia plasma: Tukey igual ao R (180−160: p = 0,0294) e todas as médias diferem");
+    t = rodar("planta_piloto");
+    const ef = Object.fromEntries(t("Efeitos").map((l) => [l[0], l[1]]));
+    ok(ef.A === 23 && ef.B === -5 && ef.AC === 10 && t("Tabela ANOVA").find((l) => l[0] === "Erro")[3] === 8, "bibliografia planta piloto: efeitos T = 23, C = −5, TK = 10 e QM erro = 8 (aula 6)");
+    t = rodar("filtracao");
+    const ef4 = Object.fromEntries(t("Efeitos").map((l) => [l[0], l[1]]));
+    ok(ef4.A === 21.625 && ef4.C === 9.875 && ef4.D === 14.625 && ef4.AC === -18.125 && ef4.AD === 16.625, "bibliografia filtração: efeitos A, C, D, AC, AD (Montgomery, p. 257)");
+    t = rodar("rendimento_ccd");
+    const b = t("Coeficientes").map((l) => l[1]);
+    ok(perto(b[0], 87.375, 5e-4) && perto(b[1], -1.3837, 5e-4) && perto(b[2], 0.3620, 5e-4) && perto(b[3], -2.1437, 5e-4) && perto(b[4], -3.0937, 5e-4) && perto(b[5], -4.875, 1e-9),
+      "bibliografia CCD rendimento: coeficientes iguais ao R (rsm, aula 9)");
+    t = rodar("alecrim");
+    ok(t("Coeficientes").length === 10 && t("Tabela ANOVA").length === 5, "bibliografia alecrim: modelo quadrático com 3 fatores e falta de ajuste");
   }
   ok(Res.sugerirPapeis(lerCSV(EXEMPLOS.ccd), "ccd").conversao === "resposta", "CCD: conversão sugerida como resposta (eStat sugeria entrada)");
   ok(JSON.stringify(Res.sugerirNiveis([60, 80, 70, 60, 80], "fatorial")) === '{"baixo":60,"alto":80}' && Res.sugerirNiveis([-1, 1, 0], "fatorial") === null, "níveis sugeridos (reais e codificados)");
