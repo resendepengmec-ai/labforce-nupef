@@ -2,6 +2,10 @@
 
 Análise de ensaios de usinagem no navegador, do NUPEF, Núcleo de Pesquisa em Fabricação do IFG Câmpus Goiânia. Os arquivos de ensaio são lidos e processados localmente: não há servidor nem envio de dados.
 
+**Acesse o site:** <https://resendepengmec-ai.github.io/labforce-nupef/>
+
+Acesso direto aos módulos: [forças de usinagem](https://resendepengmec-ai.github.io/labforce-nupef/forcas/) · [grandezas elétricas](https://resendepengmec-ai.github.io/labforce-nupef/eletrica/) · [planejamento de experimentos](https://resendepengmec-ai.github.io/labforce-nupef/estatistica/)
+
 | Página | Pasta | Conteúdo |
 |---|---|---|
 | Início | `/` | Escolha entre as análises |
