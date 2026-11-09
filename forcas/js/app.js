@@ -6,7 +6,7 @@ import { DINAMOMETROS, PADRAO_DINAMOMETRO } from "./dinamometros.js";
 import { CORES, figuraSinal, figuraEspectro } from "./figuras.js";
 import { sprintf } from "../../comum/js/formato.js";
 import { figuraFaixas, paraPNG } from "../../comum/js/graficos.js";
-import { temPastaDireta, criarDestino, nomeRodada, baixar } from "../../comum/js/saida.js";
+import { temPastaDireta, criarDestino, nomeRodada, baixar, painelGravacao } from "../../comum/js/saida.js";
 import { criarSelecao } from "../../comum/js/selecao.js";
 import { criarTarefa } from "../../comum/js/tarefa.js";
 import {
@@ -187,6 +187,11 @@ async function iniciarRodada() {
       q.ap, q.fn, q.vc, q.kr, q.g0, q.kc1, q.mc, ROT[q.canal]));
   }
   rodada = { destino, log, i: 0, resumo: [], teo: [], nomes: [], usados: new Set(), salvoZip: false };
+  // pasta escolhida: os arquivos ja vao para o disco, sem .zip; o painel mostra cada gravacao
+  const naPasta = destino.modo === "pasta";
+  rodada.painel = naPasta ? painelGravacao($("statusGravacao"), destino, `${pasta.name}/${nome}`) : null;
+  if (!naPasta) $("statusGravacao").hidden = true;
+  $("btZip").hidden = naPasta; $("destinoInfo").hidden = naPasta;
   $("resFaixas").replaceChildren(); $("btNova").hidden = true;
   $("destinoInfo").textContent = destino.modo === "pasta"
     ? `Gravando em ${pasta.name}/${nome}. Cada ensaio é gravado assim que termina.`
@@ -291,6 +296,7 @@ async function finalizarRodada() {
   $("destinoInfo").textContent = R.destino.modo === "pasta"
     ? `Concluído: ${R.destino.arquivos.size} arquivo(s) gravado(s) em ${pasta.name}/${R.destino.nome}.`
     : `Concluído: ${R.destino.arquivos.size} arquivo(s) em ${R.destino.nome}.zip (baixado).`;
+  if (R.painel) R.painel.concluir();
   $("btNova").hidden = false;
   marcarEtapa(6); mostrar($("secResultados"));
 }

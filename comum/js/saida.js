@@ -147,3 +147,33 @@ export async function criarZip(arquivos) {
   fim.setUint16(10, arquivos.length, true); fim.setUint32(12, tamC, true); fim.setUint32(16, pos, true);
   return new Blob([...partes, ...central, new Uint8Array(fim.buffer)], { type: "application/zip" });
 }
+
+// Painel de status da gravacao direta na pasta (no lugar do botao de .zip).
+// Envolve destino.gravar: mostra o caminho, quantos arquivos ja estao no disco,
+// o ultimo gravado e os arquivos que falharam (ex.: aberto no Excel), ate o fim da rodada.
+export function painelGravacao(el, destino, caminho) {
+  const gravar = destino.gravar;
+  const noDisco = new Set(), falhas = new Map();   // falhas: arquivo -> mensagem; some se regravar com sucesso
+  const linha = (cls, txt) => { const p = document.createElement("p"); p.className = cls; p.textContent = txt; return p; };
+  const pintar = (estado, titulo, detalhe) => {
+    el.hidden = false; el.dataset.estado = falhas.size ? "erro" : estado;
+    const ls = [linha("sg-titulo", titulo), linha("sg-caminho", caminho),
+      linha("sg-detalhe", `${noDisco.size} arquivo(s) gravado(s) na pasta. ${detalhe}`)];
+    if (falhas.size) ls.push(linha("sg-falha", `Não gravado(s): ${[...falhas].map(([a, m]) => `${a} (${m})`).join("; ")}. Feche o arquivo se estiver aberto em outro programa e rode de novo.`));
+    el.replaceChildren(...ls);
+  };
+  const hora = () => new Date().toLocaleTimeString("pt-BR");
+  destino.gravar = async (arq, conteudo) => {
+    pintar("gravando", "Gravando na pasta…", `Agora: ${arq}`);
+    try { await gravar(arq, conteudo); }
+    catch (e) { falhas.set(arq, e.message); pintar("erro", "Falha na gravação", `Os demais arquivos estão na pasta.`); throw e; }
+    noDisco.add(arq); falhas.delete(arq);
+    pintar("gravando", "Gravando na pasta…", `Último: ${arq} às ${hora()}.`);
+  };
+  pintar("gravando", "Gravando na pasta…", "Cada ensaio é gravado assim que termina.");
+  return {
+    concluir: () => falhas.size
+      ? pintar("erro", "Gravação concluída com falhas", `Terminou às ${hora()}.`)
+      : pintar("ok", "Gravação concluída", `Tudo salvo às ${hora()}. Não é preciso baixar nada.`),
+  };
+}

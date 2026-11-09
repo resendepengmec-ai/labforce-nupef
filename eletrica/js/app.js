@@ -6,7 +6,7 @@ import { cabecalhoResumoIEEE519 } from "./ieee519.js";
 import { cabecalhoIEEE1459 } from "./ieee1459.js";
 import { figuraFaixas, paraPNG } from "../../comum/js/graficos.js";
 import { figuraEspectro, figuraIEEE519, figuraIEEE1459 } from "./figuras.js";
-import { temPastaDireta, criarDestino, nomeRodada, baixar } from "../../comum/js/saida.js";
+import { temPastaDireta, criarDestino, nomeRodada, baixar, painelGravacao } from "../../comum/js/saida.js";
 import { criarSelecao } from "../../comum/js/selecao.js";
 import { criarTarefa } from "../../comum/js/tarefa.js";
 import {
@@ -135,6 +135,11 @@ async function iniciarRodada() {
   log.push(sprintf("Parametros: rede %g Hz | media movel %d ciclos | faixa minima %g s | Isc/IL %g | IL %s | atraso [us] %s",
     c.p.fRede, c.p.nCicVis, c.p.duracaoMin, c.p.IscIL, Number.isNaN(c.p.IL519) ? "auto" : String(c.p.IL519), c.atrasoUs.join(" ")));
   rodada = { destino, log, i: 0, matPot: [], matQ: [], mat59: [], nomes: [], linhasTab: [], usados: new Set(), salvoZip: false };
+  // pasta escolhida: os arquivos ja vao para o disco, sem .zip; o painel mostra cada gravacao
+  const naPasta = destino.modo === "pasta";
+  rodada.painel = naPasta ? painelGravacao($("statusGravacao"), destino, `${pasta.name}/${nome}`) : null;
+  if (!naPasta) $("statusGravacao").hidden = true;
+  $("btZip").hidden = naPasta; $("destinoInfo").hidden = naPasta;
   $("resFaixas").replaceChildren(); $("tabResumo").replaceChildren(); $("btNova").hidden = true;
   $("destinoInfo").textContent = destino.modo === "pasta"
     ? `Gravando em ${pasta.name}/${nome}. Cada ensaio é gravado assim que termina.`
@@ -255,6 +260,7 @@ async function finalizarRodada() {
   $("destinoInfo").textContent = R.destino.modo === "pasta"
     ? `Concluído: ${R.destino.arquivos.size} arquivo(s) gravado(s) em ${pasta.name}/${R.destino.nome}.`
     : `Concluído: ${R.destino.arquivos.size} arquivo(s) em ${R.destino.nome}.zip (baixado).`;
+  if (R.painel) R.painel.concluir();
   $("btNova").hidden = false;
   marcarEtapa(6);
   mostrar($("secResultados"));

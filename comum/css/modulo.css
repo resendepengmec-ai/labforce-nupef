@@ -151,3 +151,20 @@ pre.log { font-family: var(--mono); font-size: .78rem; background: var(--papel);
   color: var(--acento); background: var(--painel); text-decoration: none; font-weight: 600; white-space: nowrap; }
 .bt-manual svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linejoin: round; stroke-linecap: round; }
 .bt-manual:hover { background: var(--acento); color: var(--acento-t); }
+
+/* status da gravacao direta na pasta (forcas e eletrico) */
+.status-grav { border: 1px solid var(--linha); border-left: 4px solid var(--cinza); border-radius: 8px; padding: 10px 14px; margin: 0 0 12px; background: var(--painel); }
+.status-grav p { margin: 2px 0; }
+.status-grav .sg-titulo { font-weight: 600; }
+.status-grav .sg-titulo::before { content: ""; display: inline-block; width: .6em; height: .6em; border-radius: 50%; margin-right: .5em; background: currentColor; vertical-align: .05em; }
+.status-grav .sg-caminho { font-family: var(--mono); font-size: .88rem; overflow-wrap: anywhere; }
+.status-grav .sg-detalhe { color: var(--cinza); font-size: .92rem; }
+.status-grav[data-estado="gravando"] { border-left-color: var(--acento); }
+.status-grav[data-estado="gravando"] .sg-titulo::before { color: var(--acento); animation: sg-pulsa 1.2s ease-in-out infinite; }
+.status-grav[data-estado="ok"] { border-left-color: var(--ok); }
+.status-grav[data-estado="ok"] .sg-titulo::before { color: var(--ok); }
+.status-grav[data-estado="erro"] { border-left-color: var(--erro); }
+.status-grav[data-estado="erro"] .sg-titulo { color: var(--erro); }
+.status-grav .sg-falha { color: var(--erro); font-size: .92rem; overflow-wrap: anywhere; }
+@keyframes sg-pulsa { 50% { opacity: .3; } }
+@media (prefers-reduced-motion: reduce) { .status-grav .sg-titulo::before { animation: none; } }
