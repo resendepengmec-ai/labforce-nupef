@@ -168,3 +168,8 @@ pre.log { font-family: var(--mono); font-size: .78rem; background: var(--papel);
 .status-grav .sg-falha { color: var(--erro); font-size: .92rem; overflow-wrap: anywhere; }
 @keyframes sg-pulsa { 50% { opacity: .3; } }
 @media (prefers-reduced-motion: reduce) { .status-grav .sg-titulo::before { animation: none; } }
+
+/* botao do repositorio na barra dos modulos e manuais */
+.barra nav a.bt-repo { gap: 6px; border: 1px solid var(--linha); border-radius: 999px; padding: 6px 12px; min-height: 40px; align-self: center; }
+.barra nav a.bt-repo svg { flex: none; }
+@media (max-width: 520px) { .barra nav { flex-wrap: wrap; gap: 2px; } .barra nav a { white-space: nowrap; padding-left: 7px; padding-right: 7px; } .barra nav a.bt-repo span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; } .barra nav a.bt-repo { padding: 6px 9px; } }
