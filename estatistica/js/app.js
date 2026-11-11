@@ -12,6 +12,7 @@ import { temPastaDireta, criarDestino, nomeRodada, baixar, painelGravacao } from
 import { $, numero, esperar, marcarEtapa, recolher, expandir, mostrar, progresso, ligarArquivos, ligarPasta, chip, tabelaHTML } from "../../comum/js/ui.js";
 
 let pasta = null, tipo = "anova", tab = null, nomeArquivo = "", ultimo = null;
+let exemploCols = null;   // metadados do exemplo da bibliografia carregado: {coluna: {nome, unidade, baixo, alto}}
 const ROT_PAPEL = { fator: "entrada (fator)", resposta: "saída (resposta)", ignorar: "ignorar" };
 
 // ---------------------------------------------------------------- 1. tipo -----
@@ -26,8 +27,8 @@ function escolherTipo() {
 }
 
 // ---------------------------------------------------------------- 2. dados -----
-function carregarTexto(texto, nome) {
-  $("erroDados").textContent = "";
+function carregarTexto(texto, nome, cols = null) {
+  $("erroDados").textContent = ""; exemploCols = cols;
   try { tab = lerCSV(texto); nomeArquivo = nome; mostrarResumoDados(); }
   catch (e) { tab = null; $("erroDados").textContent = `Não foi possível ler os dados: ${e.message}`; $("resumoDados").textContent = ""; }
   $("btDados").disabled = !tab;
@@ -56,7 +57,7 @@ function mostrarFonteExemplo() {
 function carregarExemplo() {
   const e = BIBLIOGRAFIA.find((x) => x.id === $("selExemplo").value);
   const csv = e ? e.csv : EXEMPLOS[tipo], nome = e ? e.arquivo.split("/").pop() : ARQUIVOS[tipo];
-  $("txtDados").value = csv; carregarTexto(csv, nome);
+  $("txtDados").value = csv; carregarTexto(csv, nome, e?.colunas || null);
 }
 
 function prepararGerar() {
@@ -115,6 +116,8 @@ function montarRevisao() {
   $("notaPapeis").textContent = tipo === "anova" || tipo === "manova"
     ? `Marque 1 coluna como fator (os grupos) e ${tipo === "manova" ? "2 ou mais" : "1 ou mais"} como resposta.`
     : "Marque os fatores (entradas) e as respostas (saídas). Se os fatores estiverem em unidades reais, informe os níveis −1 e +1 (baixo e alto); se já estiverem codificados, deixe em branco.";
+  // exemplo da bibliografia: nome, unidade e niveis vem do problema original (exemplos.js)
+  if (exemploCols) $("notaPapeis").textContent += " Nome, unidade e níveis preenchidos com os dados do problema original do exemplo.";
   const cab = ["Coluna", "Nome da grandeza", "Papel", "Unidade", ...(comNiveis ? ["Nível −1 (baixo)", "Nível +1 (alto)"] : [])];
   const t = $("tabPapeis"); t.replaceChildren();
   const h = t.createTHead().insertRow();
@@ -124,16 +127,18 @@ function montarRevisao() {
     const tr = b.insertRow(); tr.dataset.coluna = c;
     tr.insertCell().textContent = c;
     // nome usado nos titulos e eixos dos graficos ("grandeza [unidade]"); vazio = nome da coluna
-    const nm = document.createElement("input"); nm.className = "nome"; nm.setAttribute("aria-label", `Nome da grandeza de ${c}`); nm.placeholder = c;
+    const meta = exemploCols?.[c] || {};
+    const nm = document.createElement("input"); nm.className = "nome"; nm.setAttribute("aria-label", `Nome da grandeza de ${c}`); nm.placeholder = c; nm.value = meta.nome || "";
     tr.insertCell().appendChild(nm);
     const sel = document.createElement("select"); sel.className = "papel"; sel.setAttribute("aria-label", `Papel de ${c}`);
     for (const p of ["fator", "resposta", "ignorar"]) sel.add(new Option(ROT_PAPEL[p], p));
     sel.value = sug[c]; sel.addEventListener("change", atualizarRevisao); tr.insertCell().appendChild(sel);
-    const u = document.createElement("input"); u.className = "unid"; u.setAttribute("aria-label", `Unidade de ${c}`); u.placeholder = "ex.: °C";
+    const u = document.createElement("input"); u.className = "unid"; u.setAttribute("aria-label", `Unidade de ${c}`); u.placeholder = "ex.: °C"; u.value = meta.unidade || "";
     tr.insertCell().appendChild(u);
     if (comNiveis) {
       let nv = null;
       try { nv = sugerirNiveis(colunaNumerica(tab, c), tipo); } catch { /* coluna nao numerica */ }
+      if (Number.isFinite(meta.baixo) && Number.isFinite(meta.alto)) nv = { baixo: meta.baixo, alto: meta.alto };
       for (const k of ["baixo", "alto"]) {
         const inp = document.createElement("input"); inp.className = `nivel ${k}`; inp.inputMode = "decimal";
         inp.setAttribute("aria-label", `${c}: nível ${k === "baixo" ? "−1" : "+1"}`);
@@ -189,6 +194,27 @@ function montarObjetivos(resp) {
   }
 }
 
+// Os niveis −1/+1 precisam existir nos dados: sao os valores do planejamento, nao um ajuste de escala.
+// 2^k: cada valor da coluna e o nivel −1, o +1 ou o ponto central. Composto central: os pontos
+// fatoriais estao em −1 e +1, entao os dois niveis aparecem na coluna (os axiais ficam fora deles).
+function conferirNiveis(c, nv) {
+  let v; try { v = colunaNumerica(tab, c); } catch { return null; }   // coluna nao numerica: o calculo avisa
+  const perto = (x, y) => Math.abs(x - y) <= 1e-9 * Math.max(1, Math.abs(y));
+  const fmt = (x) => String(x).replace(".", ",");
+  const dist = [...new Set(v)].sort((x, y) => x - y), lista = dist.slice(0, 6).map(fmt).join("; ") + (dist.length > 6 ? "…" : "");
+  const doExemplo = exemploCols?.[c] && Number.isFinite(exemploCols[c].baixo) ? ` O problema original usa ${fmt(exemploCols[c].baixo)} e ${fmt(exemploCols[c].alto)}.` : "";
+  if (!nv) {
+    if (tipo === "fatorial" && !v.every((x) => x === -1 || x === 0 || x === 1))
+      return `${c}: os dados estão em unidades reais (${lista}). Informe os níveis −1 e +1 com os valores baixo e alto que aparecem na coluna.${doExemplo}`;
+    return null;
+  }
+  const meio = (nv.baixo + nv.alto) / 2;
+  const ok = tipo === "fatorial"
+    ? v.every((x) => perto(x, nv.baixo) || perto(x, nv.alto) || perto(x, meio))
+    : v.some((x) => perto(x, nv.baixo)) && v.some((x) => perto(x, nv.alto));
+  return ok ? null : `${c}: os níveis informados (${fmt(nv.baixo)} e ${fmt(nv.alto)}) não aparecem nos dados, que têm ${lista}. Use os valores da coluna para −1 e +1.${doExemplo}`;
+}
+
 function lerRevisao() {
   const erros = [], alfa = numero($("alfa").value);
   if (!(alfa > 0 && alfa < 0.5)) erros.push("α deve ficar entre 0 e 0,5 (ex.: 0,05).");
@@ -202,6 +228,7 @@ function lerRevisao() {
       if (!(Number.isFinite(nb) && Number.isFinite(na) && na > nb)) erros.push(`${c}: informe os dois níveis, com o +1 maior que o −1 (ou deixe ambos em branco se a coluna já estiver codificada).`);
       else niveis[c] = { baixo: nb, alto: na };
     }
+    if (b && !b.disabled && (niveis[c] || !(b.value.trim() || a.value.trim()))) { const e = conferirNiveis(c, niveis[c]); if (e) erros.push(e); }
   }
   let termos;
   if (tipo === "fatorial") {
