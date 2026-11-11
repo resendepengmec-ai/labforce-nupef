@@ -169,23 +169,23 @@ function eixoFator(spec, nome) {
   const f = spec.fatores?.[nome] || {}, real = spec.eixoX === "real" && f.niv;
   const nivel = (v) => (real ? num(v < 0 ? f.niv.baixo : f.niv.alto, 4) : v < 0 ? "−1" : "+1");
   const comUn = (v) => (real && f.un ? `${nivel(v)} ${f.un}` : nivel(v));
-  return { rot: f.rot || nome, ticks: { pos: [-1, 1], rot: [nivel(-1), nivel(1)] }, nivel, comUn };
+  return { nome: f.nome || nome, rot: f.rot || nome, ticks: { pos: [-1, 1], rot: [nivel(-1), nivel(1)] }, nivel, comUn };
 }
 function figPrincipais(spec) {
   const c = paineis(spec, spec.itens, {
-    vals: (i) => [i.baixo, i.alto], titulo: (i) => `${i.letra}: ${i.nome}`, xlabel: (i) => eixoFator(spec, i.nome).rot, xticks: (i) => eixoFator(spec, i.nome).ticks,
+    vals: (i) => [i.baixo, i.alto], titulo: (i) => `${i.letra}: ${eixoFator(spec, i.nome).nome}`, xlabel: (i) => eixoFator(spec, i.nome).rot, xticks: (i) => eixoFator(spec, i.nome).ticks,
     series: (i) => [{ x: [-1, 1], y: [i.baixo, i.alto], cor: PALETA[0], marca: "o", tam: 8, largura: 2 }],
-    alvos: (i) => { const e = eixoFator(spec, i.nome); return [{ x: -1, y: i.baixo, texto: `${i.nome} = ${e.comUn(-1)}\nmédia = ${num(i.baixo)}` }, { x: 1, y: i.alto, texto: `${i.nome} = ${e.comUn(1)}\nmédia = ${num(i.alto)}` }]; },
+    alvos: (i) => { const e = eixoFator(spec, i.nome); return [{ x: -1, y: i.baixo, texto: `${e.nome} = ${e.comUn(-1)}\nmédia = ${num(i.baixo)}` }, { x: 1, y: i.alto, texto: `${e.nome} = ${e.comUn(1)}\nmédia = ${num(i.alto)}` }]; },
   });
   return { canvas: c, tabela: { cab: ["Fator", "Média em −1", "Média em +1", "Efeito"], linhas: spec.itens.map((i) => [s(`${i.letra}: ${i.nome}`), n(i.baixo), n(i.alto), n(i.alto - i.baixo)]) } };
 }
 function figInteracoes(spec) {
   const c = paineis(spec, spec.itens, {
-    vals: (i) => [i.mm, i.mp, i.pm, i.pp], titulo: (i) => `${i.rotulo}: ${i.a} × ${i.b}`, xlabel: (i) => eixoFator(spec, i.a).rot, xticks: (i) => eixoFator(spec, i.a).ticks, legenda: () => "nw",
-    series: (i) => { const b = eixoFator(spec, i.b); return [{ x: [-1, 1], y: [i.mm, i.pm], cor: PALETA[0], marca: "o", tam: 8, largura: 2, rotulo: `${i.b} = ${b.comUn(-1)}` },
-      { x: [-1, 1], y: [i.mp, i.pp], cor: PALETA[1], marca: "s", tam: 8, largura: 2, traco: "--", rotulo: `${i.b} = ${b.comUn(1)}` }]; },
+    vals: (i) => [i.mm, i.mp, i.pm, i.pp], titulo: (i) => `${i.rotulo}: ${eixoFator(spec, i.a).nome} × ${eixoFator(spec, i.b).nome}`, xlabel: (i) => eixoFator(spec, i.a).rot, xticks: (i) => eixoFator(spec, i.a).ticks, legenda: () => "nw",
+    series: (i) => { const b = eixoFator(spec, i.b); return [{ x: [-1, 1], y: [i.mm, i.pm], cor: PALETA[0], marca: "o", tam: 8, largura: 2, rotulo: `${b.nome} = ${b.comUn(-1)}` },
+      { x: [-1, 1], y: [i.mp, i.pp], cor: PALETA[1], marca: "s", tam: 8, largura: 2, traco: "--", rotulo: `${b.nome} = ${b.comUn(1)}` }]; },
     alvos: (i) => { const a = eixoFator(spec, i.a), b = eixoFator(spec, i.b);
-      return [[-1, -1, i.mm], [-1, 1, i.mp], [1, -1, i.pm], [1, 1, i.pp]].map(([x, z, y]) => ({ x, y, texto: `${i.a} = ${a.comUn(x)}, ${i.b} = ${b.comUn(z)}\nmédia = ${num(y)}` })); },
+      return [[-1, -1, i.mm], [-1, 1, i.mp], [1, -1, i.pm], [1, 1, i.pp]].map(([x, z, y]) => ({ x, y, texto: `${a.nome} = ${a.comUn(x)}, ${b.nome} = ${b.comUn(z)}\nmédia = ${num(y)}` })); },
   });
   return { canvas: c, tabela: { cab: ["Interação", "(−,−)", "(−,+)", "(+,−)", "(+,+)"], linhas: spec.itens.map((i) => [s(`${i.a} × ${i.b}`), n(i.mm), n(i.mp), n(i.pm), n(i.pp)]) } };
 }

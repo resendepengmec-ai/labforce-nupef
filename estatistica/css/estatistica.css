@@ -22,6 +22,7 @@ details.colar summary, details.gerar summary { cursor: pointer; font-weight: 600
 .papeis select, .papeis input, .objetivos select, .objetivos input { min-height: 36px; padding: 4px 6px; }
 .papeis input.nivel, .objetivos input { width: 6.5em; text-align: right; font-variant-numeric: tabular-nums; }
 .papeis input.unid { width: 7em; }
+.papeis input.nome { width: 12em; }
 .opcoes { margin-top: 14px; }
 #blocoTermos, #blocoObjetivos { margin-top: 14px; }
 .termos-modelo { display: flex; flex-wrap: wrap; gap: 2px 16px; }

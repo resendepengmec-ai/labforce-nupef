@@ -42,6 +42,10 @@ function figurasResiduos(id, titulo, ajustados, residuos) {
   ];
 }
 
+// nome da grandeza e unidade informados na revisao: usados nos titulos e eixos dos graficos
+// (as tabelas e o relatorio continuam com o nome da coluna, igual ao arquivo de dados)
+let nomeDe = (c) => c, eixoDe = (c) => c;
+
 // ---- ANOVA de um fator --------------------------------------------------------
 function secaoAnova(r, resp, un) {
   const id = arq(`anova_${resp}`), u = un ? ` [${un}]` : "";
@@ -60,8 +64,8 @@ function secaoAnova(r, resp, un) {
   return {
     titulo: `ANOVA: ${resp}`, conclusoes: C.conclusoesAnova1(r, resp), tabelas: [desc, tab, tk, prem],
     resumo: [`R² = ${C.num(100 * r.R2, 3)} %`, `R² ajustado = ${C.num(100 * r.R2aj, 3)} %`],
-    figuras: [{ id: `${id}_medias`, tipo: "ic", titulo: `${resp}: médias com IC ${C.num(100 * (1 - r.alfa), 3)} %`, rotY: `${resp}${u}`,
-      itens: r.desc.map((d) => ({ rotulo: d.nome, y: d.media, inf: d.icInf, sup: d.icSup })) }, ...figurasResiduos(id, resp, r.ajustados, r.residuos)],
+    figuras: [{ id: `${id}_medias`, tipo: "ic", titulo: `${nomeDe(resp)}: médias com IC ${C.num(100 * (1 - r.alfa), 3)} %`, rotY: eixoDe(resp),
+      itens: r.desc.map((d) => ({ rotulo: d.nome, y: d.media, inf: d.icInf, sup: d.icSup })) }, ...figurasResiduos(id, nomeDe(resp), r.ajustados, r.residuos)],
   };
 }
 
@@ -75,7 +79,7 @@ function secaoManova(r) {
     linhas: r.medias.map((m) => [T(m.nome), G(m.n), ...m.media.map((v) => N(v))]) };
   return { titulo: "MANOVA", conclusoes: C.conclusoesManova(r), tabelas: [est, uni, med],
     notas: ["¹ Roy: o F é um limite superior; o valor-p é um limite inferior."],
-    figuras: r.univariadas.slice(0, 4).map((u, j) => ({ id: arq(`manova_medias_${u.nome}`), tipo: "ic0", titulo: `${u.nome}: médias por grupo`, rotY: u.nome,
+    figuras: r.univariadas.slice(0, 4).map((u, j) => ({ id: arq(`manova_medias_${u.nome}`), tipo: "ic0", titulo: `${nomeDe(u.nome)}: médias por grupo`, rotY: eixoDe(u.nome),
       itens: r.medias.map((m) => ({ rotulo: m.nome, y: m.media[j] })) })) };
 }
 
@@ -83,10 +87,9 @@ function secaoManova(r) {
 function secaoFatorial(r, resp, unResp = "", unF = [], niveis = []) {
   // graficos de efeitos: eixo x codificado ou em niveis reais (botao na tela), rotulos
   // "grandeza [unidade]" e o mesmo eixo y nos efeitos principais e nas interacoes
-  const rot = (nome, u) => nome + (u ? ` [${u}]` : "");
-  const fx = Object.fromEntries(r.nomes.map((nm, j) => [nm, { rot: rot(nm, unF[j]), un: unF[j] || "", niv: niveis[j] && Number.isFinite(niveis[j].baixo) ? niveis[j] : null }]));
+  const fx = Object.fromEntries(r.nomes.map((nm, j) => [nm, { rot: eixoDe(nm), nome: nomeDe(nm), un: unF[j] || "", niv: niveis[j] && Number.isFinite(niveis[j].baixo) ? niveis[j] : null }]));
   const valsEf = [...r.principais.flatMap((i) => [i.baixo, i.alto]), ...r.interacoes.slice(0, 6).flatMap((i) => [i.mm, i.mp, i.pm, i.pp])];
-  const efY = { rotY: rot(resp, unResp), ylimEf: [Math.min(...valsEf), Math.max(...valsEf)], fatores: fx, eixoX: "codificado" };
+  const efY = { rotY: eixoDe(resp), ylimEf: [Math.min(...valsEf), Math.max(...valsEf)], fatores: fx, eixoX: "codificado" };
   const id = arq(`fatorial_${resp}`), leg = r.letras.split("").map((l, j) => `${l} = ${r.nomes[j]}`).join("; ");
   const efs = r.efeitos.filter((e) => r.termos.includes(e.rotulo));
   const cabE = r.lenth ? ["Termo", "Efeito", "Coeficiente", "SQ", "t de Lenth", "Valor-p (Lenth)", "Situação"] : ["Termo", "Efeito", "Coeficiente", "SQ", "F", "Valor-p", "Situação"];
@@ -102,13 +105,13 @@ function secaoFatorial(r, resp, unResp = "", unF = [], niveis = []) {
     linhas: [[N(r.lenth.PSE), N(r.lenth.d, 3), N(r.lenth.ME), N(r.lenth.SME)]] });
   const lim = r.lenth ? [{ v: r.lenth.ME, rot: "ME" }, { v: r.lenth.SME, rot: "SME" }] : [{ v: r.tCrit, rot: `t crítico (α = ${C.num(r.alfa, 3)})` }];
   const figs = [
-    { id: `${id}_pareto`, tipo: "pareto", titulo: `${resp}: Pareto dos efeitos${r.lenth ? "" : " padronizados (|t|)"}`, rotX: r.lenth ? "|efeito|" : "|t|",
+    { id: `${id}_pareto`, tipo: "pareto", titulo: `${nomeDe(resp)}: Pareto dos efeitos${r.lenth ? "" : " padronizados (|t|)"}`, rotX: r.lenth ? "|efeito|" : "|t|",
       itens: efs.map((e) => ({ rotulo: e.rotulo, v: Math.abs(r.lenth ? e.efeito : e.t), sig: e.signif })), limites: lim },
-    { id: `${id}_meionormal`, tipo: "meioNormal", titulo: `${resp}: gráfico meio-normal dos efeitos`, pontos: r.meioNormal.map((p) => ({ x: p.abs, y: p.z, rotulo: p.rotulo })) },
-    { id: `${id}_principais`, tipo: "principais", titulo: `${resp}: efeitos principais`, ...efY, itens: r.principais },
+    { id: `${id}_meionormal`, tipo: "meioNormal", titulo: `${nomeDe(resp)}: gráfico meio-normal dos efeitos`, pontos: r.meioNormal.map((p) => ({ x: p.abs, y: p.z, rotulo: p.rotulo })) },
+    { id: `${id}_principais`, tipo: "principais", titulo: `${nomeDe(resp)}: efeitos principais`, ...efY, itens: r.principais },
   ];
-  if (r.interacoes.length) figs.push({ id: `${id}_interacoes`, tipo: "interacoes", titulo: `${resp}: interações de 2 fatores`, ...efY, itens: r.interacoes.slice(0, 6) });
-  if (r.erro.gl > 0) figs.push(...figurasResiduos(id, resp, r.ajustados, r.residuos));
+  if (r.interacoes.length) figs.push({ id: `${id}_interacoes`, tipo: "interacoes", titulo: `${nomeDe(resp)}: interações de 2 fatores`, ...efY, itens: r.interacoes.slice(0, 6) });
+  if (r.erro.gl > 0) figs.push(...figurasResiduos(id, nomeDe(resp), r.ajustados, r.residuos));
   return { titulo: `Fatorial 2${"⁰¹²³⁴⁵⁶⁷⁸⁹"[r.k]}: ${resp}`, conclusoes: C.conclusoesFatorial(r, resp), tabelas: tabs, figuras: figs,
     resumo: [`${r.nF} corridas fatoriais (${r.n} réplica${r.n > 1 ? "s" : ""})`, `${r.nc} ponto(s) central(is)`, r.erro.gl > 0 ? `R² = ${C.num(100 * r.R2, 3)} %` : "sem graus de liberdade para o erro"] };
 }
@@ -136,11 +139,11 @@ function secaoCcd(c, rr, j, niveis, unidades) {
   if (c.k >= 2) {
     // curvas de nivel nos 2 primeiros fatores (demais no centro, ou no ponto estacionario se dentro da regiao)
     const fixo = e.tipo !== "indefinido" && e.dentro ? e.xs : new Array(c.k).fill(0);
-    figs.push({ id: `${id}_contorno`, tipo: "contorno", titulo: `${rr.nome}: curvas de nível (${c.nomes[0]} × ${c.nomes[1]}${c.k > 2 ? "; demais fatores fixos" : ""})`,
-      raio: c.alfaAxial, rotX: c.nomes[0], rotY: c.nomes[1], f: (u, v) => rr.prever(fixo.map((z, i) => (i === 0 ? u : i === 1 ? v : z))),
+    figs.push({ id: `${id}_contorno`, tipo: "contorno", titulo: `${nomeDe(rr.nome)}: curvas de nível (${nomeDe(c.nomes[0])} × ${nomeDe(c.nomes[1])}${c.k > 2 ? "; demais fatores fixos" : ""})`,
+      raio: c.alfaAxial, rotX: nomeDe(c.nomes[0]), rotY: nomeDe(c.nomes[1]), f: (u, v) => rr.prever(fixo.map((z, i) => (i === 0 ? u : i === 1 ? v : z))),
       ponto: e.tipo !== "indefinido" ? { x: e.xs[0], y: e.xs[1], rotulo: e.tipo } : null, ensaios: c.X.map((x) => ({ x: x[0], y: x[1] })) });
   }
-  figs.push(...figurasResiduos(id, rr.nome, rr.ajustados, rr.residuos));
+  figs.push(...figurasResiduos(id, nomeDe(rr.nome), rr.ajustados, rr.residuos));
   return { titulo: `Superfície de resposta: ${rr.nome}`, conclusoes: C.conclusoesCcd(rr, c.alfa, c.alfaAxial), tabelas: tabs, figuras: figs,
     resumo: [`${c.N} ensaios, ${c.k} fatores, α axial = ${C.num(c.alfaAxial, 4)}`] };
 }
@@ -155,7 +158,7 @@ function secaoOtimizacao(o, nomesF, paraReal, unidades) {
   const ord = [...o.pareto].sort((a, b) => b.proximidade - a.proximidade);
   const t2 = { id: "otimizacao_pareto", titulo: `Frente de Pareto (NSGA-II: população ${o.nsga.pop}, ${o.nsga.geracoes} gerações, semente ${o.semente})`,
     cab: [...cab.slice(1), "Proximidade TOPSIS"], linhas: ord.map((s) => lin("", s).slice(1).concat([N(s.proximidade, 4)])) };
-  const figs = [{ id: "otimizacao_pareto", tipo: "frente", titulo: `Frente de Pareto: ${o.nomes[0]} × ${o.nomes[1]}`, rotX: o.nomes[0], rotY: o.nomes[1],
+  const figs = [{ id: "otimizacao_pareto", tipo: "frente", titulo: `Frente de Pareto: ${nomeDe(o.nomes[0])} × ${nomeDe(o.nomes[1])}`, rotX: eixoDe(o.nomes[0]), rotY: eixoDe(o.nomes[1]),
     pontos: o.pareto.map((s) => ({ x: s.y[0], y: s.y[1] })), destaque: [{ x: o.topsis.y[0], y: o.topsis.y[1], rotulo: "TOPSIS" }, { x: d.y[0], y: d.y[1], rotulo: "desejabilidade" }] }];
   return { titulo: "Otimização com várias respostas", conclusoes: C.conclusoesOtimizacao(o, nomesF, paraReal), tabelas: [t1, t2], figuras: figs };
 }
@@ -167,6 +170,8 @@ export function executar(cfg) {
   const { tab, tipo } = cfg, alfa = cfg.alfa ?? 0.05;
   const cols = (papel) => tab.colunas.filter((c) => cfg.papeis[c] === papel);
   const fatores = cols("fator"), respostas = cols("resposta"), un = (c) => cfg.unidades?.[c] || "";
+  nomeDe = (c) => String(cfg.nomes?.[c] || "").trim() || c;
+  eixoDe = (c) => nomeDe(c) + (un(c) ? ` [${un(c)}]` : "");
   const secoes = [];
   const exige = (cond, msg) => { if (!cond) throw new Error(msg); };
   if (tipo === "anova" || tipo === "manova") {

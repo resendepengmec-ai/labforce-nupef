@@ -151,7 +151,7 @@ export async function criarZip(arquivos) {
 // Painel de status da gravacao direta na pasta (no lugar do botao de .zip).
 // Envolve destino.gravar: mostra o caminho, quantos arquivos ja estao no disco,
 // o ultimo gravado e os arquivos que falharam (ex.: aberto no Excel), ate o fim da rodada.
-export function painelGravacao(el, destino, caminho) {
+export function painelGravacao(el, destino, caminho, inicial = "Cada ensaio é gravado assim que termina.") {
   const gravar = destino.gravar;
   const noDisco = new Set(), falhas = new Map();   // falhas: arquivo -> mensagem; some se regravar com sucesso
   const linha = (cls, txt) => { const p = document.createElement("p"); p.className = cls; p.textContent = txt; return p; };
@@ -170,7 +170,7 @@ export function painelGravacao(el, destino, caminho) {
     noDisco.add(arq); falhas.delete(arq);
     pintar("gravando", "Gravando na pasta…", `Último: ${arq} às ${hora()}.`);
   };
-  pintar("gravando", "Gravando na pasta…", "Cada ensaio é gravado assim que termina.");
+  pintar("gravando", "Gravando na pasta…", inicial);
   return {
     concluir: () => falhas.size
       ? pintar("erro", "Gravação concluída com falhas", `Terminou às ${hora()}.`)

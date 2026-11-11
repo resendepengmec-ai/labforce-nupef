@@ -8,7 +8,7 @@ import { ccdMatriz } from "./ccd.js";
 import { desenharFigura } from "./figuras.js";
 import { EXEMPLOS, ARQUIVOS, BIBLIOGRAFIA } from "../exemplos/exemplos.js";
 import { paraPNG } from "../../comum/js/graficos.js";
-import { temPastaDireta, criarDestino, nomeRodada, baixar } from "../../comum/js/saida.js";
+import { temPastaDireta, criarDestino, nomeRodada, baixar, painelGravacao } from "../../comum/js/saida.js";
 import { $, numero, esperar, marcarEtapa, recolher, expandir, mostrar, progresso, ligarArquivos, ligarPasta, chip, tabelaHTML } from "../../comum/js/ui.js";
 
 let pasta = null, tipo = "anova", tab = null, nomeArquivo = "", ultimo = null;
@@ -115,7 +115,7 @@ function montarRevisao() {
   $("notaPapeis").textContent = tipo === "anova" || tipo === "manova"
     ? `Marque 1 coluna como fator (os grupos) e ${tipo === "manova" ? "2 ou mais" : "1 ou mais"} como resposta.`
     : "Marque os fatores (entradas) e as respostas (saídas). Se os fatores estiverem em unidades reais, informe os níveis −1 e +1 (baixo e alto); se já estiverem codificados, deixe em branco.";
-  const cab = ["Coluna", "Papel", "Unidade", ...(comNiveis ? ["Nível −1 (baixo)", "Nível +1 (alto)"] : [])];
+  const cab = ["Coluna", "Nome da grandeza", "Papel", "Unidade", ...(comNiveis ? ["Nível −1 (baixo)", "Nível +1 (alto)"] : [])];
   const t = $("tabPapeis"); t.replaceChildren();
   const h = t.createTHead().insertRow();
   for (const c of cab) { const th = document.createElement("th"); th.textContent = c; th.scope = "col"; h.appendChild(th); }
@@ -123,6 +123,9 @@ function montarRevisao() {
   tab.colunas.forEach((c, j) => {
     const tr = b.insertRow(); tr.dataset.coluna = c;
     tr.insertCell().textContent = c;
+    // nome usado nos titulos e eixos dos graficos ("grandeza [unidade]"); vazio = nome da coluna
+    const nm = document.createElement("input"); nm.className = "nome"; nm.setAttribute("aria-label", `Nome da grandeza de ${c}`); nm.placeholder = c;
+    tr.insertCell().appendChild(nm);
     const sel = document.createElement("select"); sel.className = "papel"; sel.setAttribute("aria-label", `Papel de ${c}`);
     for (const p of ["fator", "resposta", "ignorar"]) sel.add(new Option(ROT_PAPEL[p], p));
     sel.value = sug[c]; sel.addEventListener("change", atualizarRevisao); tr.insertCell().appendChild(sel);
@@ -189,9 +192,10 @@ function montarObjetivos(resp) {
 function lerRevisao() {
   const erros = [], alfa = numero($("alfa").value);
   if (!(alfa > 0 && alfa < 0.5)) erros.push("α deve ficar entre 0 e 0,5 (ex.: 0,05).");
-  const unidades = {}, niveis = {};
+  const unidades = {}, niveis = {}, nomes = {};
   for (const tr of $("tabPapeis").tBodies[0].rows) {
     const c = tr.dataset.coluna; unidades[c] = tr.querySelector("input.unid").value.trim();
+    nomes[c] = tr.querySelector("input.nome").value.trim() || c;
     const b = tr.querySelector("input.nivel.baixo"), a = tr.querySelector("input.nivel.alto");
     if (b && !b.disabled && (b.value.trim() || a.value.trim())) {
       const nb = numero(b.value), na = numero(a.value);
@@ -218,7 +222,7 @@ function lerRevisao() {
     if (!(semente >= 0 && semente < 2 ** 32)) erros.push("A semente deve ser um inteiro entre 0 e 4294967295.");
   }
   $("erroRevisar").textContent = erros.join(" ");
-  return erros.length ? null : { tipo, tab, nomeArquivo, papeis: papeis(), unidades, niveis, alfa, termos, objetivos, semente };
+  return erros.length ? null : { tipo, tab, nomeArquivo, papeis: papeis(), unidades, nomes, niveis, alfa, termos, objetivos, semente };
 }
 
 // ------------------------------------------------------------ 4. analisar -----
@@ -307,6 +311,7 @@ function barraEixoEfeitos(spec, efeitos) {
         e.bloco.replaceChild(nova.canvas, e.reg.canvas); e.reg.canvas = nova.canvas;
         if (destino) { try { await destino.gravar(`${e.reg.id}.png`, await paraPNG(nova.canvas)); } catch (err) { console.error(err); } }
       }
+      painelGrav?.concluir();
     });
     return b;
   });
@@ -315,11 +320,16 @@ function barraEixoEfeitos(spec, efeitos) {
   return barra;
 }
 
-let destino = null;
+let destino = null, painelGrav = null;
 async function gravar(res, figuras) {
-  destino = null;
+  destino = null; painelGrav = null;
   try { destino = await criarDestino(pasta, nomeRodada()); }
   catch (e) { $("destinoInfo").textContent = `Não foi possível criar a pasta de resultados (${e.message}). Use "Baixar tudo em .zip".`; destino = await criarDestino(null, nomeRodada()); }
+  // pasta escolhida: os arquivos ja vao para o disco, sem .zip; o painel mostra cada gravacao (igual ao modulo eletrico)
+  const naPasta = destino.modo === "pasta";
+  painelGrav = naPasta ? painelGravacao($("statusGravacao"), destino, `${pasta.name}/${destino.nome}`, "Tabelas, gráficos e relatório desta análise.") : null;
+  if (!naPasta) $("statusGravacao").hidden = true;
+  $("btZip").hidden = naPasta; $("destinoInfo").hidden = naPasta;
   const falhas = [], arqs = [];
   for (const s of res.secoes) for (const t of s.tabelas) arqs.push([`${t.id}.csv`, csvTabela(t)]);
   for (const f of figuras) arqs.push([`${f.id}.png`, () => paraPNG(f.canvas)]);
@@ -330,6 +340,7 @@ async function gravar(res, figuras) {
   const n = destino.arquivos.size;
   $("destinoInfo").textContent = (destino.modo === "pasta" ? `${n} arquivo(s) gravado(s) em ${pasta.name}/${destino.nome}.` : `${n} arquivo(s) prontos para baixar em ${destino.nome}.zip.`)
     + (falhas.length ? ` ERRO ao gravar: ${falhas.join(", ")}. Se o arquivo estiver aberto (ex.: no Excel), feche-o e analise de novo.` : "");
+  painelGrav?.concluir();
 }
 
 // --------------------------------------------------------------- inicio -----
