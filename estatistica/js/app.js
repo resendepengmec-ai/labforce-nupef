@@ -264,23 +264,55 @@ function mostrarResultados(res) {
       w.appendChild(tb); b.append(h4, w); d.appendChild(b);
     }
     for (const n of s.notas || []) { const p = document.createElement("p"); p.className = "nota"; p.textContent = n; d.appendChild(p); }
+    const efeitos = [];                 // graficos de efeitos (principais e interacoes) desta secao
     for (const f of s.figuras || []) {
       const fig = desenharFigura(f);
       if (!fig) continue;
+      if (f.eixoX && !efeitos.length) d.appendChild(barraEixoEfeitos(f, efeitos));
       const b = document.createElement("figure"); b.className = "bloco-fig";
       b.appendChild(fig.canvas);
+      if (f.eixoX) efeitos.push({ spec: f, bloco: b, reg: null });
       if (fig.tabela) {
         const det = document.createElement("details"), sm = document.createElement("summary"); sm.textContent = "Ver os números do gráfico";
         const w = document.createElement("div"); w.className = "tabela-rolar"; const tb = document.createElement("table"); tb.className = "tabela";
         tabelaHTML(tb, fig.tabela.cab, fig.tabela.linhas.map((l) => l.map(celulaTela)));
         w.appendChild(tb); det.append(sm, w); b.appendChild(det);
       }
-      d.appendChild(b); figuras.push({ id: f.id, canvas: fig.canvas });
+      const reg = { id: f.id, canvas: fig.canvas };
+      if (f.eixoX) efeitos[efeitos.length - 1].reg = reg;
+      d.appendChild(b); figuras.push(reg);
     }
     raiz.appendChild(d);
   }
   $("log").textContent = res.log.join("\n");
   return figuras;
+}
+
+// Botao dos graficos de efeitos: eixo x codificado (−1/+1) ou nos niveis reais informados
+// na revisao. Redesenha os graficos da secao e regrava os PNG no destino.
+function barraEixoEfeitos(spec, efeitos) {
+  const temNiveis = Object.values(spec.fatores || {}).some((f) => f.niv);
+  const barra = document.createElement("div"); barra.className = "eixo-efeitos";
+  const rot = document.createElement("span"); rot.textContent = "Eixo x dos gráficos de efeitos:";
+  const grupo = document.createElement("div"); grupo.className = "alterna"; grupo.setAttribute("role", "group"); grupo.setAttribute("aria-label", "Eixo x dos gráficos de efeitos");
+  const bts = [["codificado", "Codificado (−1 / +1)"], ["real", "Níveis reais"]].map(([modo, txt]) => {
+    const b = document.createElement("button"); b.type = "button"; b.className = "sec"; b.textContent = txt; b.dataset.modo = modo;
+    b.setAttribute("aria-pressed", String(spec.eixoX === modo));
+    if (modo === "real" && !temNiveis) { b.disabled = true; b.title = "Informe os níveis −1 e +1 dos fatores na revisão"; }
+    b.addEventListener("click", async () => {
+      bts.forEach((o) => o.setAttribute("aria-pressed", String(o === b)));
+      for (const e of efeitos) {
+        e.spec.eixoX = modo;
+        const nova = desenharFigura(e.spec);
+        e.bloco.replaceChild(nova.canvas, e.reg.canvas); e.reg.canvas = nova.canvas;
+        if (destino) { try { await destino.gravar(`${e.reg.id}.png`, await paraPNG(nova.canvas)); } catch (err) { console.error(err); } }
+      }
+    });
+    return b;
+  });
+  grupo.append(...bts); barra.append(rot, grupo);
+  if (!temNiveis) { const p = document.createElement("span"); p.className = "nota"; p.textContent = "Para ver os níveis reais, informe os níveis −1 e +1 dos fatores na revisão."; barra.appendChild(p); }
+  return barra;
 }
 
 let destino = null;

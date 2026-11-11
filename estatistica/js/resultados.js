@@ -80,7 +80,13 @@ function secaoManova(r) {
 }
 
 // ---- fatorial 2^k ---------------------------------------------------------------
-function secaoFatorial(r, resp) {
+function secaoFatorial(r, resp, unResp = "", unF = [], niveis = []) {
+  // graficos de efeitos: eixo x codificado ou em niveis reais (botao na tela), rotulos
+  // "grandeza [unidade]" e o mesmo eixo y nos efeitos principais e nas interacoes
+  const rot = (nome, u) => nome + (u ? ` [${u}]` : "");
+  const fx = Object.fromEntries(r.nomes.map((nm, j) => [nm, { rot: rot(nm, unF[j]), un: unF[j] || "", niv: niveis[j] && Number.isFinite(niveis[j].baixo) ? niveis[j] : null }]));
+  const valsEf = [...r.principais.flatMap((i) => [i.baixo, i.alto]), ...r.interacoes.slice(0, 6).flatMap((i) => [i.mm, i.mp, i.pm, i.pp])];
+  const efY = { rotY: rot(resp, unResp), ylimEf: [Math.min(...valsEf), Math.max(...valsEf)], fatores: fx, eixoX: "codificado" };
   const id = arq(`fatorial_${resp}`), leg = r.letras.split("").map((l, j) => `${l} = ${r.nomes[j]}`).join("; ");
   const efs = r.efeitos.filter((e) => r.termos.includes(e.rotulo));
   const cabE = r.lenth ? ["Termo", "Efeito", "Coeficiente", "SQ", "t de Lenth", "Valor-p (Lenth)", "Situação"] : ["Termo", "Efeito", "Coeficiente", "SQ", "F", "Valor-p", "Situação"];
@@ -99,9 +105,9 @@ function secaoFatorial(r, resp) {
     { id: `${id}_pareto`, tipo: "pareto", titulo: `${resp}: Pareto dos efeitos${r.lenth ? "" : " padronizados (|t|)"}`, rotX: r.lenth ? "|efeito|" : "|t|",
       itens: efs.map((e) => ({ rotulo: e.rotulo, v: Math.abs(r.lenth ? e.efeito : e.t), sig: e.signif })), limites: lim },
     { id: `${id}_meionormal`, tipo: "meioNormal", titulo: `${resp}: gráfico meio-normal dos efeitos`, pontos: r.meioNormal.map((p) => ({ x: p.abs, y: p.z, rotulo: p.rotulo })) },
-    { id: `${id}_principais`, tipo: "principais", titulo: `${resp}: efeitos principais`, rotY: resp, itens: r.principais },
+    { id: `${id}_principais`, tipo: "principais", titulo: `${resp}: efeitos principais`, ...efY, itens: r.principais },
   ];
-  if (r.interacoes.length) figs.push({ id: `${id}_interacoes`, tipo: "interacoes", titulo: `${resp}: interações de 2 fatores`, rotY: resp, itens: r.interacoes.slice(0, 6) });
+  if (r.interacoes.length) figs.push({ id: `${id}_interacoes`, tipo: "interacoes", titulo: `${resp}: interações de 2 fatores`, ...efY, itens: r.interacoes.slice(0, 6) });
   if (r.erro.gl > 0) figs.push(...figurasResiduos(id, resp, r.ajustados, r.residuos));
   return { titulo: `Fatorial 2${"⁰¹²³⁴⁵⁶⁷⁸⁹"[r.k]}: ${resp}`, conclusoes: C.conclusoesFatorial(r, resp), tabelas: tabs, figuras: figs,
     resumo: [`${r.nF} corridas fatoriais (${r.n} réplica${r.n > 1 ? "s" : ""})`, `${r.nc} ponto(s) central(is)`, r.erro.gl > 0 ? `R² = ${C.num(100 * r.R2, 3)} %` : "sem graus de liberdade para o erro"] };
@@ -193,7 +199,7 @@ export function executar(cfg) {
   let preditores, regiao;
   if (tipo === "fatorial") {
     const rs = respostas.map((resp, k) => fatorial2k(X, Ys[k], { nomes: fatores, alfa, termos: cfg.termos }));
-    rs.forEach((r, k) => secoes.push(secaoFatorial(r, respostas[k])));
+    rs.forEach((r, k) => secoes.push(secaoFatorial(r, respostas[k], un(respostas[k]), unF, niveis)));
     preditores = rs.map(preditorFatorial); regiao = { tipo: "cubo" };
   } else {
     const c = ccd(X, tab.linhas.map((_, i) => Ys.map((y) => y[i])), { nomes: fatores, respostas, alfa, niveis: temNiveis ? niveis : undefined });

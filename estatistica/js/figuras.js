@@ -151,30 +151,41 @@ function figPareto(spec) {
 function paineis(spec, itens, desenho) {
   const k = itens.length, col = Math.min(k, 4), lin = Math.ceil(k / col), hp = 330, { c, ctx } = novaFigura(W, 40 + hp * lin);
   texto(ctx, spec.titulo, W / 2, 18, { alinha: "center", peso: 600, tam: 14 });
-  const vals = itens.flatMap((i) => desenho.vals(i)), yl = faixa(vals, 0.15), alvos = [];
+  // ylimEf: min e max de todas as medias dos graficos de efeitos da resposta (principais e
+  // interacoes), para que todos fiquem na mesma escala; folga pequena so para nao cortar o marcador
+  const vals = itens.flatMap((i) => desenho.vals(i)), yl = faixa(spec.ylimEf || vals, spec.ylimEf ? 0.05 : 0.15), alvos = [];
   itens.forEach((it, i) => {
     const R = { x: (i % col) * (W / col), y: 34 + Math.floor(i / col) * hp, w: W / col, h: hp };
     const T = painel(ctx, R, { titulo: desenho.titulo(it), xlabel: desenho.xlabel(it), ylabel: i % col === 0 ? spec.rotY : "", xlim: [-1.4, 1.4], ylim: yl,
-      xticks: { pos: [-1, 1], rot: ["−1", "+1"] }, series: desenho.series(it), legenda: desenho.legenda?.(it) });
+      xticks: desenho.xticks(it), series: desenho.series(it), legenda: desenho.legenda?.(it) });
     for (const a of desenho.alvos(it)) alvos.push({ x: T.px(a.x), y: T.py(a.y), texto: a.texto });
   });
   ligarDica(c, alvos);
   return c;
 }
+// eixo x dos efeitos: "codificado" (−1/+1) ou "real" (niveis informados na revisao).
+// Fator sem niveis informados fica codificado mesmo no modo real.
+function eixoFator(spec, nome) {
+  const f = spec.fatores?.[nome] || {}, real = spec.eixoX === "real" && f.niv;
+  const nivel = (v) => (real ? num(v < 0 ? f.niv.baixo : f.niv.alto, 4) : v < 0 ? "−1" : "+1");
+  const comUn = (v) => (real && f.un ? `${nivel(v)} ${f.un}` : nivel(v));
+  return { rot: f.rot || nome, ticks: { pos: [-1, 1], rot: [nivel(-1), nivel(1)] }, nivel, comUn };
+}
 function figPrincipais(spec) {
   const c = paineis(spec, spec.itens, {
-    vals: (i) => [i.baixo, i.alto], titulo: (i) => `${i.letra}: ${i.nome}`, xlabel: (i) => `${i.nome} (codificado)`,
+    vals: (i) => [i.baixo, i.alto], titulo: (i) => `${i.letra}: ${i.nome}`, xlabel: (i) => eixoFator(spec, i.nome).rot, xticks: (i) => eixoFator(spec, i.nome).ticks,
     series: (i) => [{ x: [-1, 1], y: [i.baixo, i.alto], cor: PALETA[0], marca: "o", tam: 8, largura: 2 }],
-    alvos: (i) => [{ x: -1, y: i.baixo, texto: `${i.nome} = −1\nmédia = ${num(i.baixo)}` }, { x: 1, y: i.alto, texto: `${i.nome} = +1\nmédia = ${num(i.alto)}` }],
+    alvos: (i) => { const e = eixoFator(spec, i.nome); return [{ x: -1, y: i.baixo, texto: `${i.nome} = ${e.comUn(-1)}\nmédia = ${num(i.baixo)}` }, { x: 1, y: i.alto, texto: `${i.nome} = ${e.comUn(1)}\nmédia = ${num(i.alto)}` }]; },
   });
   return { canvas: c, tabela: { cab: ["Fator", "Média em −1", "Média em +1", "Efeito"], linhas: spec.itens.map((i) => [s(`${i.letra}: ${i.nome}`), n(i.baixo), n(i.alto), n(i.alto - i.baixo)]) } };
 }
 function figInteracoes(spec) {
   const c = paineis(spec, spec.itens, {
-    vals: (i) => [i.mm, i.mp, i.pm, i.pp], titulo: (i) => `${i.rotulo}: ${i.a} × ${i.b}`, xlabel: (i) => `${i.a} (codificado)`, legenda: () => "nw",
-    series: (i) => [{ x: [-1, 1], y: [i.mm, i.pm], cor: PALETA[0], marca: "o", tam: 8, largura: 2, rotulo: `${i.b} = −1` },
-      { x: [-1, 1], y: [i.mp, i.pp], cor: PALETA[1], marca: "s", tam: 8, largura: 2, traco: "--", rotulo: `${i.b} = +1` }],
-    alvos: (i) => [[-1, -1, i.mm], [-1, 1, i.mp], [1, -1, i.pm], [1, 1, i.pp]].map(([a, b, y]) => ({ x: a, y, texto: `${i.a} = ${a < 0 ? "−1" : "+1"}, ${i.b} = ${b < 0 ? "−1" : "+1"}\nmédia = ${num(y)}` })),
+    vals: (i) => [i.mm, i.mp, i.pm, i.pp], titulo: (i) => `${i.rotulo}: ${i.a} × ${i.b}`, xlabel: (i) => eixoFator(spec, i.a).rot, xticks: (i) => eixoFator(spec, i.a).ticks, legenda: () => "nw",
+    series: (i) => { const b = eixoFator(spec, i.b); return [{ x: [-1, 1], y: [i.mm, i.pm], cor: PALETA[0], marca: "o", tam: 8, largura: 2, rotulo: `${i.b} = ${b.comUn(-1)}` },
+      { x: [-1, 1], y: [i.mp, i.pp], cor: PALETA[1], marca: "s", tam: 8, largura: 2, traco: "--", rotulo: `${i.b} = ${b.comUn(1)}` }]; },
+    alvos: (i) => { const a = eixoFator(spec, i.a), b = eixoFator(spec, i.b);
+      return [[-1, -1, i.mm], [-1, 1, i.mp], [1, -1, i.pm], [1, 1, i.pp]].map(([x, z, y]) => ({ x, y, texto: `${i.a} = ${a.comUn(x)}, ${i.b} = ${b.comUn(z)}\nmédia = ${num(y)}` })); },
   });
   return { canvas: c, tabela: { cab: ["Interação", "(−,−)", "(−,+)", "(+,−)", "(+,+)"], linhas: spec.itens.map((i) => [s(`${i.a} × ${i.b}`), n(i.mm), n(i.mp), n(i.pm), n(i.pp)]) } };
 }

@@ -49,3 +49,12 @@ details.colar summary, details.gerar summary { cursor: pointer; font-weight: 600
 #secDados .acoes { align-items: flex-end; }
 #secDados .acoes label.lin { margin: 0; flex: 1 1 260px; min-width: 0; }
 #selExemplo { width: 100%; min-height: 36px; padding: 4px 6px; }
+
+/* botao do eixo x dos graficos de efeitos (codificado / niveis reais) */
+.eixo-efeitos { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin: 1.2em 0 .4em; }
+.eixo-efeitos .alterna { display: inline-flex; }
+.eixo-efeitos .alterna button { border-radius: 0; }
+.eixo-efeitos .alterna button:first-child { border-radius: 6px 0 0 6px; }
+.eixo-efeitos .alterna button:last-child { border-radius: 0 6px 6px 0; margin-left: -1px; }
+.eixo-efeitos .alterna button[aria-pressed="true"] { background: var(--acento); color: var(--acento-t); border-color: var(--acento); }
+.eixo-efeitos .nota { margin: 0; }
