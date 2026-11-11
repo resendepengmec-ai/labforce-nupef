@@ -203,7 +203,16 @@ export function executar(cfg) {
   const unF = fatores.map(un);
   let preditores, regiao;
   if (tipo === "fatorial") {
-    const rs = respostas.map((resp, k) => fatorial2k(X, Ys[k], { nomes: fatores, alfa, termos: cfg.termos }));
+    // aponta a coluna, o valor original e os niveis usados quando um ponto nao cai em −1, 0 ou +1
+    X.forEach((x, i) => {
+      if (x.every((v) => v === 0) || x.every((v) => v === -1 || v === 1)) return;
+      const j = x.findIndex((v) => v !== -1 && v !== 1 && !(v === 0 && x.every((z) => z === 0)));
+      const nv = niveis[j], val = C.num(Xr[j][i], 6), orig = `a linha ${i + 1} tem ${fatores[j]} = ${val}`;
+      throw new Error(nv && Number.isFinite(nv.baixo)
+        ? `${orig}, que não é o nível −1 (${C.num(nv.baixo, 6)}) nem o +1 (${C.num(nv.alto, 6)}) informados na revisão. Confira os níveis dessa coluna (o fatorial só aceita os dois níveis e o ponto central).`
+        : `${orig}, fora de −1, 0 e +1. Se a coluna está em unidades reais, informe os níveis −1 e +1 dela na revisão.`);
+    });
+    const rs =respostas.map((resp, k) => fatorial2k(X, Ys[k], { nomes: fatores, alfa, termos: cfg.termos }));
     rs.forEach((r, k) => secoes.push(secaoFatorial(r, respostas[k], un(respostas[k]), unF, niveis)));
     preditores = rs.map(preditorFatorial); regiao = { tipo: "cubo" };
   } else {
