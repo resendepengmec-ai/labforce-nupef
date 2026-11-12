@@ -8,11 +8,11 @@ const logoN = new Image(); logoN.src = "../../assets/logo-nupef.webp";   // 200 
 let CUES = [];   // legendas = texto da narracao (narracao.tsv)
 const C = {
   fundo: "#0f1722", fundo2: "#16212f", tinta: "#eef3f6", cinza: "#9fb0bd", linha: "#2a3a4b",
-  forca: "#4fb3a5", elet: "#5aa5f0", ifg: "#3f9e3c", verm: "#e0453a",
+  forca: "#4fb3a5", elet: "#5aa5f0", estat: "#a993f0", ifg: "#3f9e3c", verm: "#e0453a",
   s1: "#3b74e0", s2: "#1f9e8a", s3: "#d26a00",       // paleta validada (CVD) para 3 series
 };
 const F = "Inter, 'DejaVu Sans', sans-serif";
-export const DURACAO = 76;
+export const DURACAO = 100;
 
 // ---- utilitarios ------------------------------------------------------
 const cl = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
@@ -333,26 +333,146 @@ function cenaEletrica(t) {                // 37 - 65 s
   ctx.restore();
 }
 
-function cenaFluxo(t) {                   // 65 - 76 s
-  const a = fade(t, 65, 77, 0.6); if (a <= 0) return;
+function cenaEstatistica(t) {             // 65 - 85 s: planejamento de experimentos (composto central)
+  const a = fade(t, 65, 85.2, 0.6); if (a <= 0) return;
+  const d = D.estatistica, MOD = "PLANEJAMENTO DE EXPERIMENTOS";
+  const f = (u, v) => d.b[0] + d.b[1] * u + d.b[2] * v + d.b[3] * u * u + d.b[4] * v * v + d.b[5] * u * v;
   ctx.save(); ctx.globalAlpha = a;
-  texto("O mesmo fluxo nos dois módulos", W / 2, 190, { tam: 64, peso: 700, al: "center" });
+  // (1) matriz do experimento: 65 - 71
+  const m = fade(t, 65, 71.1, 0.5);
+  if (m > 0) {
+    rotulo(MOD, C.estat, "Matriz do experimento", m);
+    ctx.save(); ctx.globalAlpha *= m;
+    const x0 = 150, y0 = 236, lh = 44, col = [0, 150, 400, 650], cab = ["ensaio", ...d.fatores, d.resposta];
+    rr(x0, y0, 900, lh * 14 + 16, 18); ctx.fillStyle = C.fundo2; ctx.fill(); ctx.strokeStyle = C.linha; ctx.lineWidth = 2; ctx.stroke();
+    cab.forEach((c, j) => texto(c, x0 + 40 + col[j], y0 + 38, { tam: 28, peso: 700, cor: j === 3 ? C.estat : C.cinza }));
+    d.X.forEach((x, i) => {
+      const q = prog(t, 65.5 + i * 0.22, 66 + i * 0.22), y = y0 + 38 + lh * (i + 1);
+      [String(i + 1), virg(x[0], 3), virg(x[1], 3), virg(d.y[i], 1)].forEach((s, j) => texto(s, x0 + 40 + col[j], y, { tam: 28, alfa: q, peso: j === 3 ? 600 : 400 }));
+    });
+    texto("Abra o CSV, cole os dados", 1150, 300, { tam: 40, peso: 600, alfa: prog(t, 66, 66.8) });
+    texto("ou gere a matriz no módulo", 1150, 352, { tam: 40, peso: 600, alfa: prog(t, 66, 66.8) });
+    ["ANOVA de um fator", "MANOVA", "Fatorial 2ᵏ", "Composto central"].forEach((s, i) => chip(1150, 430 + i * 76, s, i === 3 ? C.estat : C.cinza, prog(t, 67 + i * 0.4, 67.6 + i * 0.4)));
+    texto("fatores codificados (−1 / +1) ou nos níveis reais", 1150, 790, { tam: 28, cor: C.cinza, alfa: prog(t, 69, 69.8) });
+    ctx.restore();
+  }
+  // (2) efeitos significativos: 71 - 77.5
+  const e = fade(t, 71, 77.6, 0.5);
+  if (e > 0) {
+    rotulo(MOD, C.estat, "O que é significativo", e);
+    ctx.save(); ctx.globalAlpha *= e;
+    const it = [...d.termos].sort((p, q) => q.t - p.t), x0 = 420, y0 = 290, bh = 92, wmax = 900, vmax = Math.max(...it.map((i) => i.t)) * 1.1, pb = prog(t, 71.5, 73.4);
+    const nome = (r) => r.replace("T", d.fatores[0]).replace("P", d.fatores[1]);
+    texto("Termos do modelo quadrático · |t| de cada coeficiente", 150, 250, { tam: 32, cor: C.cinza });
+    it.forEach((i, k) => {
+      const y = y0 + k * bh, w = Math.max(8, wmax * i.t / vmax * pb);
+      texto(i.rot, x0 - 30, y + 52, { tam: 36, peso: 700, al: "right" });
+      rr(x0, y + 14, w, 56, 6); ctx.fillStyle = i.sig ? C.estat : C.linha; ctx.fill();
+      texto(virg(i.t * pb, 1), x0 + w + 18, y + 54, { tam: 32, peso: 700 });
+      if (!i.sig) texto("não significativo", x0 + w + 110, y + 54, { tam: 28, cor: C.cinza, alfa: prog(t, 73.6, 74.2) });
+    });
+    const xc = x0 + wmax * d.tcrit / vmax, pc = prog(t, 73.4, 74);
+    ctx.save(); ctx.globalAlpha *= pc; ctx.strokeStyle = C.tinta; ctx.lineWidth = 3; ctx.setLineDash([12, 9]);
+    ctx.beginPath(); ctx.moveTo(xc, y0); ctx.lineTo(xc, y0 + bh * it.length + 10); ctx.stroke(); ctx.restore();
+    texto(`t crítico = ${virg(d.tcrit, 2)} (α = 0,05)`, xc + 14, y0 + bh * it.length + 44, { tam: 28, cor: C.tinta, alfa: pc });
+    texto(`T = ${d.fatores[0]} · P = ${d.fatores[1]}`, 150, y0 + bh * it.length + 44, { tam: 26, cor: C.cinza });
+    cartao(1450, 300, 360, 200, "R² do modelo", virg(100 * d.R2, 1), "%", C.estat, prog(t, 74.4, 75), `ajustado ${virg(100 * d.R2aj, 1)} %`);
+    ctx.restore();
+  }
+  // (3) superficie de resposta em 3D e melhor condicao: 77.5 - 85
+  const s = fade(t, 77.5, 85.2, 0.5);
+  if (s > 0) {
+    rotulo(MOD, C.estat, "Superfície de resposta", s);
+    ctx.save(); ctx.globalAlpha *= s;
+    const r = d.raio, M = 34, ZA = 0.6, az = (20 + 50 * prog(t, 77.6, 84.6)) * Math.PI / 180, el = 27 * Math.PI / 180, S = 300, cx = 640, cy = 580;
+    const ca = Math.cos(az), sa = Math.sin(az), ce = Math.cos(el), se = Math.sin(el);
+    const Z = []; let lo = Infinity, hi = -Infinity, melhor = null;
+    for (let i = 0; i <= M; i++) for (let j = 0; j <= M; j++) {
+      const u = -r + 2 * r * i / M, v = -r + 2 * r * j / M, z = f(u, v); Z.push(z); if (z < lo) lo = z; if (z > hi) hi = z;
+    }
+    for (let k = 0; k <= 720; k++) { const g = k / 720 * 2 * Math.PI, u = r * Math.cos(g), v = r * Math.sin(g), z = f(u, v); if (!melhor || z > melhor.z) melhor = { u, v, z }; }   // maximo na borda da regiao (o estacionario fica fora)
+    if (d.estac.dentro && d.estac.tipo === "máximo") melhor = { u: d.estac.xs[0], v: d.estac.xs[1], z: d.estac.ys };
+    const zn = (z) => (-1 + 2 * (0.35 + 0.65 * (z - lo) / (hi - lo))) * ZA;
+    const P = (x, y, z) => { const xr = x * ca - y * sa, yr = x * sa + y * ca; return [cx + S * xr, cy - S * (z * ce + yr * se)]; };
+    const lin = (p, q) => { ctx.beginPath(); ctx.moveTo(p[0], p[1]); ctx.lineTo(q[0], q[1]); ctx.stroke(); };
+    // piso, grade e regiao ensaiada
+    ctx.beginPath(); [[-1, -1], [1, -1], [1, 1], [-1, 1]].forEach(([x, y], i) => { const p = P(x, y, -ZA); i ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1]); }); ctx.closePath();
+    ctx.fillStyle = C.fundo2; ctx.fill(); ctx.strokeStyle = C.linha; ctx.lineWidth = 2; ctx.stroke();
+    for (const g of [-1, 0, 1]) { lin(P(g / r, -1, -ZA), P(g / r, 1, -ZA)); lin(P(-1, g / r, -ZA), P(1, g / r, -ZA)); }
+    ctx.strokeStyle = C.cinza; ctx.setLineDash([10, 8]); ctx.beginPath();
+    for (let k = 0; k <= 72; k++) { const g = k / 72 * 2 * Math.PI, p = P(Math.cos(g) / 1.0, Math.sin(g) / 1.0, -ZA); k ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1]); }
+    ctx.stroke(); ctx.setLineDash([]);
+    for (const x of d.X) { const p = P(x[0] / r, x[1] / r, -ZA); ctx.beginPath(); ctx.arc(p[0], p[1], 6, 0, 7); ctx.fillStyle = C.tinta; ctx.fill(); }
+    // superficie: faces de tras para a frente; cor = resposta prevista (um so matiz, claro = maior)
+    const pg = prog(t, 77.8, 79.6), faces = [];
+    for (let i = 0; i < M; i++) for (let j = 0; j < M; j++) {
+      const zs = [Z[i * (M + 1) + j], Z[(i + 1) * (M + 1) + j], Z[(i + 1) * (M + 1) + j + 1], Z[i * (M + 1) + j + 1]];
+      const xy = [[i, j], [i + 1, j], [i + 1, j + 1], [i, j + 1]].map(([p, q]) => [-1 + 2 * p / M, -1 + 2 * q / M]);
+      faces.push({ prof: (xy[0][0] + 1 / M) * sa + (xy[0][1] + 1 / M) * ca, q: xy.map(([x, y], k) => P(x, y, -ZA + (zn(zs[k]) + ZA) * pg)), u: ((zs[0] + zs[2]) / 2 - lo) / (hi - lo) });
+    }
+    faces.sort((p, q) => q.prof - p.prof);
+    for (const fc of faces) {
+      const k = fc.u, cor = [0x1d + (0xcd - 0x1d) * k, 0x3f + (0xe2 - 0x3f) * k, 0x78 + (0xfb - 0x78) * k].map(Math.round);
+      ctx.beginPath(); fc.q.forEach((p, i) => (i ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1]))); ctx.closePath();
+      ctx.fillStyle = `rgb(${cor.join(",")})`; ctx.fill(); ctx.strokeStyle = "rgba(15,23,34,.35)"; ctx.lineWidth = 1; ctx.stroke();
+    }
+    // melhor condicao: haste do piso ate a superficie
+    const pm = prog(t, 80.2, 81);
+    if (pm > 0) {
+      const p0 = P(melhor.u / r, melhor.v / r, -ZA), p1 = P(melhor.u / r, melhor.v / r, zn(melhor.z));
+      ctx.save(); ctx.globalAlpha *= pm; ctx.strokeStyle = C.s3; ctx.lineWidth = 4; ctx.setLineDash([8, 6]); lin(p0, p1); ctx.setLineDash([]);
+      ctx.fillStyle = C.s3; ctx.strokeStyle = "#fff"; ctx.lineWidth = 3; ctx.beginPath();
+      ctx.moveTo(p1[0], p1[1] - 18); ctx.lineTo(p1[0] + 18, p1[1]); ctx.lineTo(p1[0], p1[1] + 18); ctx.lineTo(p1[0] - 18, p1[1]); ctx.closePath(); ctx.fill(); ctx.stroke(); ctx.restore();
+    }
+    const ex = P(0, -1.16 * (ca >= 0 ? 1 : -1), -ZA), ey = P(-1.16 * (sa >= 0 ? 1 : -1), 0, -ZA);
+    texto(d.fatores[0], ex[0], ex[1] + 34, { tam: 28, cor: C.cinza, al: "center" }); texto(d.fatores[1], ey[0], ey[1] + 34, { tam: 28, cor: C.cinza, al: "center" });
+    // cartoes da direita
+    texto("Melhor condição na região ensaiada", 1230, 270, { tam: 32, cor: C.cinza, alfa: pm });
+    cartao(1230, 300, 560, 200, `${d.resposta} prevista`, virg(melhor.z * cl((t - 80.4) / 1), 1), "", C.s3, pm);
+    cartao(1230, 530, 270, 170, d.fatores[0], virg(melhor.u, 2), "", C.estat, prog(t, 81, 81.6), "codificado");
+    cartao(1520, 530, 270, 170, d.fatores[1], virg(melhor.v, 2), "", C.estat, prog(t, 81.4, 82), "codificado");
+    chip(1230, 740, `ponto estacionário: ${d.estac.tipo}${d.estac.dentro ? "" : ", fora da região"}`, C.estat, prog(t, 82.2, 82.8));
+    texto("no módulo: gráfico giratório, conclusões em texto", 1230, 846, { tam: 26, cor: C.cinza, alfa: prog(t, 82.8, 83.4) });
+    texto("e otimização de várias respostas", 1230, 882, { tam: 26, cor: C.cinza, alfa: prog(t, 82.8, 83.4) });
+    ctx.restore();
+  }
+  ctx.restore();
+}
+
+function cenaFluxo(t) {                   // 85 - 100 s
+  const a = fade(t, 85, 101, 0.6); if (a <= 0) return;
+  ctx.save(); ctx.globalAlpha = a;
+  texto("O mesmo fluxo em todos os módulos", W / 2, 190, { tam: 64, peso: 700, al: "center" });
   const passos = ["Montagem ou ligação", "Configuração", "Arquivos", "Faixas", "Resultados"];
   const x0 = 250, dx = 355, y = 400;
-  ctx.strokeStyle = C.linha; ctx.lineWidth = 6; ctx.beginPath(); ctx.moveTo(x0, y); ctx.lineTo(x0 + dx * 4 * prog(t, 65.4, 67.4), y); ctx.stroke();
+  ctx.strokeStyle = C.linha; ctx.lineWidth = 6; ctx.beginPath(); ctx.moveTo(x0, y); ctx.lineTo(x0 + dx * 4 * prog(t, 85.4, 87.4), y); ctx.stroke();
   passos.forEach((p, i) => {
-    const q = prog(t, 65.6 + i * 0.35, 66.2 + i * 0.35), x = x0 + i * dx;
+    const q = prog(t, 85.6 + i * 0.35, 86.2 + i * 0.35), x = x0 + i * dx;
     ctx.save(); ctx.globalAlpha *= q;
     ctx.beginPath(); ctx.arc(x, y, 46, 0, 7); ctx.fillStyle = i === 4 ? C.forca : C.fundo2; ctx.fill(); ctx.strokeStyle = i < 2 ? C.elet : C.forca; ctx.lineWidth = 5; ctx.stroke();
     texto(String(i + 1), x, y + 2, { tam: 44, peso: 800, al: "center", base: "middle" });
     texto(p, x, y + 100, { tam: 32, peso: 600, al: "center" }); ctx.restore();
   });
-  const b = prog(t, 68, 69);
+  const b = prog(t, 88, 89) * (1 - prog(t, 92.8, 93.4));
   ctx.save(); ctx.globalAlpha *= b;
   texto("Resultados gravados na sua pasta: CSV · PNG · relatório", W / 2, 640, { tam: 40, al: "center" });
   texto("Nenhum dado de ensaio sai do computador · manual técnico em cada módulo", W / 2, 700, { tam: 34, cor: C.cinza, al: "center" });
   ctx.restore();
-  const c = prog(t, 69.6, 70.8);
+  // modulos disponiveis e aviso de novos modulos: 93.4 em diante
+  const n = prog(t, 93.4, 94.2);
+  if (n > 0) {
+    ctx.save(); ctx.globalAlpha *= n; ctx.font = `700 30px ${F}`;
+    const mods = [["Forças de usinagem", C.forca], ["Grandezas elétricas", C.elet], ["Planejamento de experimentos", C.estat]];
+    const larg = mods.map(([s]) => ctx.measureText(s).width + 44), tot = larg.reduce((p, q) => p + q, 0) + 24 * 2;
+    let x = W / 2 - tot / 2;
+    mods.forEach(([s, cor], i) => { chip(x, 590, s, cor, a * n * prog(t, 93.4 + i * 0.25, 94 + i * 0.25)); x += larg[i] + 24; });
+    const q = prog(t, 94.6, 95.4), txt = "Outros módulos em desenvolvimento", w = (ctx.font = `700 34px ${F}`, ctx.measureText(txt).width + 150);
+    ctx.globalAlpha = a * q; ctx.setLineDash([12, 9]); rr(W / 2 - w / 2, 672, w, 68, 34); ctx.strokeStyle = C.cinza; ctx.lineWidth = 3; ctx.stroke(); ctx.setLineDash([]);
+    texto("+", W / 2 - w / 2 + 40, 718, { tam: 40, peso: 700, cor: C.cinza });
+    texto(txt, W / 2 + 26, 718, { tam: 34, peso: 700, al: "center" });
+    ctx.restore();
+  }
+  const c = prog(t, 89.6, 90.8);
   ctx.save(); ctx.globalAlpha *= c;
   rr(W / 2 - 560, 780, 1120, 120, 60); ctx.fillStyle = C.fundo2; ctx.fill(); ctx.strokeStyle = C.forca; ctx.lineWidth = 3; ctx.stroke();
   texto("resendepengmec-ai.github.io/labforce-nupef", W / 2, 856, { tam: 46, peso: 700, al: "center", cor: C.forca });
@@ -370,12 +490,13 @@ export function desenhar(t) {
   ctx.fillStyle = C.fundo; ctx.fillRect(0, 0, W, H);
   // barra de progresso discreta
   ctx.fillStyle = C.linha; ctx.fillRect(0, H - 8, W, 8);
-  ctx.fillStyle = t < 37 ? C.forca : t < 65 ? C.elet : C.forca; ctx.fillRect(0, H - 8, W * t / DURACAO, 8);
+  ctx.fillStyle = t < 37 ? C.forca : t < 65 ? C.elet : t < 85 ? C.estat : C.forca; ctx.fillRect(0, H - 8, W * t / DURACAO, 8);
   if (t < 6.4) cenaAbertura(t);
   if (t > 5.8 && t < 11.4) cenaDois(t);
   if (t > 10.8 && t < 37.4) cenaForcas(t);
   if (t > 36.8 && t < 65.4) cenaEletrica(t);
-  if (t > 64.8) cenaFluxo(t);
+  if (t > 64.8 && t < 85.4) cenaEstatistica(t);
+  if (t > 84.8) cenaFluxo(t);
   legendaNarracao(t);
 }
 window.desenhar = desenhar; window.DURACAO = DURACAO;

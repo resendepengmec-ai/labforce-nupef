@@ -3,7 +3,7 @@
 //   node ferramentas/video/legendas.mjs [duracao_do_video_s]
 import { readFileSync, writeFileSync } from "node:fs";
 const dir = new URL(".", import.meta.url);
-const fim = Number(process.argv[2] || 76);
+const fim = Number(process.argv[2] || 100);
 const linhas = readFileSync(new URL("narracao.tsv", dir), "utf8").trim().split(/\r?\n/).slice(1)
   .map((l) => { const [ini, txt] = l.split("\t"); return { ini: Number(ini), txt: txt.trim() }; });
 const hms = (s) => { const ms = Math.round(s * 1000), h = Math.floor(ms / 3600000), m = Math.floor(ms / 60000) % 60, ss = (ms / 1000) % 60;

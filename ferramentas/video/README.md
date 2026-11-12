@@ -2,9 +2,9 @@
 
 Animação em canvas, desenhada quadro a quadro com os dados reais dos módulos.
 
-1. `node ferramentas/video/dados.mjs`: gera `dados.js` a partir de `forcas/samples/torneamento_sintetico.txt` e `eletrica/testes/dados/E1R1.txt`. O E1R1 não está no repositório público.
+1. `node ferramentas/video/dados.mjs`: gera `dados.js` a partir de `forcas/samples/torneamento_sintetico.txt`, `eletrica/testes/dados/E1R1.txt` e `estatistica/exemplos/exemplo_ccd.csv`. O E1R1 não está no repositório público.
 2. Sirva a raiz do repositório (`python -m http.server 8770`) e ajuste a URL em `render.cjs` para `http://localhost:8770/ferramentas/video/`.
-3. `node render.cjs`: grava 2280 quadros JPEG (Playwright).
+3. `node render.cjs`: grava 3000 quadros JPEG (Playwright).
 4. `ffmpeg -framerate 30 -i quadros/q%05d.jpg -c:v libx264 -preset veryfast -crf 20 -pix_fmt yuv420p -movflags +faststart apresentacao.mp4`
 
 Paleta das séries validada para daltonismo (skill de visualização de dados): `#3b74e0`, `#1f9e8a` e `#d26a00` sobre `#0f1722`.
@@ -21,7 +21,7 @@ As legendas do vídeo são o próprio texto da narração: `anim.js` lê `narrac
 |---|---|---|
 | edge-tts (padrão, vozes neurais, precisa de internet) | `pip install edge-tts` | `python ferramentas/video/narrar.py` |
 | Piper (offline, código aberto) | `pip install piper-tts` e `python -m piper.download_voices pt_BR-faber-medium` | `python ferramentas/video/narrar.py --motor piper --modelo pt_BR-faber-medium.onnx` |
-| Sua voz | grave `ferramentas/video/narracao/trecho_00.mp3` … `trecho_12.mp3`, uma frase por arquivo | `python ferramentas/video/narrar.py --motor gravacao` |
+| Sua voz | grave `ferramentas/video/narracao/trecho_00.mp3` … `trecho_16.mp3`, uma frase por arquivo | `python ferramentas/video/narrar.py --motor gravacao` |
 
 Vozes do edge-tts: `pt-BR-FranciscaNeural` (padrão), `pt-BR-AntonioNeural`, `pt-BR-ThalitaNeural`; troque com `--voz` e ajuste o ritmo com `--velocidade +5%`. O edge-tts usa o serviço de leitura em voz alta do Edge de forma não oficial: é gratuito, mas sem garantia de continuidade.
 

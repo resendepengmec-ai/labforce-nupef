@@ -9,7 +9,7 @@ Motores (escolha com --motor):
             pip install edge-tts
   piper     sintese offline, codigo aberto (MIT)
             pip install piper-tts  &&  python -m piper.download_voices pt_BR-faber-medium
-  gravacao  sua propria voz: grave narracao/trecho_00.(mp3|wav|m4a) ... trecho_12
+  gravacao  sua propria voz: grave narracao/trecho_00.(mp3|wav|m4a) ... trecho_16
 
 Requisito em todos: ffmpeg e ffprobe no PATH.
 

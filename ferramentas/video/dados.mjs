@@ -23,6 +23,15 @@ const eletrica = { fs, regra: ee.regra, N: ee.N, dur: (ee.N - 1) / fs, P: ds(ee.
   grupos: q.hmin.slice(0, 8), Ih: q.Ih.slice(0, 8).map((r) => Math.max(...r)), limMin: q.limImin.slice(0, 8), limMax: q.limImax.slice(0, 8),
   Vh: q.Vh.slice(0, 8).map((r) => Math.max(...r)), limV: q.multV * q.limVh, TDD: q.TDD, THDv: q.THDv, statusV: q.statusV, statusI: q.statusI,
   Se: r1.r59.tot.Se, PF: r1.r59.tot.PF, In: r1.r59.tot.In, S1p: r1.r59.tot.S1p, FDi: r1.r59.tot.FDi };
+// planejamento de experimentos: composto central do exemplo do modulo (conversao x temperatura e pressao)
+const { ccd } = await import(R("estatistica/js/ccd.js")), { qt } = await import(R("estatistica/js/distribuicoes.js"));
+const csv = readFileSync(R("estatistica/exemplos/exemplo_ccd.csv"), "utf8").trim().split(/\r?\n/).map((l) => l.split(","));
+const Xc = csv.slice(1).map((l) => [+l[0], +l[1]]), yc = csv.slice(1).map((l) => [+l[2]]);
+const cc = ccd(Xc, yc, { nomes: ["T", "P"], respostas: ["conversao"] }), rc = cc.respostas[0], ec = rc.estacionario;
+const estatistica = { fatores: csv[0].slice(0, 2), resposta: csv[0][2], X: Xc, y: yc.map((v) => v[0]), raio: cc.alfaAxial,
+  b: rc.coefs.map((k) => k.coef),      // b0, T, P, T², P², T·P
+  termos: rc.coefs.slice(1).map((k) => ({ rot: k.rotulo, t: Math.abs(k.t), sig: k.signif })), tcrit: qt(0.975, cc.N - cc.p),
+  R2: rc.R2, R2aj: rc.R2aj, estac: { tipo: ec.tipo, xs: ec.xs, ys: ec.ys, dentro: ec.dentro } };
 // ao lado deste script (ignorado no git), qualquer que seja a pasta de onde ele foi rodado
-writeFileSync(new URL("dados.js", import.meta.url), "window.DADOS = " + JSON.stringify({ forcas, eletrica }) + ";\n");
-console.log(JSON.stringify({ fz: forcas.est.fz.media, teo: forcas.teo.Fc, dif: forcas.teo.dif, fdom: forcas.est.fz.fdom, Pt: eletrica.Pt, FP: eletrica.FP, st: [eletrica.statusV, eletrica.statusI], TDD: eletrica.TDD, grupos: eletrica.grupos, Se: eletrica.Se, PF: eletrica.PF, In: eletrica.In }));
+writeFileSync(new URL("dados.js", import.meta.url), "window.DADOS = " + JSON.stringify({ forcas, eletrica, estatistica }) + ";\n");
+console.log(JSON.stringify({ fz: forcas.est.fz.media, teo: forcas.teo.Fc, dif: forcas.teo.dif, fdom: forcas.est.fz.fdom, Pt: eletrica.Pt, FP: eletrica.FP, st: [eletrica.statusV, eletrica.statusI], TDD: eletrica.TDD, grupos: eletrica.grupos, Se: eletrica.Se, PF: eletrica.PF, In: eletrica.In, ccd: { termos: estatistica.termos, tcrit: estatistica.tcrit, R2: estatistica.R2, estac: estatistica.estac } }));

@@ -46,9 +46,25 @@ Potências, fator de potência e frequência de cada faixa.
 Harmônicos com a IEEE 519 e potências da IEEE 1459.
 
 12
-00:01:05.300 --> 00:01:08.400
-O mesmo fluxo nos dois módulos.
+00:01:05.300 --> 00:01:11.100
+Planejamento de experimentos: abra os dados ou gere a matriz.
 
 13
-00:01:08.600 --> 00:01:15.700
+00:01:11.300 --> 00:01:17.600
+A análise mostra quais efeitos são significativos.
+
+14
+00:01:17.800 --> 00:01:25.100
+A superfície de resposta indica a melhor condição na região ensaiada.
+
+15
+00:01:25.300 --> 00:01:28.400
+O mesmo fluxo em todos os módulos.
+
+16
+00:01:28.600 --> 00:01:33.400
 Os resultados ficam na sua pasta; nada sai do computador.
+
+17
+00:01:33.600 --> 00:01:39.700
+Outros módulos estão em desenvolvimento.
