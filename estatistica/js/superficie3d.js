@@ -8,7 +8,7 @@
 // arrasto, botoes ou setas do teclado, vista padrao e escolha do par de fatores.
 import { ticksLineares, fmtTick } from "../../comum/js/graficos.js";
 import { num } from "./conclusoes.js";
-import { figura, fatia, grade, isolinha, rampa, coresFaixas, escalaCores, desenharFigura, ligarDica, texto, PALETA, TINTA, NIV } from "./figuras.js";
+import { figura, valorEixo, fatia, grade, isolinha, rampa, coresFaixas, escalaCores, desenharFigura, ligarDica, texto, PALETA, TINTA, NIV } from "./figuras.js";
 
 const W = 1000, H = 680, M = 44, ZA = 0.62;          // malha M x M; meia altura do eixo z
 const VISTA = { az: 35, el: 28 }, EL_MIN = 8, EL_MAX = 85;
@@ -32,17 +32,14 @@ export function desenhar3D(ctx, spec, vista) {
 
   // ---- caixa: piso e as duas paredes do fundo, com grade ----
   const xw = sa >= 0 ? 1 : -1, yw = ca >= 0 ? 1 : -1;         // paredes mais distantes: x = xw e y = yw
-  const tx = ticksLineares(-r, r, 5), tz = ticksLineares(lo, hi, 5);
-  const txv = tx.t.filter((v) => Math.abs(v) <= r * 1.0001), tzv = tz.t.filter((v) => v >= lo - 1e-9 * (hi - lo) && v <= hi + 1e-9 * (hi - lo));
+  const tz = ticksLineares(lo, hi, 5);
+  const tzv = tz.t.filter((v) => v >= lo - 1e-9 * (hi - lo) && v <= hi + 1e-9 * (hi - lo));
   poli([P(-1, -1, -ZA), P(1, -1, -ZA), P(1, 1, -ZA), P(-1, 1, -ZA)], PISO);
   poli([P(xw, -1, -ZA), P(xw, 1, -ZA), P(xw, 1, ZA), P(xw, -1, ZA)], PAREDE);
   poli([P(-1, yw, -ZA), P(1, yw, -ZA), P(1, yw, ZA), P(-1, yw, ZA)], PAREDE);
   ctx.strokeStyle = GRADE; ctx.lineWidth = 1;
-  for (const v of txv) {
-    const t = v / r;
-    linha(P(t, -1, -ZA), P(t, 1, -ZA)); linha(P(-1, t, -ZA), P(1, t, -ZA));     // piso
-    linha(P(t, yw, -ZA), P(t, yw, ZA)); linha(P(xw, t, -ZA), P(xw, t, ZA));     // paredes
-  }
+  for (const k of F.ex.ticks) { const t = k.pos / r; linha(P(t, -1, -ZA), P(t, 1, -ZA)); linha(P(t, yw, -ZA), P(t, yw, ZA)); }     // piso e parede
+  for (const k of F.ey.ticks) { const t = k.pos / r; linha(P(-1, t, -ZA), P(1, t, -ZA)); linha(P(xw, t, -ZA), P(xw, t, ZA)); }
   for (const v of tzv) { const z = zn(v); linha(P(xw, -1, z), P(xw, 1, z)); linha(P(-1, yw, z), P(1, yw, z)); }
   ctx.strokeStyle = "#8b9590";
   for (const [a, b] of [[P(-1, -1, -ZA), P(1, -1, -ZA)], [P(1, -1, -ZA), P(1, 1, -ZA)], [P(1, 1, -ZA), P(-1, 1, -ZA)], [P(-1, 1, -ZA), P(-1, -1, -ZA)],
@@ -107,18 +104,16 @@ export function desenhar3D(ctx, spec, vista) {
   // ---- eixos: marcas e rotulos nas arestas da frente; eixo z na aresta lateral esquerda ----
   const fora = (p, q, d) => { const n = Math.hypot(p[0] - q[0], p[1] - q[1]) || 1; return [p[0] + (p[0] - q[0]) / n * d, p[1] + (p[1] - q[1]) / n * d]; };
   ctx.strokeStyle = "#8b9590"; ctx.lineWidth = 1;
-  for (const v of txv) {
-    const t = v / r, rot = fmtTick(v, tx.passo);
-    let p = P(t, -yw, -ZA), q = P(t, 0, -ZA), e = fora(p, q, 6); linha(p, e); e = fora(p, q, 18); texto(ctx, rot, e[0], e[1], { alinha: "center", tam: 12 });
-    p = P(-xw, t, -ZA); q = P(0, t, -ZA); e = fora(p, q, 6); linha(p, e); e = fora(p, q, 18); texto(ctx, rot, e[0], e[1], { alinha: "center", tam: 12 });
-  }
+  const marca = (p, q, rot) => { let e = fora(p, q, 6); linha(p, e); e = fora(p, q, 18); texto(ctx, rot, e[0], e[1], { alinha: "center", tam: 12 }); };
+  for (const k of F.ex.ticks) marca(P(k.pos / r, -yw, -ZA), P(k.pos / r, 0, -ZA), k.rot);
+  for (const k of F.ey.ticks) marca(P(-xw, k.pos / r, -ZA), P(0, k.pos / r, -ZA), k.rot);
   // titulo do eixo: para fora da aresta, alinhado pelo lado de fora para nao cair sobre as marcas
   const titulo = (p, q, rot) => {
     const e = fora(p, q, 38), dx = (p[0] - q[0]) / (Math.hypot(p[0] - q[0], p[1] - q[1]) || 1);
     texto(ctx, rot, e[0], e[1] + (Math.abs(dx) > 0.3 ? 0 : 6), { alinha: dx > 0.3 ? "left" : dx < -0.3 ? "right" : "center" });
   };
-  titulo(P(0, -yw, -ZA), P(0, 0, -ZA), `${F.rotX} (codificado)`);
-  titulo(P(-xw, 0, -ZA), P(0, 0, -ZA), `${F.rotY} (codificado)`);
+  titulo(P(0, -yw, -ZA), P(0, 0, -ZA), F.ex.rot);
+  titulo(P(-xw, 0, -ZA), P(0, 0, -ZA), F.ey.rot);
   const cz = [[xw, -yw], [-xw, yw]].sort((a, b) => P(a[0], a[1], 0)[0] - P(b[0], b[1], 0)[0])[0];
   // vista quase de cima: o eixo z encurta; pula rotulos para nao empilhar
   const salto = Math.max(1, Math.ceil(14 / ((zn(tz.passo) - zn(0)) * S * ce || 1e-9)));
@@ -173,9 +168,10 @@ export function blocoSuperficie(spec, op = {}) {
     if (!a) for (const p of cena.alvos) { const dd = Math.hypot(p.x - x, p.y - y); if (dd < d) { d = dd; a = p; } }
     if (!a) return null;
     const F = cena.F;
-    if (a.obs) return `ensaio: ${F.rotX} = ${num(a.obs.x, 3)}, ${F.rotY} = ${num(a.obs.y, 3)}\nobservado = ${num(a.obs.z)}\nprevisto = ${num(a.zs)}`;
-    if (a.est) return `ponto estacionário (${a.est.rotulo})\n${F.rotX} = ${num(a.est.x, 3)}, ${F.rotY} = ${num(a.est.y, 3)}\nprevisto = ${num(a.z)}`;
-    return `${F.rotX} = ${num(a.u, 3)}\n${F.rotY} = ${num(a.v, 3)}\nprevisto = ${num(a.z)}`;
+    const xy = (x, y, sep) => `${valorEixo(F.ex, F.rotX, x)}${sep}${valorEixo(F.ey, F.rotY, y)}`;
+    if (a.obs) return `ensaio: ${xy(a.obs.x, a.obs.y, ", ")}\nobservado = ${num(a.obs.z)}\nprevisto = ${num(a.zs)}`;
+    if (a.est) return `ponto estacionário (${a.est.rotulo})\n${xy(a.est.x, a.est.y, ", ")}\nprevisto = ${num(a.z)}`;
+    return `${xy(a.u, a.v, "\n")}\nprevisto = ${num(a.z)}`;
   });
   // giro por arrasto (mouse, caneta ou toque; no toque o arrasto vertical continua rolando a pagina)
   let arrasto = null;
@@ -208,18 +204,29 @@ export function blocoSuperficie(spec, op = {}) {
   giro.append(botao("◀", "Girar para a esquerda", () => girar(-15, 0)), botao("▶", "Girar para a direita", () => girar(15, 0)),
     botao("▲", "Inclinar: ver mais de cima", () => girar(0, 10)), botao("▼", "Inclinar: ver mais de lado", () => girar(0, -10)),
     botao("Vista padrão", "", () => { vista.az = VISTA.az; vista.el = VISTA.el; girar(0, 0); }));
-  barra.append(alterna, giro);
+  // spec mudou (par de fatores ou eixos): redesenha as duas figuras e regrava os PNG
+  const refazer = () => {
+    const nova = desenharFigura(spec); nova.canvas.hidden = modo === "3d";
+    el.replaceChild(nova.canvas, reg2.canvas); reg2.canvas = nova.canvas; fig2 = nova;
+    if (det) { const d = op.detalhes(nova.tabela); el.replaceChild(d, det); det = d; }
+    pintar(); avisar([reg3, reg2], true);
+  };
+  // eixos dos fatores: codificado ou na grandeza real (mesmo botao dos graficos de efeitos)
+  const temNiveis = (spec.fatores || []).some((f) => f.niv);
+  const eixos = document.createElement("div"); eixos.className = "alterna"; eixos.setAttribute("role", "group"); eixos.setAttribute("aria-label", "Eixos dos fatores");
+  const bEixo = [["codificado", "Codificado (−1 / +1)"], ["real", "Níveis reais"]].map(([m, txt]) => {
+    const b = botao(txt, "", () => { spec.eixoX = m; bEixo.forEach((o) => o.setAttribute("aria-pressed", String(o === b))); refazer(); });
+    b.setAttribute("aria-pressed", String(spec.eixoX === m));
+    if (m === "real" && !temNiveis) { b.disabled = true; b.title = "Informe os níveis −1 e +1 dos fatores na revisão"; }
+    return b;
+  });
+  eixos.append(...bEixo);
+  barra.append(alterna, eixos, giro);
   if (spec.k > 2) {                     // escolha do par de fatores dos eixos (os demais ficam fixos)
     const lab = document.createElement("label"); lab.className = "par"; lab.append("Fatores nos eixos: ");
     const sel = document.createElement("select");
     for (let i = 0; i < spec.k; i++) for (let j = i + 1; j < spec.k; j++) { const o = document.createElement("option"); o.value = `${i},${j}`; o.textContent = `${spec.nomes[i]} × ${spec.nomes[j]}`; sel.appendChild(o); }
-    sel.addEventListener("change", () => {
-      spec.par = sel.value.split(",").map(Number);
-      const nova = desenharFigura(spec); nova.canvas.hidden = modo === "3d";
-      el.replaceChild(nova.canvas, reg2.canvas); reg2.canvas = nova.canvas; fig2 = nova;
-      if (det) { const d = op.detalhes(nova.tabela); el.replaceChild(d, det); det = d; }
-      pintar(); avisar([reg3, reg2], true);
-    });
+    sel.addEventListener("change", () => { spec.par = sel.value.split(",").map(Number); refazer(); });
     lab.appendChild(sel); barra.appendChild(lab);
   }
   el.append(barra, nota, c3, fig2.canvas);

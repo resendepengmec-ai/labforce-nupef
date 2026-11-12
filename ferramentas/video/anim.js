@@ -123,7 +123,7 @@ function cenaAbertura(t) {                // 0 - 6 s
   rr(xn - 26 + 26, y0 - 26, nw + 52, nh + 52, 22); ctx.fill();
   if (logoN.complete) ctx.drawImage(logoN, xn + 26, y0, nw, nh);
   texto("LabForce NUPEF", W / 2, 620, { tam: 104, peso: 800, al: "center", alfa: prog(t, 0.8, 2) });
-  texto("Análise de experimentos de usinagem e processos de fabricação", W / 2, 700, { tam: 46, cor: C.cinza, al: "center", alfa: prog(t, 1.4, 2.6) });
+  texto("Estudo de Processos de Fabricação: grandezas do processo, experimentos, conclusões e otimização", W / 2, 700, { tam: 36, cor: C.cinza, al: "center", alfa: prog(t, 1.4, 2.6) });
   texto("Núcleo de Pesquisa em Fabricação · IFG Câmpus Goiânia", W / 2, 770, { tam: 34, cor: C.cinza, al: "center", alfa: prog(t, 2, 3.2) });
   // traco animado (sinal) sob o titulo
   ctx.strokeStyle = C.forca; ctx.lineWidth = 4; ctx.beginPath();

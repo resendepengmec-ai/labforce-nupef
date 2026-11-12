@@ -143,7 +143,9 @@ function secaoCcd(c, rr, j, niveis, unidades) {
     const fixo = e.tipo !== "indefinido" && e.dentro ? e.xs : new Array(c.k).fill(0);
     figs.push({ id: `${id}_contorno`, idSup: `${id}_superficie3d`, tipo: "contorno", titulo: `${nomeDe(rr.nome)}: superfície de resposta`,
       resposta: nomeDe(rr.nome), nomes: c.nomes.map(nomeDe), k: c.k, par: [0, 1], raio: c.alfaAxial, prever: rr.prever, fixo, X: c.X, obs: rr.y,
-      estac: e.tipo !== "indefinido" ? { xs: e.xs, rotulo: e.tipo } : null });
+      estac: e.tipo !== "indefinido" ? { xs: e.xs, rotulo: e.tipo } : null,
+      // eixos dos fatores: codificado ou na grandeza real (botao na tela), como nos graficos de efeitos
+      eixoX: "codificado", fatores: c.nomes.map((_, i) => ({ un: unidades[i] || "", niv: niveis[i] && Number.isFinite(niveis[i].baixo) && Number.isFinite(niveis[i].alto) ? niveis[i] : null })) });
   }
   figs.push(...figurasResiduos(id, nomeDe(rr.nome), rr.ajustados, rr.residuos));
   return { titulo: `Superfície de resposta: ${rr.nome}`, conclusoes: C.conclusoesCcd(rr, c.alfa, c.alfaAxial), tabelas: tabs, figuras: figs,

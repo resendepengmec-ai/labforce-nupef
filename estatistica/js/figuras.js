@@ -8,7 +8,7 @@
 //  - linhas de 2 px, marcadores de 8 px, texto na cor da tinta; um eixo y por grafico;
 //  - dica ao passar o mouse com o valor exato e tabela com os mesmos numeros (acessibilidade).
 // desenharFigura(spec) -> {canvas, tabela: {cab, linhas de celulas}}.
-import { painel, novaFigura } from "../../comum/js/graficos.js";
+import { painel, novaFigura, ticksLineares, fmtTick } from "../../comum/js/graficos.js";
 import { num } from "./conclusoes.js";
 
 export const PALETA = ["#2a78d6", "#eb6834", "#1baf7a", "#eda100"];
@@ -212,11 +212,24 @@ export function fatia(spec) {
   const [i, j] = spec.par || [0, 1], k = spec.k, r = spec.raio * 1.05;
   const f = (u, v) => { const x = spec.fixo.slice(); x[i] = u; x[j] = v; return spec.prever(x); };
   const par = `${spec.nomes[i]} × ${spec.nomes[j]}${k > 2 ? "; demais fatores fixos" : ""}`;
-  return { i, j, r, f, par, rotX: spec.nomes[i], rotY: spec.nomes[j],
+  return { i, j, r, f, par, rotX: spec.nomes[i], rotY: spec.nomes[j], ex: eixoSup(spec, i, r), ey: eixoSup(spec, j, r),
     ponto: spec.estac ? { x: spec.estac.xs[i], y: spec.estac.xs[j], rotulo: spec.estac.rotulo } : null,
     // com 2 fatores todo ensaio esta na fatia: leva a resposta observada (z) para o grafico 3D
     ensaios: spec.X.map((x, n) => ({ x: x[i], y: x[j], z: k === 2 && spec.obs ? spec.obs[n] : undefined })) };
 }
+// Eixo de um fator da superficie: codificado, ou na grandeza real (spec.eixoX = "real" e niveis
+// −1/+1 informados na revisao). O desenho continua em coordenadas codificadas; mudam as marcas
+// (valores redondos na grandeza real), o rotulo do eixo e os valores da dica.
+// Devolve {rot, ticks: [{pos (codificado), rot}], val(codificado) -> valor mostrado, un}.
+export function eixoSup(spec, idx, r) {
+  const f = spec.fatores?.[idx], real = spec.eixoX === "real" && f?.niv, nome = spec.nomes[idx];
+  const c = real ? (f.niv.alto + f.niv.baixo) / 2 : 0, h = real ? (f.niv.alto - f.niv.baixo) / 2 : 1;
+  const { t, passo } = ticksLineares(c - h * r, c + h * r, 7);
+  return { rot: real ? `${nome}${f.un ? ` [${f.un}]` : " (nível real)"}` : `${nome} (codificado)`, un: real ? f.un : "", val: (v) => c + h * v,
+    ticks: t.filter((v) => Math.abs((v - c) / h) <= r * 1.0001).map((v) => ({ pos: (v - c) / h, rot: fmtTick(v, passo) })) };
+}
+// texto "fator = valor [un]" para a dica, no eixo escolhido
+export const valorEixo = (e, nome, v) => `${nome} = ${num(e.val(v), 4)}${e.un ? ` ${e.un}` : ""}`;
 // Valores do modelo em uma grade (NG+1) x (NG+1) sobre [-r, r]^2: Z[a * (NG + 1) + b] = f(u_a, v_b)
 export function grade(F, NG) {
   const m = NG + 1, Z = new Float64Array(m * m); let lo = Infinity, hi = -Infinity;
@@ -246,7 +259,7 @@ export function escalaCores(ctx, LX, LY, LH, lo, hi, rotulo) {
   cores.forEach((cor, k) => { ctx.fillStyle = cor; ctx.fillRect(LX, LY + LH - (k + 1) * bh, 22, bh + 0.4); });
   ctx.strokeStyle = "#555"; ctx.lineWidth = 1; ctx.strokeRect(LX, LY, 22, LH);
   for (let k = 0; k <= NIV; k++) texto(ctx, num(lo + k * passo, 3), LX + 28, LY + LH - k * bh, { tam: 12 });
-  texto(ctx, rotulo, LX + 11, LY - 14, { tam: 12, peso: 600, alinha: "center" });
+  texto(ctx, rotulo, LX - 6, LY - 14, { tam: 12, peso: 600 });
 }
 
 const WS = 1000, HS = 680;              // tamanho unico das figuras de superficie (2D e 3D)
@@ -254,8 +267,9 @@ function figContorno(spec) {
   const { c, ctx } = figura(WS, HS), F = fatia(spec), r = F.r, G = grade(F, 200), NG = G.NG, m = NG + 1;
   const { lo, hi } = G, passo = (hi - lo) / NIV, cores = coresFaixas();
   const nivel = (v) => Math.min(NIV - 1, Math.max(0, Math.floor((v - lo) / passo)));
-  const lado = HS - 84, R = { x: 130, y: 0, w: lado + 90, h: HS };      // area de plotagem quadrada
-  const T = painel(ctx, R, { titulo: `${spec.resposta}: curvas de nível (${F.par})`, xlabel: F.rotX + " (codificado)", ylabel: F.rotY + " (codificado)", xlim: [-r, r], ylim: [-r, r], series: [] });
+  const lado = HS - 84, R = { x: 110, y: 0, w: lado + 90, h: HS };      // area de plotagem quadrada
+  const T = painel(ctx, R, { titulo: `${spec.resposta}: curvas de nível (${F.par})`, xlabel: F.ex.rot, ylabel: F.ey.rot, xlim: [-r, r], ylim: [-r, r], series: [],
+    xticks: { pos: F.ex.ticks.map((t) => t.pos), rot: F.ex.ticks.map((t) => t.rot) }, yticks: { pos: F.ey.ticks.map((t) => t.pos), rot: F.ey.ticks.map((t) => t.rot) } });
   ctx.save(); ctx.beginPath(); ctx.rect(T.X0, T.Y0, T.X1 - T.X0, T.Y1 - T.Y0); ctx.clip();
   const cw = (T.X1 - T.X0) / NG, ch = (T.Y1 - T.Y0) / NG;
   for (let a = 0; a < NG; a++) for (let b = 0; b < NG; b++) {
@@ -281,11 +295,11 @@ function figContorno(spec) {
     texto(ctx, rot, lx, y - 15, { peso: 600 });
   }
   ctx.restore();
-  escalaCores(ctx, T.X1 + 34, T.Y0, T.Y1 - T.Y0, lo, hi, "resposta prevista");
+  escalaCores(ctx, T.X1 + 34, T.Y0 + 30, T.Y1 - T.Y0 - 30, lo, hi, "resposta prevista");   // abaixo da linha do titulo
   ligarDica(c, (x, y) => {
     if (x < T.X0 || x > T.X1 || y < T.Y0 || y > T.Y1) return null;
     const u = T.inv(x), v = r - (y - T.Y0) / (T.Y1 - T.Y0) * 2 * r;
-    return `${F.rotX} = ${num(u, 3)}\n${F.rotY} = ${num(v, 3)}\nprevisto = ${num(F.f(u, v))}`;
+    return `${valorEixo(F.ex, F.rotX, u)}\n${valorEixo(F.ey, F.rotY, v)}\nprevisto = ${num(F.f(u, v))}`;
   });
   const linhas = [...Array(NIV).keys()].map((k) => [s(`faixa ${k + 1}`), n(lo + k * passo), n(lo + (k + 1) * passo)]);
   if (F.ponto) linhas.push([s(`ponto estacionário (${F.ponto.rotulo})`), n(F.ponto.x), n(F.ponto.y)]);

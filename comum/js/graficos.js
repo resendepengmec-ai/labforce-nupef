@@ -41,7 +41,7 @@ export function marcador(ctx, x, y, tipo, tam, cor) {
 const tracos = { "-": [], "--": [9, 6], ":": [2, 4] };
 
 // ---- painel --------------------------------------------------------------
-// cfg: {titulo, xlabel, ylabel, xlim:[a,b], ylim:[a,b], logY, xticks:{pos,rot},
+// cfg: {titulo, xlabel, ylabel, xlim:[a,b], ylim:[a,b], logY, xticks:{pos,rot}, yticks:{pos,rot},
 //       series:[{x, y, cor, marca, tam, traco, largura, nMarc, rotulo, soMarca}],
 //       barras:{x, Y:[[...serie1],[...]], cores, rotulos, larg}, legenda:"ne"|"nw"}
 export function painel(ctx, R, cfg) {
@@ -63,6 +63,8 @@ export function painel(ctx, R, cfg) {
       const y = py(10 ** e); ctx.beginPath(); ctx.moveTo(X0, y); ctx.lineTo(X1, y); ctx.stroke();
       ctx.fillText(e >= -3 && e <= 4 ? String(10 ** e).replace(".", ",") : `1e${e}`, X0 - 6, y);
     }
+  } else if (cfg.yticks) {
+    cfg.yticks.pos.forEach((v, i) => { const y = py(v); ctx.beginPath(); ctx.moveTo(X0, y); ctx.lineTo(X1, y); ctx.stroke(); ctx.fillText(cfg.yticks.rot[i], X0 - 6, y); });
   } else {
     const { t, passo } = ticksLineares(ya, yb, Math.max(3, Math.round((Y1 - Y0) / 55)));
     for (const v of t) { const y = py(v); if (y < Y0 - 1 || y > Y1 + 1) continue;
