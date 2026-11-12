@@ -56,12 +56,12 @@ export function mapaValido(mapa) {
 // Componentes da forca de usinagem: quais canais (Fx, Fy, Fz) medem cada componente depende
 // da montagem do dinamometro e do processo. Duas componentes ficam no plano de trabalho
 // (a e b: formam a forca ativa Fa) e uma e a passiva (p).
-//   torneamento: a = Fc (corte), b = Ff (avanco), p = Fp (passiva, radial)
+//   torneamento: a = Fc (corte), b = Ff (avanco), p = Fp (passiva)
 //   fresamento, furacao e rosqueamento (dinamometro estacionario): a = FfN (normal ao
 //   avanco), b = Ff (avanco), p = Fp (passiva, axial)
 // padrao: convencao DynoWare no torneamento e a da figura Kistler no fresamento.
 export const COMPONENTES = {
-  torneamento: { rot: { a: "Fc", b: "Ff", p: "Fp" }, nome: { a: "força de corte", b: "força de avanço", p: "força passiva (radial)" }, padrao: { a: "fz", b: "fx", p: "fy" } },
+  torneamento: { rot: { a: "Fc", b: "Ff", p: "Fp" }, nome: { a: "força de corte", b: "força de avanço", p: "força passiva" }, padrao: { a: "fz", b: "fx", p: "fy" } },
   fresamento: { rot: { a: "FfN", b: "Ff", p: "Fp" }, nome: { a: "força normal ao avanço", b: "força de avanço", p: "força passiva (axial)" }, padrao: { a: "fx", b: "fy", p: "fz" } },
 };
 export const compValido = (c) => !!c && ["fx", "fy", "fz"].every((k) => [c.a, c.b, c.p].filter((v) => v === k).length === 1);
