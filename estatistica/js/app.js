@@ -6,6 +6,7 @@ import { executar, sugerirPapeis, sugerirNiveis, csvTabela, celTela, TIPOS, VERS
 import { rotuloEfeito } from "./fatorial2k.js";
 import { ccdMatriz } from "./ccd.js";
 import { desenharFigura } from "./figuras.js";
+import { blocoSuperficie } from "./superficie3d.js";
 import { EXEMPLOS, ARQUIVOS, BIBLIOGRAFIA } from "../exemplos/exemplos.js";
 import { paraPNG } from "../../comum/js/graficos.js";
 import { temPastaDireta, criarDestino, nomeRodada, baixar, painelGravacao } from "../../comum/js/saida.js";
@@ -297,18 +298,17 @@ function mostrarResultados(res) {
     for (const n of s.notas || []) { const p = document.createElement("p"); p.className = "nota"; p.textContent = n; d.appendChild(p); }
     const efeitos = [];                 // graficos de efeitos (principais e interacoes) desta secao
     for (const f of s.figuras || []) {
+      if (f.tipo === "contorno") {      // superficie de resposta: 3D interativo + curvas de nivel
+        const sup = blocoSuperficie(f, { detalhes: detalhesTabela, aoMudar: regravar });
+        d.appendChild(sup.el); figuras.push(...sup.regs); continue;
+      }
       const fig = desenharFigura(f);
       if (!fig) continue;
       if (f.eixoX && !efeitos.length) d.appendChild(barraEixoEfeitos(f, efeitos));
       const b = document.createElement("figure"); b.className = "bloco-fig";
       b.appendChild(fig.canvas);
       if (f.eixoX) efeitos.push({ spec: f, bloco: b, reg: null });
-      if (fig.tabela) {
-        const det = document.createElement("details"), sm = document.createElement("summary"); sm.textContent = "Ver os números do gráfico";
-        const w = document.createElement("div"); w.className = "tabela-rolar"; const tb = document.createElement("table"); tb.className = "tabela";
-        tabelaHTML(tb, fig.tabela.cab, fig.tabela.linhas.map((l) => l.map(celulaTela)));
-        w.appendChild(tb); det.append(sm, w); b.appendChild(det);
-      }
+      if (fig.tabela) b.appendChild(detalhesTabela(fig.tabela));
       const reg = { id: f.id, canvas: fig.canvas };
       if (f.eixoX) efeitos[efeitos.length - 1].reg = reg;
       d.appendChild(b); figuras.push(reg);
@@ -317,6 +317,19 @@ function mostrarResultados(res) {
   }
   $("log").textContent = res.log.join("\n");
   return figuras;
+}
+
+function detalhesTabela(tabela) {
+  const det = document.createElement("details"), sm = document.createElement("summary"); sm.textContent = "Ver os números do gráfico";
+  const w = document.createElement("div"); w.className = "tabela-rolar"; const tb = document.createElement("table"); tb.className = "tabela";
+  tabelaHTML(tb, tabela.cab, tabela.linhas.map((l) => l.map(celulaTela)));
+  w.appendChild(tb); det.append(sm, w); return det;
+}
+// Figura alterada na tela (giro da superficie 3D, troca do par de fatores): regrava o PNG no destino
+async function regravar(regs) {
+  if (!destino) return;
+  for (const r of regs) { try { await destino.gravar(`${r.id}.png`, await paraPNG(r.canvas)); } catch (err) { console.error(err); } }
+  painelGrav?.concluir();
 }
 
 // Botao dos graficos de efeitos: eixo x codificado (−1/+1) ou nos niveis reais informados

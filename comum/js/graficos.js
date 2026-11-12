@@ -150,10 +150,12 @@ export function painel(ctx, R, cfg) {
   return { px, py, X0, X1, Y0, Y1, xa, xb, inv: (X) => xa + (X - X0) / (X1 - X0) * (xb - xa) };
 }
 
-export function novaFigura(w, h) {
+// escala: pixels do canvas por unidade do desenho (1 = como antes). Com escala 3 uma figura
+// de 1000 unidades vira um PNG de 3000 px (300 dpi em 10 polegadas), com o mesmo desenho.
+export function novaFigura(w, h, escala = 1) {
   const c = document.createElement("canvas");
-  c.width = w; c.height = h; c.className = "figura";
-  const ctx = c.getContext("2d"); ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, w, h);
+  c.width = Math.round(w * escala); c.height = Math.round(h * escala); c.className = "figura"; c.dataset.larg = w;
+  const ctx = c.getContext("2d"); ctx.scale(escala, escala); ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, w, h);
   return { c, ctx };
 }
 

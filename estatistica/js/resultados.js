@@ -137,11 +137,13 @@ function secaoCcd(c, rr, j, niveis, unidades) {
   }
   const figs = [];
   if (c.k >= 2) {
-    // curvas de nivel nos 2 primeiros fatores (demais no centro, ou no ponto estacionario se dentro da regiao)
+    // superficie de resposta em 2 fatores (par = os 2 primeiros; a tela deixa trocar), demais no centro
+    // ou no ponto estacionario se dentro da regiao. A tela mostra em 3D e em curvas de nivel e grava
+    // as duas figuras: <id>_superficie3d.png e <id>_contorno.png.
     const fixo = e.tipo !== "indefinido" && e.dentro ? e.xs : new Array(c.k).fill(0);
-    figs.push({ id: `${id}_contorno`, tipo: "contorno", titulo: `${nomeDe(rr.nome)}: curvas de nível (${nomeDe(c.nomes[0])} × ${nomeDe(c.nomes[1])}${c.k > 2 ? "; demais fatores fixos" : ""})`,
-      raio: c.alfaAxial, rotX: nomeDe(c.nomes[0]), rotY: nomeDe(c.nomes[1]), f: (u, v) => rr.prever(fixo.map((z, i) => (i === 0 ? u : i === 1 ? v : z))),
-      ponto: e.tipo !== "indefinido" ? { x: e.xs[0], y: e.xs[1], rotulo: e.tipo } : null, ensaios: c.X.map((x) => ({ x: x[0], y: x[1] })) });
+    figs.push({ id: `${id}_contorno`, idSup: `${id}_superficie3d`, tipo: "contorno", titulo: `${nomeDe(rr.nome)}: superfície de resposta`,
+      resposta: nomeDe(rr.nome), nomes: c.nomes.map(nomeDe), k: c.k, par: [0, 1], raio: c.alfaAxial, prever: rr.prever, fixo, X: c.X, obs: rr.y,
+      estac: e.tipo !== "indefinido" ? { xs: e.xs, rotulo: e.tipo } : null });
   }
   figs.push(...figurasResiduos(id, nomeDe(rr.nome), rr.ajustados, rr.residuos));
   return { titulo: `Superfície de resposta: ${rr.nome}`, conclusoes: C.conclusoesCcd(rr, c.alfa, c.alfaAxial), tabelas: tabs, figuras: figs,

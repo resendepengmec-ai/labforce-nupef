@@ -3,7 +3,8 @@
 //  - paleta categorica fixa, nesta ordem: #2a78d6, #eb6834, #1baf7a, #eda100 (validada para
 //    daltonismo); aqua e amarelo tem pouco contraste no fundo claro: vao com rotulo direto
 //    ou tabela; dispersao com no maximo 3 series;
-//  - curvas de nivel: um so matiz, de #cde2fb (claro) a #0d366b (escuro);
+//  - curvas de nivel e superficie 3D: um so matiz, de #cde2fb (claro) a #0d366b (escuro);
+//  - todas as figuras em alta resolucao (ESCALA), com a mesma fonte, tinta e grade;
 //  - linhas de 2 px, marcadores de 8 px, texto na cor da tinta; um eixo y por grafico;
 //  - dica ao passar o mouse com o valor exato e tabela com os mesmos numeros (acessibilidade).
 // desenharFigura(spec) -> {canvas, tabela: {cab, linhas de celulas}}.
@@ -11,8 +12,13 @@ import { painel, novaFigura } from "../../comum/js/graficos.js";
 import { num } from "./conclusoes.js";
 
 export const PALETA = ["#2a78d6", "#eb6834", "#1baf7a", "#eda100"];
-const TINTA = "#17201c", CINZA = "#5e6a64", FONTE = "system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif";
+export const TINTA = "#17201c", CINZA = "#5e6a64", FONTE = "system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif";
 const W = 1000, H = 520;
+// Padrao de qualidade: toda figura e desenhada em unidades logicas (largura 1000) e gravada com
+// ESCALA pixels por unidade: PNG de 3000 px de largura (300 dpi em 10 pol.), nitido tambem em
+// telas de alta densidade. Em telas estreitas (celular) usa 2 para poupar memoria.
+export const ESCALA = globalThis.matchMedia?.("(max-width: 860px)").matches ? 2 : 3;
+export const figura = (w, h) => novaFigura(w, h, ESCALA);
 const n = (v, a = 4) => ({ t: "n", v, alg: a }), s = (v) => ({ t: "s", v: String(v) });
 const faixa = (vals, folga = 0.08) => {
   let a = Math.min(...vals), b = Math.max(...vals);
@@ -23,10 +29,10 @@ const ponto = (x, y, cor, rotulo, extra = {}) => ({ x: [x], y: [y], cor, marca: 
 
 // ---- dica (tooltip) ----------------------------------------------------------
 let dica = null;
-function ligarDica(c, alvos) {
+export function ligarDica(c, alvos) {
   // alvos: [{x, y (pixels da figura), texto}] ou funcao (x, y) -> texto
   const mostrar = (e) => {
-    const r = c.getBoundingClientRect(), sx = c.width / r.width, sy = c.height / r.height;
+    const r = c.getBoundingClientRect(), sx = (Number(c.dataset.larg) || c.width) / r.width, sy = sx;   // unidades do desenho por px da tela
     const x = (e.clientX - r.left) * sx, y = (e.clientY - r.top) * sy;
     let texto = null;
     if (typeof alvos === "function") texto = alvos(x, y);
@@ -40,7 +46,7 @@ function ligarDica(c, alvos) {
   c.addEventListener("pointermove", mostrar);
   c.addEventListener("pointerleave", () => { if (dica) dica.hidden = true; });
 }
-function texto(ctx, t, x, y, { alinha = "left", base = "middle", tam = 13, peso = 400, cor = TINTA, fundo = false } = {}) {
+export function texto(ctx, t, x, y, { alinha = "left", base = "middle", tam = 13, peso = 400, cor = TINTA, fundo = false } = {}) {
   ctx.save(); ctx.font = `${peso} ${tam}px ${FONTE}`; ctx.textAlign = alinha; ctx.textBaseline = base;
   if (fundo) {                       // rotulo direto sobre dados: caixa branca para nao se misturar aos pontos
     const w = ctx.measureText(t).width, x0 = alinha === "center" ? x - w / 2 : alinha === "right" ? x - w : x;
@@ -57,7 +63,7 @@ function linhaV(ctx, T, v, cor, traco = [6, 4], larg = 1.5) {
 
 // ---- medias com IC (ANOVA) e medias por grupo (MANOVA) ----------------------
 function figIC(spec, comIC) {
-  const { c, ctx } = novaFigura(W, H), it = spec.itens, k = it.length;
+  const { c, ctx } = figura(W, H), it = spec.itens, k = it.length;
   const vals = it.flatMap((i) => (comIC ? [i.inf, i.sup] : [i.y]));
   const T = painel(ctx, { x: 0, y: 0, w: W, h: H }, {
     titulo: spec.titulo, xlabel: "grupo", ylabel: spec.rotY, xlim: [0.4, k + 0.6], ylim: faixa(vals, 0.12),
@@ -76,7 +82,7 @@ function figIC(spec, comIC) {
 
 // ---- dispersao generica: residuos, Q-Q, meio-normal, frente de Pareto --------
 function figDispersao(spec, { xlabel, ylabel, ref, rotular, destaque }) {
-  const { c, ctx } = novaFigura(W, H), P = spec.pontos;
+  const { c, ctx } = figura(W, H), P = spec.pontos;
   const extra = destaque || [];
   const T = painel(ctx, { x: 0, y: 0, w: W, h: H }, {
     titulo: spec.titulo, xlabel, ylabel, xlim: faixa([...P.map((p) => p.x), ...extra.map((p) => p.x)]), ylim: faixa([...P.map((p) => p.y), ...extra.map((p) => p.y)], 0.12),
@@ -117,7 +123,7 @@ function figFrente(spec) {
 // ---- Pareto dos efeitos: barras horizontais ordenadas + linha critica --------
 function figPareto(spec) {
   const it = [...spec.itens].sort((a, b) => b.v - a.v), m = it.length;
-  const alt = Math.max(H, 90 + 34 * m), { c, ctx } = novaFigura(W, alt);
+  const alt = Math.max(H, 90 + 34 * m), { c, ctx } = figura(W, alt);
   ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, W, alt);
   const X0 = 90, X1 = W - 30, Y0 = 46, Y1 = alt - 56, xm = Math.max(...it.map((i) => i.v), ...spec.limites.map((l) => l.v)) * 1.12 || 1;
   const px = (v) => X0 + v / xm * (X1 - X0), bh = (Y1 - Y0) / m;
@@ -149,7 +155,7 @@ function figPareto(spec) {
 
 // ---- efeitos principais e interacoes: paineis lado a lado, mesmo eixo y ------
 function paineis(spec, itens, desenho) {
-  const k = itens.length, col = Math.min(k, 4), lin = Math.ceil(k / col), hp = 330, { c, ctx } = novaFigura(W, 40 + hp * lin);
+  const k = itens.length, col = Math.min(k, 4), lin = Math.ceil(k / col), hp = 330, { c, ctx } = figura(W, 40 + hp * lin);
   texto(ctx, spec.titulo, W / 2, 18, { alinha: "center", peso: 600, tam: 14 });
   // ylimEf: min e max de todas as medias dos graficos de efeitos da resposta (principais e
   // interacoes), para que todos fiquem na mesma escala; folga pequena so para nao cortar o marcador
@@ -190,54 +196,99 @@ function figInteracoes(spec) {
   return { canvas: c, tabela: { cab: ["Interação", "(−,−)", "(−,+)", "(+,−)", "(+,+)"], linhas: spec.itens.map((i) => [s(`${i.a} × ${i.b}`), n(i.mm), n(i.mp), n(i.pm), n(i.pp)]) } };
 }
 
-// ---- curvas de nivel (RSM): faixas de um so matiz, regiao e ponto estacionario
-function mistura(a, b, t) {
-  const h = (x) => [1, 3, 5].map((i) => parseInt(x.slice(i, i + 2), 16)), A = h(a), B = h(b);
-  return `rgb(${A.map((v, i) => Math.round(v + (B[i] - v) * t)).join(",")})`;
+// ---- superficie de resposta (RSM): fatia em 2 fatores, grade, isolinhas e curvas de nivel
+export const NIV = 8, RAMPA = ["#cde2fb", "#0d366b"];
+const hex = (x) => [1, 3, 5].map((i) => parseInt(x.slice(i, i + 2), 16));
+export function rampa(t) {              // [r, g, b] do matiz unico, t em 0..1
+  const A = hex(RAMPA[0]), B = hex(RAMPA[1]), u = Math.min(1, Math.max(0, t));
+  return A.map((v, i) => Math.round(v + (B[i] - v) * u));
 }
+const mistura = (a, b, t) => { const A = hex(a), B = hex(b); return `rgb(${A.map((v, i) => Math.round(v + (B[i] - v) * t)).join(",")})`; };
+export const coresFaixas = () => [...Array(NIV).keys()].map((k) => mistura(RAMPA[0], RAMPA[1], k / (NIV - 1)));
+
+// Fatia do modelo nos fatores spec.par = [i, j]; os demais ficam em spec.fixo.
+// spec: {resposta, nomes, k, raio, prever, fixo, estac: {xs, rotulo} | null, X, obs, par}
+export function fatia(spec) {
+  const [i, j] = spec.par || [0, 1], k = spec.k, r = spec.raio * 1.05;
+  const f = (u, v) => { const x = spec.fixo.slice(); x[i] = u; x[j] = v; return spec.prever(x); };
+  const par = `${spec.nomes[i]} × ${spec.nomes[j]}${k > 2 ? "; demais fatores fixos" : ""}`;
+  return { i, j, r, f, par, rotX: spec.nomes[i], rotY: spec.nomes[j],
+    ponto: spec.estac ? { x: spec.estac.xs[i], y: spec.estac.xs[j], rotulo: spec.estac.rotulo } : null,
+    // com 2 fatores todo ensaio esta na fatia: leva a resposta observada (z) para o grafico 3D
+    ensaios: spec.X.map((x, n) => ({ x: x[i], y: x[j], z: k === 2 && spec.obs ? spec.obs[n] : undefined })) };
+}
+// Valores do modelo em uma grade (NG+1) x (NG+1) sobre [-r, r]^2: Z[a * (NG + 1) + b] = f(u_a, v_b)
+export function grade(F, NG) {
+  const m = NG + 1, Z = new Float64Array(m * m); let lo = Infinity, hi = -Infinity;
+  for (let a = 0; a < m; a++) for (let b = 0; b < m; b++) {
+    const z = F.f(-F.r + 2 * F.r * a / NG, -F.r + 2 * F.r * b / NG); Z[a * m + b] = z; if (z < lo) lo = z; if (z > hi) hi = z;
+  }
+  if (!(hi > lo)) { const d = Math.abs(lo) || 1; lo -= d / 2; hi += d / 2; }
+  return { Z, NG, lo, hi, r: F.r, u: (a) => -F.r + 2 * F.r * a / NG };
+}
+// Isolinha do nivel c (quadrados em marcha, interpolacao linear): segmentos [u1, v1, u2, v2]
+export function isolinha(G, c) {
+  const { Z, NG } = G, m = NG + 1, seg = [];
+  for (let a = 0; a < NG; a++) for (let b = 0; b < NG; b++) {
+    const q = [Z[a * m + b], Z[(a + 1) * m + b], Z[(a + 1) * m + b + 1], Z[a * m + b + 1]];
+    const P = [[a, b], [a + 1, b], [a + 1, b + 1], [a, b + 1]], pts = [];
+    for (let e = 0; e < 4; e++) {
+      const z0 = q[e], z1 = q[(e + 1) % 4];
+      if ((z0 < c) !== (z1 < c)) { const t = (c - z0) / (z1 - z0), A = P[e], B = P[(e + 1) % 4]; pts.push(G.u(A[0] + t * (B[0] - A[0])), G.u(A[1] + t * (B[1] - A[1]))); }
+    }
+    for (let e = 0; e + 3 < pts.length; e += 4) seg.push([pts[e], pts[e + 1], pts[e + 2], pts[e + 3]]);
+  }
+  return seg;
+}
+// Escala de cores a direita (a mesma nas curvas de nivel e na superficie 3D)
+export function escalaCores(ctx, LX, LY, LH, lo, hi, rotulo) {
+  const cores = coresFaixas(), bh = LH / NIV, passo = (hi - lo) / NIV;
+  cores.forEach((cor, k) => { ctx.fillStyle = cor; ctx.fillRect(LX, LY + LH - (k + 1) * bh, 22, bh + 0.4); });
+  ctx.strokeStyle = "#555"; ctx.lineWidth = 1; ctx.strokeRect(LX, LY, 22, LH);
+  for (let k = 0; k <= NIV; k++) texto(ctx, num(lo + k * passo, 3), LX + 28, LY + LH - k * bh, { tam: 12 });
+  texto(ctx, rotulo, LX + 11, LY - 14, { tam: 12, peso: 600, alinha: "center" });
+}
+
+const WS = 1000, HS = 680;              // tamanho unico das figuras de superficie (2D e 3D)
 function figContorno(spec) {
-  const { c, ctx } = novaFigura(780, 640), r = spec.raio * 1.05, NG = 120, NIV = 8;
-  const vals = [];
-  for (let i = 0; i <= NG; i++) for (let j = 0; j <= NG; j++) vals.push(spec.f(-r + 2 * r * i / NG, -r + 2 * r * j / NG));
-  const lo = Math.min(...vals), hi = Math.max(...vals), passo = (hi - lo) / NIV || 1;
+  const { c, ctx } = figura(WS, HS), F = fatia(spec), r = F.r, G = grade(F, 200), NG = G.NG, m = NG + 1;
+  const { lo, hi } = G, passo = (hi - lo) / NIV, cores = coresFaixas();
   const nivel = (v) => Math.min(NIV - 1, Math.max(0, Math.floor((v - lo) / passo)));
-  const cores = [...Array(NIV).keys()].map((k) => mistura("#cde2fb", "#0d366b", k / (NIV - 1)));
-  const lado = 640 - 84, R = { x: 0, y: 0, w: lado + 90, h: 640 };
-  const T = painel(ctx, R, { titulo: spec.titulo, xlabel: spec.rotX + " (codificado)", ylabel: spec.rotY + " (codificado)", xlim: [-r, r], ylim: [-r, r], series: [] });
+  const lado = HS - 84, R = { x: 130, y: 0, w: lado + 90, h: HS };      // area de plotagem quadrada
+  const T = painel(ctx, R, { titulo: `${spec.resposta}: curvas de nível (${F.par})`, xlabel: F.rotX + " (codificado)", ylabel: F.rotY + " (codificado)", xlim: [-r, r], ylim: [-r, r], series: [] });
   ctx.save(); ctx.beginPath(); ctx.rect(T.X0, T.Y0, T.X1 - T.X0, T.Y1 - T.Y0); ctx.clip();
   const cw = (T.X1 - T.X0) / NG, ch = (T.Y1 - T.Y0) / NG;
-  for (let i = 0; i < NG; i++) for (let j = 0; j < NG; j++) {
-    const u = -r + 2 * r * (i + 0.5) / NG, v = -r + 2 * r * (j + 0.5) / NG;
-    ctx.fillStyle = cores[nivel(spec.f(u, v))]; ctx.fillRect(T.X0 + i * cw, T.Y1 - (j + 1) * ch, cw + 0.6, ch + 0.6);
+  for (let a = 0; a < NG; a++) for (let b = 0; b < NG; b++) {
+    const z = (G.Z[a * m + b] + G.Z[(a + 1) * m + b] + G.Z[(a + 1) * m + b + 1] + G.Z[a * m + b + 1]) / 4;
+    ctx.fillStyle = cores[nivel(z)]; ctx.fillRect(T.X0 + a * cw, T.Y1 - (b + 1) * ch, cw + 0.4, ch + 0.4);
   }
+  // isolinhas entre as faixas: borda nitida em qualquer resolucao
+  ctx.strokeStyle = "rgba(255,255,255,.9)"; ctx.lineWidth = 1.2; ctx.lineCap = "round"; ctx.beginPath();
+  for (let k = 1; k < NIV; k++) for (const s of isolinha(G, lo + k * passo)) { ctx.moveTo(T.px(s[0]), T.py(s[1])); ctx.lineTo(T.px(s[2]), T.py(s[3])); }
+  ctx.stroke();
   // regiao ensaiada (circulo de raio alfa) e ensaios
   ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 2; ctx.setLineDash([7, 5]);
   ctx.beginPath(); ctx.arc(T.px(0), T.py(0), (T.px(spec.raio) - T.px(0)), 0, 2 * Math.PI); ctx.stroke(); ctx.setLineDash([]);
-  for (const e of spec.ensaios) { ctx.fillStyle = "#ffffff"; ctx.strokeStyle = TINTA; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(T.px(e.x), T.py(e.y), 5, 0, 2 * Math.PI); ctx.fill(); ctx.stroke(); }
-  if (spec.ponto && Math.abs(spec.ponto.x) <= r && Math.abs(spec.ponto.y) <= r) {
-    const x = T.px(spec.ponto.x), y = T.py(spec.ponto.y);
+  for (const e of F.ensaios) { ctx.fillStyle = "#ffffff"; ctx.strokeStyle = TINTA; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(T.px(e.x), T.py(e.y), 5, 0, 2 * Math.PI); ctx.fill(); ctx.stroke(); }
+  if (F.ponto && Math.abs(F.ponto.x) <= r && Math.abs(F.ponto.y) <= r) {
+    const x = T.px(F.ponto.x), y = T.py(F.ponto.y);
     ctx.fillStyle = PALETA[1]; ctx.strokeStyle = "#fff"; ctx.lineWidth = 2;
     ctx.beginPath(); ctx.moveTo(x, y - 10); ctx.lineTo(x + 10, y); ctx.lineTo(x, y + 10); ctx.lineTo(x - 10, y); ctx.closePath(); ctx.fill(); ctx.stroke();
     ctx.restore(); ctx.save();
-    const rot = `ponto estacionário (${spec.ponto.rotulo})`; ctx.font = `600 13px ${FONTE}`;
+    const rot = `ponto estacionário (${F.ponto.rotulo})`; ctx.font = `600 13px ${FONTE}`;
     const lx = Math.min(x + 14, T.X1 - ctx.measureText(rot).width - 6);
     ctx.fillStyle = "rgba(255,255,255,.9)"; ctx.fillRect(lx - 4, y - 24, ctx.measureText(rot).width + 8, 18);
     texto(ctx, rot, lx, y - 15, { peso: 600 });
   }
   ctx.restore();
-  // escala de cores (legenda da resposta)
-  const LX = T.X1 + 24, LY = T.Y0, LH = T.Y1 - T.Y0, bh = LH / NIV;
-  cores.forEach((cor, k) => { ctx.fillStyle = cor; ctx.fillRect(LX, LY + LH - (k + 1) * bh, 22, bh); });
-  ctx.strokeStyle = "#555"; ctx.strokeRect(LX, LY, 22, LH);
-  for (let k = 0; k <= NIV; k++) texto(ctx, num(lo + k * passo, 3), LX + 28, LY + LH - k * bh, { tam: 11 });
-  texto(ctx, "resposta prevista", LX, LY - 12, { tam: 12, peso: 600 });
+  escalaCores(ctx, T.X1 + 34, T.Y0, T.Y1 - T.Y0, lo, hi, "resposta prevista");
   ligarDica(c, (x, y) => {
     if (x < T.X0 || x > T.X1 || y < T.Y0 || y > T.Y1) return null;
     const u = T.inv(x), v = r - (y - T.Y0) / (T.Y1 - T.Y0) * 2 * r;
-    return `${spec.rotX} = ${num(u, 3)}\n${spec.rotY} = ${num(v, 3)}\nprevisto = ${num(spec.f(u, v))}`;
+    return `${F.rotX} = ${num(u, 3)}\n${F.rotY} = ${num(v, 3)}\nprevisto = ${num(F.f(u, v))}`;
   });
   const linhas = [...Array(NIV).keys()].map((k) => [s(`faixa ${k + 1}`), n(lo + k * passo), n(lo + (k + 1) * passo)]);
-  if (spec.ponto) linhas.push([s(`ponto estacionário (${spec.ponto.rotulo})`), n(spec.ponto.x), n(spec.ponto.y)]);
+  if (F.ponto) linhas.push([s(`ponto estacionário (${F.ponto.rotulo})`), n(F.ponto.x), n(F.ponto.y)]);
   return { canvas: c, tabela: { cab: ["Item", "De / codificado 1", "Até / codificado 2"], linhas } };
 }
 

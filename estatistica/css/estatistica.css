@@ -38,6 +38,21 @@ details.colar summary, details.gerar summary { cursor: pointer; font-weight: 600
 .bloco-fig { margin: 16px 0; }
 .bloco-fig canvas { width: 100%; height: auto; border: 1px solid var(--linha); border-radius: 6px; background: #fff; display: block; }
 .bloco-fig details { margin-top: 6px; }
+/* superficie de resposta: barra de botoes (3D / curvas de nivel, giro) e canvas giratorio */
+.barra-fig { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; margin: 0 0 6px; }
+.barra-fig .alterna, .barra-fig .giro { display: inline-flex; flex-wrap: wrap; }
+.barra-fig .giro[hidden] { display: none; }
+.barra-fig button { border-radius: 0; margin-left: -1px; padding: 8px 14px; }
+.barra-fig button:first-child { border-radius: 6px 0 0 6px; margin-left: 0; }
+.barra-fig button:last-child { border-radius: 0 6px 6px 0; }
+.barra-fig button:hover, .barra-fig button:focus-visible { position: relative; }
+.barra-fig .alterna button[aria-pressed="true"] { background: var(--acento); color: var(--acento-t); border-color: var(--acento); }
+.barra-fig label.par { display: inline-flex; align-items: center; gap: 6px; font-size: .92rem; color: var(--cinza); }
+.barra-fig label.par select { min-height: 40px; padding: 4px 8px; }
+.bloco-sup > .nota { margin: 0 0 6px; }
+.bloco-fig canvas[hidden] { display: none; }
+.bloco-fig canvas.gira { cursor: grab; touch-action: pan-y; }
+.bloco-fig canvas.gira.girando { cursor: grabbing; }
 .bloco-fig details summary { cursor: pointer; color: var(--cinza); font-size: .88rem; min-height: 36px; display: flex; align-items: center; }
 .dica { position: fixed; z-index: 10; pointer-events: none; background: var(--tinta); color: var(--painel); font: .8rem/1.35 var(--fonte); padding: 5px 8px; border-radius: 5px; white-space: pre; max-width: 320px; }
 .st-SIG { background: color-mix(in srgb, var(--ok) 16%, transparent); color: var(--ok); }
