@@ -1,11 +1,11 @@
 // analise.js - fluxo de um ensaio de forcas, separado da interface:
 //   prepararEnsaio : le o arquivo, aplica a calibracao, verifica o tempo
 //   analisarFaixa  : estatistica por canal, CSV da faixa e forca teorica
-import { lerArquivo, taxaDoTempo, estatistica, corteTeorico, componentes, COMPONENTES, compValido } from "./nucleo.js";
+import { lerArquivo, taxaDoTempo, estatistica, corteTeorico, componentes, COMPONENTES, compValido, atritoMerchant, muTermico, ATRITO_TERMICO } from "./nucleo.js";
 import { sprintf, nv, nv6g } from "../../comum/js/formato.js";
 import { DINAMOMETROS, verificarFaixa } from "./dinamometros.js";
 
-export const VERSAO = "web 2.1.0";
+export const VERSAO = "web 2.2.0";
 export const CANAIS = [
   { k: "fx", rot: "Fx" }, { k: "fy", rot: "Fy" }, { k: "fz", rot: "Fz" }, { k: "fr", rot: "Fr" },
 ];
@@ -13,9 +13,11 @@ export const ROT = { fx: "Fx", fy: "Fy", fz: "Fz", fr: "Fr" };
 export const PADRAO = {
   mapa: ["tempo", "fx", "fy", "fz"], k: { fx: 1, fy: 1, fz: 1 }, duracaoMin: 0.5,
   teorico: { ap: 2, fn: 0.25, vc: 120, kr: 90, g0: 0, kc1: null, mc: 0.25, canal: "fz" },
+  atrito: { g0: 0, A: null, T: null, ...ATRITO_TERMICO },
 };
 
 export const CAB_COMP = "Faixa;Processo;CompA;CanalA;MediaA[N];CompB;CanalB;MediaB[N];CompP;CanalP;MediaP[N];Fa[N];Fa/Fp[-]";
+export const CAB_ATRITO = "Faixa;g0[graus];Fc[N];Ff[N];FT[N];FN[N];mu[-];beta[graus];A[mm2];tau[MPa];sigma[MPa];T[C];mu_modelo[-];mu0[-];T0[C];m[-];Tfusao[C]";
 export const CAB_RESUMO = "Faixa;Canal;t_ini[s];t_fim[s];n;fs[Hz];Media[N];RMS[N];Pico[N];DP[N];CV[-];FatorCrista[-];Curtose[-];Assimetria[-];FreqDom[Hz]";
 export const CAB_TEORICO = "Faixa;ap[mm];fn[mm/rot];vc[m/min];kr[graus];g0[graus];kc1[N/mm2];mc[-];hm[mm];kc[N/mm2];Fc_teorica[N];Pc[kW];Q[cm3/min];Canal;Fc_medida[N];Diferenca[%]";
 
@@ -88,6 +90,20 @@ export function analisarFaixa(E, c1, c2, rotulo, p, op, log) {
     log.push(sprintf("  Componentes (%s): %s = %s %.2f N | %s = %s %.2f N | %s = %s %.2f N | Fa = %.2f N | Fa/Fp = %s",
       tipo, K.rot.a, ROT[comp.a], c.a, K.rot.b, ROT[comp.b], c.b, K.rot.p, ROT[comp.p], c.p, c.fa, Number.isFinite(c.razao) ? sprintf("%.3f", c.razao) : "indefinida (Fp ~ 0)"));
     R.linhaComp = [rotulo, tipo, K.rot.a, ROT[comp.a], nv(c.a, "%.3f"), K.rot.b, ROT[comp.b], nv(c.b, "%.3f"), K.rot.p, ROT[comp.p], nv(c.p, "%.3f"), nv(c.fa, "%.3f"), Number.isFinite(c.razao) ? nv(c.razao, "%.4f") : ""].join(";");
+  }
+  // atrito na face da ferramenta (Puls; Klocke; Lung, 2014): mu = FT/FN, tensoes medias e modelo termico
+  if (op.atrito && R.comp.tipo === "torneamento") {
+    const q = { ...PADRAO.atrito, ...(p.atrito || {}) }, Fc = Math.abs(R.comp.a), Ff = Math.abs(R.comp.b), a = atritoMerchant(Fc, Ff, q.g0);
+    const temA = q.A > 0, temT = Number.isFinite(q.T);
+    R.atrito = { ...a, Fc, Ff, g0: q.g0, A: temA ? q.A : NaN, tau: temA ? a.FT / q.A : NaN, sigma: temA ? a.FN / q.A : NaN,
+      T: temT ? q.T : NaN, muModelo: temT ? muTermico(q.T, q) : NaN, modelo: { mu0: q.mu0, T0: q.T0, m: q.m, Tf: q.Tf } };
+    const A = R.atrito, f = (v, fmt) => (Number.isFinite(v) ? nv(v, fmt) : "");
+    log.push(sprintf("  Atrito na face (g0 = %g graus): FT = %.2f N | FN = %.2f N | mu = FT/FN = %s | beta = %s graus",
+      q.g0, a.FT, a.FN, Number.isFinite(a.mu) ? sprintf("%.3f", a.mu) : "indefinido (FN <= 0)", Number.isFinite(a.mu) ? sprintf("%.2f", a.beta) : "-"));
+    if (temA) log.push(sprintf("  Tensoes medias de contato (A = %g mm2): tangencial %.1f MPa | normal %.1f MPa", q.A, A.tau, A.sigma));
+    if (temT) log.push(sprintf("  Modelo termico (mu0 %g, T0 %g C, m %g, fusao %g C): mu(%g C) = %.3f", q.mu0, q.T0, q.m, q.Tf, q.T, A.muModelo));
+    R.linhaAtrito = [rotulo, nv(q.g0, "%g"), nv(Fc, "%.3f"), nv(Ff, "%.3f"), nv(a.FT, "%.3f"), nv(a.FN, "%.3f"), f(a.mu, "%.4f"), Number.isFinite(a.mu) ? nv(a.beta, "%.3f") : "",
+      f(A.A, "%g"), f(A.tau, "%.2f"), f(A.sigma, "%.2f"), f(A.T, "%g"), f(A.muModelo, "%.4f"), nv(q.mu0, "%g"), nv(q.T0, "%g"), nv(q.m, "%g"), nv(q.Tf, "%g")].join(";");
   }
   if (op.teorico) {
     const q = p.teorico, c = corteTeorico(q), med = est[q.canal].media;

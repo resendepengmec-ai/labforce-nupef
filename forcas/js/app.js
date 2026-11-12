@@ -1,7 +1,7 @@
 // app.js - interface do modulo de forcas: etapas, selecao das faixas, analise e
 // gravacao dos resultados na pasta do usuario (ou .zip). Mesmo padrao do modulo eletrico.
-import { ROT, PADRAO, CANAIS, CAB_RESUMO, CAB_TEORICO, CAB_COMP, VERSAO, prepararEnsaio, analisarFaixa } from "./analise.js";
-import { mapaValido, vcDeDn, COMPONENTES, compValido } from "./nucleo.js";
+import { ROT, PADRAO, CANAIS, CAB_RESUMO, CAB_TEORICO, CAB_COMP, CAB_ATRITO, VERSAO, prepararEnsaio, analisarFaixa } from "./analise.js";
+import { mapaValido, vcDeDn, COMPONENTES, compValido, areaContato } from "./nucleo.js";
 import { DINAMOMETROS, PADRAO_DINAMOMETRO } from "./dinamometros.js";
 import { CORES, figuraSinal, figuraEspectro, figuraDistribuicao } from "./figuras.js";
 import { sprintf } from "../../comum/js/formato.js";
@@ -16,6 +16,8 @@ import {
 const CHAVE = "forcas-config-v1";
 const ROT_CAMPO = { tempo: "tempo [s]", fx: "Fx [N]", fy: "Fy [N]", fz: "Fz [N]", ignorar: "ignorar" };
 const TEO = [["tAp", "ap"], ["tFn", "fn"], ["tVc", "vc"], ["tKr", "kr"], ["tG0", "g0"], ["tKc1", "kc1"], ["tMc", "mc"]];
+
+const ATR = [["aG0", "g0"], ["aA", "A"], ["aT", "T"], ["aMu0", "mu0"], ["aT0", "T0"], ["aM", "m"], ["aTf", "Tf"]];
 
 let pasta = null, arquivos = [], cfg = null, rodada = null, ensaio = null;
 
@@ -67,6 +69,17 @@ function montarConfig() {
   const aplicaComp = (m) => { for (const c of ["a", "b", "p"]) { $("comp_" + c).value = m[c]; $("comp_" + c).removeAttribute("aria-invalid"); } $("e-comp").textContent = ""; };
   $("btCompPadrao").addEventListener("click", () => { const t = tipoEnsaio(); aplicaComp(COMPONENTES[t].padrao); compSalvo[t] = lerComp(); });
   $("pDur").value = txt(s.duracaoMin ?? PADRAO.duracaoMin);
+  // atrito na face da ferramenta (Puls; Klocke; Lung, 2014)
+  const at = { ...PADRAO.atrito, ...(s.atrito || {}) };
+  for (const [id, c] of ATR) $(id).value = txt(at[c]);
+  if (s.op) $("opAtr").checked = !!s.op.atrito;
+  const mostraAtr = () => { $("blocoAtr").hidden = !$("opAtr").checked || $("opAtr").disabled; };
+  $("opAtr").addEventListener("change", mostraAtr);
+  $("btArea").addEventListener("click", () => {
+    const [b1, b2, t, al] = ["aB1", "aB2", "aTe", "aAl"].map((id) => numero($(id).value));
+    if (b1 > 0 && b2 > 0 && t > 0 && al > 0 && al < 90) { $("aA").value = txt(Math.round(areaContato(b1, b2, t, al) * 1000) / 1000); marcar("aA", ""); }
+    else $("e-aA").textContent = "Digite b1, b2 e t maiores que zero e α entre 0° e 90°.";
+  });
   const mostraTeo = () => { $("blocoTeo").hidden = !$("opTeo").checked || $("opTeo").disabled; };
   $("opTeo").addEventListener("change", mostraTeo);
   // tipo de ensaio e dinamometro (etapa 1)
@@ -79,6 +92,9 @@ function montarConfig() {
     document.querySelectorAll(".montagem[data-tipo]").forEach((el) => { el.hidden = el.dataset.tipo !== t; });
     $("opTeo").disabled = t !== "torneamento";
     $("opTeo").closest("label").title = t === "torneamento" ? "" : "A força de corte teórica deste módulo vale só para torneamento.";
+    $("opAtr").disabled = t !== "torneamento";
+    $("opAtr").closest("label").title = t === "torneamento" ? "" : "O atrito na face usa Fc e Ff: escolha o tipo de ensaio Torneamento (corte ortogonal).";
+    mostraAtr();
     const K = COMPONENTES[t];
     for (const c of ["a", "b", "p"]) { $("compRot_" + c).textContent = K.rot[c]; $("compNome_" + c).textContent = K.nome[c]; }
     aplicaComp(compValido(compSalvo[t]) ? compSalvo[t] : K.padrao);
@@ -134,14 +150,29 @@ function validarConfig() {
     else msg = v > 0 ? "" : "Digite um valor maior que zero.";
     erros.push(...marcar(id, msg));
   }
+  const atr = {}, opAtr = $("opAtr").checked && !$("opAtr").disabled;
+  for (const [id, c] of ATR) {
+    const vazio = $(id).value.trim() === "", v = vazio ? null : numero($(id).value); atr[c] = v;
+    if (!opAtr) { marcar(id, ""); continue; }
+    let msg = "";
+    if (c === "g0") msg = Number.isFinite(v) && v > -90 && v < 90 ? "" : "Digite um ângulo entre −90° e 90°.";
+    else if (c === "A") msg = vazio || v > 0 ? "" : "Digite uma área maior que zero ou deixe vazio.";
+    else if (c === "T") msg = vazio || Number.isFinite(v) ? "" : "Digite a temperatura em °C ou deixe vazio.";
+    else if (c === "mu0") msg = v > 0 ? "" : "Digite um valor maior que zero.";
+    else if (c === "m") msg = v > 0 ? "" : "Digite um expoente maior que zero.";
+    else if (c === "T0") msg = Number.isFinite(v) ? "" : "Digite a temperatura em °C.";
+    else if (c === "Tf") msg = Number.isFinite(v) && v > numero($("aT0").value) ? "" : "A temperatura de fusão deve ser maior que T0.";
+    erros.push(...marcar(id, msg));
+  }
+  if (opAtr) for (const d of $("blocoAtr").querySelectorAll("details")) if (d.querySelector("[aria-invalid]")) d.open = true;
   if (document.querySelector(".avancado [aria-invalid]")) document.querySelector(".avancado").open = true;
   $("erroConfig").textContent = erros.length ? `Corrija ${erros.length} campo(s) marcado(s) em vermelho.` : "";
   if (erros.length) { document.querySelector("#secConfig [aria-invalid]")?.focus(); return null; }
-  const op = { fft: $("opFFT").checked, graficos: $("opGraf").checked, teorico: opTeo };
+  const op = { fft: $("opFFT").checked, graficos: $("opGraf").checked, teorico: opTeo, atrito: opAtr };
   const tipo = tipoEnsaio(), modelo = $("modelo").value;
   if (tipo !== "torneamento") op.teorico = false;
-  salvar({ mapa, k, nFaixas: Number($("nFaixas").value), ...lerZoom(), op, teorico: teo, duracaoMin: dur, tipo, modelo, comp: { ...(lerSalvo().comp || {}), [tipo]: comp } });
-  return { nFaixas: Number($("nFaixas").value), ...lerZoom(), op, tipo, modelo, p: { mapa, k, duracaoMin: dur, teorico: teo, modelo, tipo, comp } };
+  salvar({ mapa, k, nFaixas: Number($("nFaixas").value), ...lerZoom(), op: { ...op, atrito: $("opAtr").checked }, teorico: teo, atrito: atr, duracaoMin: dur, tipo, modelo, comp: { ...(lerSalvo().comp || {}), [tipo]: comp } });
+  return { nFaixas: Number($("nFaixas").value), ...lerZoom(), op, tipo, modelo, p: { mapa, k, duracaoMin: dur, teorico: teo, atrito: atr, modelo, tipo, comp } };
 }
 
 function lerComp() { return { a: $("comp_a").value, b: $("comp_b").value, p: $("comp_p").value }; }
@@ -174,7 +205,7 @@ function mostrarFicha() {
 
 function resumoConfig(c) {
   const k = c.p.k, cal = [k.fx, k.fy, k.fz].every((v) => v === 1) ? "sem calibração (1,0)" : `calibração ${[k.fx, k.fy, k.fz].map((v) => txt(v)).join(" / ")}`;
-  const ops = [c.op.fft && "FFT", c.op.graficos && "gráficos", c.op.teorico && "força teórica"].filter(Boolean);
+  const ops = [c.op.fft && "FFT", c.op.graficos && "gráficos", c.op.teorico && "força teórica", c.op.atrito && "atrito na face"].filter(Boolean);
   return `${cal}; ${c.nFaixas} faixa(s)${textoZoom(c)}; ${ops.join(", ") || "só estatística"}`;
 }
 
@@ -206,7 +237,12 @@ async function iniciarRodada() {
     log.push(sprintf("Teorico: ap %g mm | fn %g mm/rot | vc %g m/min | kr %g graus | g0 %g graus | kc1 %g N/mm2 | mc %g | canal %s",
       q.ap, q.fn, q.vc, q.kr, q.g0, q.kc1, q.mc, ROT[q.canal]));
   }
-  rodada = { destino, log, i: 0, resumo: [], teo: [], comp: [], nomes: [], usados: new Set(), salvoZip: false };
+  if (c.op.atrito) {
+    const q = c.p.atrito;
+    log.push(sprintf("Atrito na face (Puls; Klocke; Lung, 2014): g0 %g graus | area %s | T de contato %s | modelo: mu0 %g, T0 %g C, m %g, fusao %g C",
+      q.g0, q.A > 0 ? q.A + " mm2" : "nao informada", Number.isFinite(q.T) ? q.T + " C" : "nao informada", q.mu0, q.T0, q.m, q.Tf));
+  }
+  rodada = { destino, log, i: 0, resumo: [], teo: [], comp: [], atr: [], nomes: [], usados: new Set(), salvoZip: false };
   // pasta escolhida: os arquivos ja vao para o disco, sem .zip; o painel mostra cada gravacao
   const naPasta = destino.modo === "pasta";
   rodada.painel = naPasta ? painelGravacao($("statusGravacao"), destino, `${pasta.name}/${nome}`) : null;
@@ -289,6 +325,7 @@ async function analisarEnsaio() {
       R.resumo.push(...r.linhasResumo);
       if (r.linhaTeorico) R.teo.push(r.linhaTeorico);
       if (r.linhaComp) R.comp.push(r.linhaComp);
+      if (r.linhaAtrito) R.atr.push(r.linhaAtrito);
       R.nomes.push(rotulo);
       mostrarFaixa(r, figs.map((x) => x[1]));
       await gravarResumos();
@@ -310,6 +347,7 @@ async function gravarResumos() {
   if (R.resumo.length) arqs.push(["forcas_resumo.csv", [CAB_RESUMO, ...R.resumo]]);
   if (R.teo.length) arqs.push(["corte_teorico.csv", [CAB_TEORICO, ...R.teo]]);
   if (R.comp.length) arqs.push(["componentes.csv", [CAB_COMP, ...R.comp]]);
+  if (R.atr.length) arqs.push(["atrito.csv", [CAB_ATRITO, ...R.atr]]);
   await gravarTodos(R, [...arqs, ["relatorio.txt", R.log]]);
 }
 
@@ -339,6 +377,18 @@ function mostrarFaixa(r, figs) {
     const q = r.comp, box = document.createElement("div"); box.className = "comparacao";
     for (const [rot, val] of [...["a", "b", "p"].map((k) => [`${q.rot[k]} (média de ${ROT[q.mapa[k]]}) [N]`, virg(q[k], 1)]),
       [`Fa = √(${q.rot.a}² + ${q.rot.b}²) [N]`, virg(q.fa, 1)], ["Razão Fa/Fp [-] (atrito)", Number.isFinite(q.razao) ? virg(q.razao, 3) : "indefinida (Fp ≈ 0)"]]) {
+      const c = document.createElement("div"), s = document.createElement("span"), b = document.createElement("strong");
+      s.textContent = rot; b.textContent = val; c.append(s, b); box.appendChild(c);
+    }
+    d.appendChild(box);
+  }
+  if (r.atrito) {                        // atrito na face da ferramenta: mu = FT/FN, tensoes e modelo termico
+    const q = r.atrito, box = document.createElement("div"), ok = Number.isFinite(q.mu); box.className = "comparacao";
+    const it = [[`FT, tangencial (γ0 = ${virg(q.g0, 1)}°) [N]`, virg(q.FT, 1)], ["FN, normal [N]", virg(q.FN, 1)],
+      ["μ = FT/FN [-] (aparente)", ok ? virg(q.mu, 3) : "indefinido (FN ≤ 0)"], ["β = arctan μ [°]", ok ? virg(q.beta, 1) : "–"]];
+    if (Number.isFinite(q.A)) it.push([`τ = FT/A (A = ${virg(q.A, 3)} mm²) [MPa]`, virg(q.tau, 1)], ["σ = FN/A [MPa]", virg(q.sigma, 1)]);
+    if (Number.isFinite(q.T)) it.push([`μ do modelo a ${virg(q.T, 0)} °C [-]`, virg(q.muModelo, 3)]);
+    for (const [rot, val] of it) {
       const c = document.createElement("div"), s = document.createElement("span"), b = document.createElement("strong");
       s.textContent = rot; b.textContent = val; c.append(s, b); box.appendChild(c);
     }

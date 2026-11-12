@@ -78,6 +78,35 @@ export function componentes(F, c1, c2, comp) {
   return { a, b, p, fa, razao: Math.abs(p) > 1e-9 * Math.max(fa, 1) ? fa / Math.abs(p) : NaN };
 }
 
+// ---- atrito na face da ferramenta (Puls; Klocke; Lung, Wear 310, 2014, p. 63-71) -------------
+// Coeficiente de atrito aparente: forca tangencial / forca normal na face da ferramenta, pela
+// transformacao geometrica das forcas medidas (analise de Merchant, corte ortogonal):
+//   FT = Fc . sen(g0) + Ff . cos(g0)        tangencial (atrito)   [N]
+//   FN = Fc . cos(g0) - Ff . sen(g0)        normal                [N]
+//   mu = FT / FN [-]                        beta = arctan(mu) [graus]
+// Fc, Ff: modulos das medias; g0: angulo de saida [graus]. O ensaio de atrito do artigo (plano
+// inclinado de alfa em relacao a velocidade, sem cavaco) e o caso g0 = alfa - 90 graus.
+// Limites (artigo, secao 1.2): despreza a forca de sulcamento no raio da aresta e o desgaste
+// de flanco, e trata mu como constante na interface; mu varia com velocidade e temperatura.
+export function atritoMerchant(Fc, Ff, g0) {
+  const g = g0 * Math.PI / 180, FT = Fc * Math.sin(g) + Ff * Math.cos(g), FN = Fc * Math.cos(g) - Ff * Math.sin(g);
+  const mu = FN > 1e-9 * Math.max(Math.abs(FT), 1) ? FT / FN : NaN;
+  return { FT, FN, mu, beta: Math.atan(mu) * 180 / Math.PI };
+}
+// Area de contato do ensaio de atrito (eq. 1 do artigo; trapezio): A = (b1 + b2) . t / (2 . sen alfa)
+// b1, b2: largura da peca antes e depois da deformacao [mm]; t: profundidade de engajamento [mm]
+export const areaContato = (b1, b2, t, alfa) => (b1 + b2) * t / (2 * Math.sin(alfa * Math.PI / 180));
+// Modelo de atrito dependente da temperatura (eq. 2 do artigo; amolecimento termico, termo
+// analogo ao de Johnson-Cook): mu = mu0 . [1 - ((T - T0)/(Tf - T0))^m] para T > T0; mu0 abaixo de
+// T0; 0 na fusao. Calibrado no artigo, por elementos finitos, para AISI 1045 com metal duro
+// WC-6Co sem revestimento: mu0 = 0,7; T0 = 600 graus C; m = 0,35; Tf = 1773 K (1500 graus C).
+export const ATRITO_TERMICO = { mu0: 0.7, T0: 600, m: 0.35, Tf: 1500 };
+export function muTermico(T, q = ATRITO_TERMICO) {
+  if (!(T > q.T0)) return q.mu0;
+  if (T >= q.Tf) return 0;
+  return q.mu0 * (1 - ((T - q.T0) / (q.Tf - q.T0)) ** q.m);
+}
+
 // Taxa de amostragem pela coluna de tempo e regularidade do passo
 export function taxaDoTempo(t) {
   const N = t.length;

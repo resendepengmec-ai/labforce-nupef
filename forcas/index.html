@@ -173,6 +173,40 @@
     </fieldset>
 
     <fieldset class="teorico">
+      <legend><label class="chk"><input type="checkbox" id="opAtr"> Atrito na face da ferramenta (opcional, corte ortogonal)</label></legend>
+      <div id="blocoAtr" hidden>
+        <p class="nota">Coeficiente de atrito aparente pela transformação geométrica das forças (Merchant): F<sub>T</sub> = F<sub>c</sub>·sen γ0 + F<sub>f</sub>·cos γ0; F<sub>N</sub> = F<sub>c</sub>·cos γ0 − F<sub>f</sub>·sen γ0; μ = F<sub>T</sub>/F<sub>N</sub>. Tensões médias e modelo de atrito com a temperatura conforme Puls, Klocke e Lung (<a href="https://doi.org/10.1016/j.wear.2013.12.020" rel="noopener noreferrer">Wear, v. 310, 2014</a>). Usa os canais de F<sub>c</sub> e F<sub>f</sub> de “Componentes da força”.</p>
+        <div class="grade4">
+          <label class="lin">γ0: ângulo de saída [°]<input id="aG0" inputmode="decimal"><span class="campo-erro" id="e-aG0"></span></label>
+          <label class="lin">A: área de contato [mm²] (opcional)<input id="aA" inputmode="decimal" placeholder="vazio: sem tensões"><span class="campo-erro" id="e-aA"></span></label>
+          <label class="lin">T: temperatura de contato [°C] (opcional)<input id="aT" inputmode="decimal" placeholder="vazio: sem modelo"><span class="campo-erro" id="e-aT"></span></label>
+        </div>
+        <details class="calc-vc">
+          <summary>Calcular A no ensaio de atrito (plano inclinado)</summary>
+          <div class="acoes">
+            <label class="lin">b1: largura inicial [mm]<input id="aB1" inputmode="decimal"></label>
+            <label class="lin">b2: largura deformada [mm]<input id="aB2" inputmode="decimal"></label>
+            <label class="lin">t: engajamento [mm]<input id="aTe" inputmode="decimal"></label>
+            <label class="lin">α: inclinação do plano [°]<input id="aAl" inputmode="decimal"></label>
+            <button id="btArea" class="sec" type="button">Usar A = (b1 + b2)·t / (2·sen α)</button>
+          </div>
+          <p class="nota">No ensaio de atrito, o plano da ferramenta faz o ângulo α com a velocidade e não há cavaco: use γ0 = α − 90° (exemplo: α = 10° → γ0 = −80°).</p>
+        </details>
+        <details class="calc-vc">
+          <summary>Parâmetros do modelo de atrito com a temperatura</summary>
+          <div class="acoes">
+            <label class="lin">μ0 [-]<input id="aMu0" inputmode="decimal"><span class="campo-erro" id="e-aMu0"></span></label>
+            <label class="lin">T0 [°C]<input id="aT0" inputmode="decimal"><span class="campo-erro" id="e-aT0"></span></label>
+            <label class="lin">m [-]<input id="aM" inputmode="decimal"><span class="campo-erro" id="e-aM"></span></label>
+            <label class="lin">T de fusão [°C]<input id="aTf" inputmode="decimal"><span class="campo-erro" id="e-aTf"></span></label>
+          </div>
+          <p class="nota">μ = μ0·[1 − ((T − T0)/(T<sub>fusão</sub> − T0))<sup>m</sup>] para T &gt; T0; μ0 abaixo de T0. Os valores padrão valem só para aço AISI 1045 com metal duro WC-6Co sem revestimento.</p>
+        </details>
+        <p class="nota">Válido para corte ortogonal. O valor é aparente: inclui a força no raio da aresta e o desgaste de flanco, e é uma média de toda a interface.</p>
+      </div>
+    </fieldset>
+
+    <fieldset class="teorico">
       <legend><label class="chk"><input type="checkbox" id="opTeo"> Força de corte teórica (opcional, torneamento)</label></legend>
       <div id="blocoTeo" hidden>
         <p class="nota">Modelo da Sandvik Coromant (Kienzle): hm = fn·sen κr; kc = kc1·hm<sup>−mc</sup>·(1 − γ0/100); Fc = kc·ap·fn; Pc = vc·ap·fn·kc/(60·10³). Referência: <a href="https://www.sandvik.coromant.com/pt-pt/knowledge/machining-formulas-definitions" rel="noopener noreferrer" target="_blank">Sandvik Coromant, fórmulas e definições de usinagem</a>.</p>

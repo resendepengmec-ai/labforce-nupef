@@ -1,6 +1,6 @@
 // autoteste.js - verificacao do modulo de forcas com sinais de resposta conhecida.
 // Roda no navegador (manual, secao 6) e no Node (testes/teste_forcas.js).
-import { lerArquivo, taxaDoTempo, estatistica, freqDominante, corteTeorico, vcDeDn, mapaValido, componentes, compValido, COMPONENTES } from "./nucleo.js";
+import { lerArquivo, taxaDoTempo, estatistica, freqDominante, corteTeorico, vcDeDn, mapaValido, componentes, compValido, COMPONENTES, atritoMerchant, areaContato, muTermico, ATRITO_TERMICO } from "./nucleo.js";
 import { prepararEnsaio, analisarFaixa, PADRAO } from "./analise.js";
 import { fft } from "../../comum/js/fft.js";
 import { maxF, minPos } from "../../comum/js/graficos.js";
@@ -119,6 +119,19 @@ export async function autoteste() {
   ok(compValido(COMPONENTES.torneamento.padrao) && !compValido({ a: "fx", b: "fx", p: "fz" }) && !compValido(null), "componentes: mapa precisa usar Fx, Fy e Fz uma vez cada");
   ok(Number.isNaN(componentes({ fx: [3, 3], fy: [4, 4], fz: [0, 0] }, 0, 1, { a: "fx", b: "fy", p: "fz" }).razao), "componentes: Fp nula, razao indefinida");
   perto(componentes({ fx: [3, 3], fy: [4, 4], fz: [-2, -2] }, 0, 1, { a: "fx", b: "fy", p: "fz" }).razao, 2.5, 1e-12, "componentes: Fa 5 N e Fp −2 N, razao 2,5 (modulo de Fp)");
+  // atrito na face (Puls; Klocke; Lung, 2014): mu = FT/FN pela transformacao geometrica
+  { const a0 = atritoMerchant(800, 300, 0); perto(a0.mu, 0.375, 1e-12, "atrito: g0 = 0, mu = Ff/Fc"); perto(a0.beta, Math.atan(0.375) * 180 / Math.PI, 1e-12, "atrito: beta = arctan(mu)");
+    const a6 = atritoMerchant(800, 300, 6), tg = Math.tan(6 * Math.PI / 180); perto(a6.mu, (300 + 800 * tg) / (800 - 300 * tg), 1e-12, "atrito: mu = (Ff + Fc tan g0)/(Fc - Ff tan g0)");
+    perto(Math.hypot(a6.FT, a6.FN), Math.hypot(800, 300), 1e-9, "atrito: FT e FN conservam a resultante");
+    // ensaio de atrito do artigo: plano inclinado de alfa = 10 graus -> g0 = -80 graus; FN = Fz cos(alfa) + Fy sen(alfa)
+    const al = 10 * Math.PI / 180, ae = atritoMerchant(2000, 8000, -80); perto(ae.FN, 8000 * Math.cos(al) + 2000 * Math.sin(al), 1e-9, "atrito: ensaio com alfa 10 graus, FN"); perto(Math.abs(ae.FT), Math.abs(8000 * Math.sin(al) - 2000 * Math.cos(al)), 1e-9, "atrito: ensaio com alfa 10 graus, FT");
+    ok(Number.isNaN(atritoMerchant(100, 800, 45).mu), "atrito: FN <= 0, mu indefinido");
+    perto(areaContato(1.5, 3, 1, 10), 4.5 / (2 * Math.sin(al)), 1e-12, "atrito: area de contato (eq. 1)");
+    perto(muTermico(400), 0.7, 1e-12, "atrito termico: mu0 abaixo de T0"); perto(muTermico(600), 0.7, 1e-12, "atrito termico: mu0 em T0"); perto(muTermico(1500), 0, 1e-12, "atrito termico: zero na fusao");
+    perto(muTermico(1050), 0.7 * (1 - 0.5 ** 0.35), 1e-12, "atrito termico: eq. 2 a meio caminho"); ok(muTermico(900) > muTermico(1200) && ATRITO_TERMICO.Tf === 1500, "atrito termico: mu cai com a temperatura");
+    const Ra = analisarFaixa(E, 1500, 4499, "SINT", { ...p, atrito: { g0: 0, A: 4, T: 1050 } }, { atrito: true }, []);
+    perto(Ra.atrito.mu, Ra.comp.b / Ra.comp.a, 1e-12, "atrito: na faixa, mu = Ff/Fc com g0 = 0"); perto(Ra.atrito.tau, Ra.atrito.FT / 4, 1e-12, "atrito: tensao tangencial media");
+    ok(Ra.linhaAtrito.split(";").length === 17 && !analisarFaixa(E, 1500, 4499, "SINT", { ...p, tipo: "fresamento" }, { atrito: true }, []).atrito, "atrito: linha do CSV; nao se aplica ao fresamento"); }
   // espectro calculado na analise (roda no Web Worker): pico de Fz em 80 Hz
   const Rf = analisarFaixa(E, 1500, 4499, "SINT", p, { fft: true }, []);
   const Y = Rf.espectro.Y.fz; let kmax = 0; for (let i = 1; i < Y.length; i++) if (Y[i] > Y[kmax]) kmax = i;

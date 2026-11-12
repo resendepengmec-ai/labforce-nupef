@@ -54,7 +54,7 @@
 <article class="doc">
 <header>
   <h1>Manual técnico de uso: forças de usinagem</h1>
-  <p>Módulo de forças de usinagem do LabForce NUPEF, versão web 2.1.0. Redação conforme a ASD-STE100, adaptada ao português.</p>
+  <p>Módulo de forças de usinagem do LabForce NUPEF, versão web 2.2.0. Redação conforme a ASD-STE100, adaptada ao português.</p>
 </header>
 
 <section id="s1">
@@ -117,6 +117,8 @@
     <tr><td>Fx, Fy, Fz</td><td>Os 3 canais de força do dinamômetro [N]. A componente que cada canal mede depende da montagem e do processo.</td></tr>
     <tr><td>Componente</td><td>Uma força do processo: Fc (corte), Ff (avanço), FfN (normal ao avanço) ou Fp (passiva) [N]. O operador indica na etapa 2 o canal que mede cada componente.</td></tr>
     <tr><td>Força ativa (Fa)</td><td>A força no plano de trabalho, calculada em cada amostra. Torneamento: Fa = √(Fc² + Ff²). Fresamento, furação e rosqueamento: Fa = √(Ff² + FfN²) [N].</td></tr>
+    <tr><td>F<sub>T</sub>, F<sub>N</sub></td><td>Força tangencial (de atrito) e força normal na face da ferramenta, calculadas com Fc, Ff e o ângulo de saída γ0 [N] (seção 12.5).</td></tr>
+    <tr><td>Coeficiente de atrito aparente (μ)</td><td>μ = F<sub>T</sub> / F<sub>N</sub> [-]. É um valor médio de toda a interface entre a ferramenta e o cavaco.</td></tr>
     <tr><td>Razão Fa/Fp</td><td>A média de Fa dividida pelo valor absoluto da média de Fp [-]. O módulo usa esta razão como indicador de atrito (seção 12.4).</td></tr>
     <tr><td>Fr</td><td>Força resultante em cada amostra: Fr = √(Fx² + Fy² + Fz²) [N].</td></tr>
     <tr><td>Fator de calibração</td><td>O número que multiplica o sinal de um canal [-]. Padrão 1,0.</td></tr>
@@ -257,6 +259,19 @@
     <tr><td>Faixa mínima</td><td>0,5</td><td>s</td><td>Para aceitar faixas mais curtas ou exigir faixas mais longas.</td></tr>
   </tbody>
 </table></div>
+<p>Os campos do atrito só aparecem com a opção <strong>Atrito na face da ferramenta</strong> marcada (tipo de ensaio Torneamento).</p>
+<div class="tabela-rolar"><table>
+  <thead><tr><th>Campo</th><th>Valor padrão</th><th>Unidade</th><th>Quando alterar</th></tr></thead>
+  <tbody>
+    <tr><td>γ0</td><td>0</td><td>°</td><td>Em cada ferramenta: use o ângulo de saída real, entre −90° e 90°. No ensaio de atrito com plano inclinado de α, use γ0 = α − 90°.</td></tr>
+    <tr><td>A</td><td>vazio</td><td>mm²</td><td>Para calcular as tensões médias de contato. Vazio: o módulo não calcula as tensões. No ensaio de atrito, use <strong>Calcular A no ensaio de atrito</strong> com b1, b2, t e α.</td></tr>
+    <tr><td>T</td><td>vazio</td><td>°C</td><td>Para calcular μ pelo modelo com a temperatura. Use uma temperatura de contato estimada por medição ou por simulação. Vazio: o módulo não calcula o modelo.</td></tr>
+    <tr><td>μ0</td><td>0,7</td><td>-</td><td>Quando o par de materiais não for AISI 1045 com metal duro WC-6Co sem revestimento.</td></tr>
+    <tr><td>T0</td><td>600</td><td>°C</td><td>Idem.</td></tr>
+    <tr><td>m</td><td>0,35</td><td>-</td><td>Idem.</td></tr>
+    <tr><td>T de fusão</td><td>1500</td><td>°C</td><td>Use a temperatura de fusão do material da peça. Deve ser maior que T0.</td></tr>
+  </tbody>
+</table></div>
 <p>Os campos da força teórica só aparecem com a opção <strong>Força de corte teórica</strong> marcada.</p>
 <div class="tabela-rolar"><table>
   <thead><tr><th>Campo</th><th>Valor padrão</th><th>Unidade</th><th>Quando alterar</th></tr></thead>
@@ -307,8 +322,8 @@
 </ol>
 <h3 id="s10-2">10.2 Configurar a análise</h3>
 <figure>
-  <img src="img/manual/configuracao.webp" width="1140" height="1231" alt="Etapa 2: quadros de colunas do arquivo, calibração por canal com fatores 1,0, faixas e saídas, o quadro de componentes da força com Fc, Ff e Fp e o canal de cada uma, e o quadro da força de corte teórica com ap, fn, vc, κr, γ0, kc1 e mc." loading="lazy">
-  <figcaption>Figura 3 — Etapa 2 com a força de corte teórica marcada.</figcaption>
+  <img src="img/manual/configuracao.webp" width="1140" height="1595" alt="Etapa 2: quadros de colunas do arquivo, calibração por canal com fatores 1,0, faixas e saídas, o quadro de componentes da força com Fc, Ff e Fp e o canal de cada uma, o quadro do atrito na face da ferramenta com γ0, área de contato e temperatura de contato, e o quadro da força de corte teórica com ap, fn, vc, κr, γ0, kc1 e mc." loading="lazy">
+  <figcaption>Figura 3 — Etapa 2 com o atrito na face da ferramenta e a força de corte teórica marcados.</figcaption>
 </figure>
 <ol class="passos">
   <li>Em <strong>Colunas do arquivo</strong>, escolha a grandeza de cada coluna.</li>
@@ -318,6 +333,7 @@
   <li>Para delimitar antes uma região de interesse, marque <strong>Delimitar antes uma região de interesse (zoom)</strong>.</li>
   <li>Para escolher um zoom diferente para cada faixa, marque também <strong>Zoom em cada faixa</strong>.</li>
   <li>Marque ou desmarque <strong>Espectro de amplitude (FFT)</strong> e <strong>Salvar gráficos (PNG)</strong>.</li>
+  <li>Para calcular o atrito na face da ferramenta, marque <strong>Atrito na face da ferramenta</strong> e preencha γ0. A área de contato e a temperatura de contato são opcionais (seção 8).</li>
   <li>Para comparar com a força teórica, marque <strong>Força de corte teórica</strong> e preencha os campos (seção 8).</li>
   <li>Clique em <strong>Continuar</strong>.</li>
 </ol>
@@ -362,8 +378,8 @@
 <p>Cada rodada cria uma pasta de resultados nova. O módulo não substitui os resultados de rodadas anteriores.</p>
 <p>Com 1 faixa por ensaio, o rótulo é o nome do ensaio (exemplo: <code>E1.3</code>). Com 2 ou mais faixas, o rótulo tem o número da faixa (exemplo: <code>E1.3_f2</code>).</p>
 <figure>
-  <img src="img/manual/resultados.webp" width="1140" height="407" alt="Etapa 5: quadro das componentes Fc, Ff e Fp, da força ativa Fa e da razão Fa/Fp; comparação da força teórica com a medida; tabela com média, RMS, pico, DP, CV, fator de crista, curtose, assimetria e frequência dominante de Fx, Fy, Fz e Fr." loading="lazy">
-  <figcaption>Figura 5 — Etapa 5: componentes da força e razão Fa/Fp, comparação com a força teórica e estatística por canal. Abaixo, a tela mostra os gráficos da faixa.</figcaption>
+  <img src="img/manual/resultados.webp" width="1140" height="539" alt="Etapa 5: quadro das componentes Fc, Ff e Fp, da força ativa Fa e da razão Fa/Fp; quadro do atrito com FT, FN, μ, β, tensões τ e σ e μ do modelo; comparação da força teórica com a medida; tabela com média, RMS, pico, DP, CV, fator de crista, curtose, assimetria e frequência dominante de Fx, Fy, Fz e Fr." loading="lazy">
+  <figcaption>Figura 5 — Etapa 5: componentes da força e razão Fa/Fp, atrito na face da ferramenta, comparação com a força teórica e estatística por canal. Abaixo, a tela mostra os gráficos da faixa.</figcaption>
 </figure>
 <div class="tabela-rolar"><table>
   <thead><tr><th>Arquivo</th><th>Quando o módulo grava</th><th>Conteúdo</th></tr></thead>
@@ -372,6 +388,7 @@
     <tr><td><code>forcas_resumo.csv</code></td><td>Sempre</td><td>Uma linha por faixa e canal (Fx, Fy, Fz, Fr): tempos, n, fs, média, RMS, pico, DP, CV, fator de crista, curtose, assimetria, frequência dominante. Separador: ponto e vírgula. Decimal: vírgula.</td></tr>
     <tr><td><code>&lt;rótulo&gt;_faixa.csv</code></td><td>Sempre</td><td>As amostras da faixa: tempo [s], Fx, Fy, Fz e Fr [N], já com os fatores de calibração.</td></tr>
     <tr><td><code>componentes.csv</code></td><td>Sempre</td><td>Uma linha por faixa: processo, as 3 componentes com o canal e a média de cada uma [N], a força ativa Fa [N] e a razão Fa/Fp [-]. A razão fica vazia quando Fp é nula.</td></tr>
+    <tr><td><code>atrito.csv</code></td><td>Atrito marcado</td><td>Uma linha por faixa: γ0, Fc, Ff, F<sub>T</sub>, F<sub>N</sub>, μ, β, área, tensões τ e σ, temperatura, μ do modelo e os parâmetros do modelo. Os campos sem valor ficam vazios.</td></tr>
     <tr><td><code>corte_teorico.csv</code></td><td>Força teórica marcada</td><td>Uma linha por faixa: parâmetros de corte, hm, kc, Fc teórica, Pc, Q, Fc medida e diferença [%].</td></tr>
     <tr><td><code>&lt;ensaio&gt;_faixas.png</code></td><td>Gráficos marcados</td><td>Forças do ensaio com as faixas marcadas (registro da seleção).</td></tr>
     <tr><td><code>&lt;rótulo&gt;_sinal.png</code></td><td>Gráficos marcados</td><td>Fx, Fy e Fz na faixa, com a média de cada canal tracejada.</td></tr>
@@ -439,8 +456,36 @@ razão = Fa / |média de Fp|           [-]</p>
     <tr><td>Razão Fa/Fp</td><td>Indicador de atrito adotado pelo NUPEF: compara a força no plano de trabalho com a força passiva. Use a razão para comparar condições do mesmo processo, da mesma montagem e da mesma geometria de ferramenta.</td></tr>
   </tbody>
 </table></div>
-<p class="seg seg-cui"><strong>CUIDADO:</strong> A razão Fa/Fp não é o coeficiente de atrito na face de saída da ferramenta. Esse coeficiente depende também do ângulo de saída e do ângulo de posição, que a razão não considera. Não compare a razão de montagens ou de processos diferentes.</p>
+<p class="seg seg-cui"><strong>CUIDADO:</strong> A razão Fa/Fp não é o coeficiente de atrito na face de saída da ferramenta. Para esse coeficiente, use a opção <strong>Atrito na face da ferramenta</strong> (seção 12.5). Não compare a razão de montagens ou de processos diferentes.</p>
 <p class="seg seg-nota"><strong>NOTA:</strong> Quando a média de Fp é praticamente nula, a razão não tem valor: a tela mostra “indefinida (Fp ≈ 0)” e o campo do CSV fica vazio. O offset do amplificador (seção 12.3, item 1) altera Fp e, por isso, a razão.</p>
+<h3 id="s12-5">12.5 Atrito na face da ferramenta</h3>
+<p>O módulo segue Puls, Klocke e Lung (2014). O coeficiente de atrito é a força tangencial dividida pela força normal na face da ferramenta. As duas forças vêm da transformação geométrica das forças medidas, como na análise de Merchant (1945) para o corte ortogonal. Fc e Ff são os valores absolutos das médias dos canais indicados em <strong>Componentes da força</strong>.</p>
+<p class="formula">FT = Fc · sen γ0 + Ff · cos γ0             [N]
+FN = Fc · cos γ0 − Ff · sen γ0             [N]
+μ  = FT / FN                               [-]
+β  = arctan μ                              [°]
+τ  = FT / A        σ = FN / A              [MPa], com A em mm²</p>
+<p>No ensaio de atrito do artigo, a ferramenta tem um ângulo de saída muito negativo, não se forma cavaco e o metal escoa sobre um plano inclinado de α em relação à velocidade. Esse ensaio é o caso γ0 = α − 90°. A área de contato é um trapézio:</p>
+<p class="formula">A = (b1 + b2) · t / (2 · sen α)            [mm²]
+b1, b2: largura da peça antes e depois da deformação [mm]
+t: profundidade de engajamento [mm]</p>
+<p>O artigo mostra que a tensão tangencial cai quando a temperatura de contato sobe, por amolecimento térmico do material da peça, e que a pressão normal quase não muda. Por isso μ não é constante: ele cai com a velocidade. O modelo proposto é:</p>
+<p class="formula">μ = μ0 · [1 − ((T − T0) / (Tfusão − T0))^m]     para T &gt; T0
+μ = μ0                                          para T ≤ T0
+AISI 1045 com WC-6Co sem revestimento:
+μ0 = 0,7; T0 = 600 °C; m = 0,35; Tfusão = 1773 K (1500 °C)</p>
+<div class="tabela-rolar"><table>
+  <thead><tr><th>Grandeza</th><th>Interpretação</th></tr></thead>
+  <tbody>
+    <tr><td>μ aparente</td><td>Média de toda a interface na faixa. Compare condições do mesmo par de materiais e da mesma geometria. μ menor em velocidade maior é o comportamento esperado.</td></tr>
+    <tr><td>β</td><td>Ângulo de atrito. É o ângulo entre a força resultante e a normal à face da ferramenta.</td></tr>
+    <tr><td>τ e σ</td><td>Tensão tangencial e pressão normal médias no contato. A tensão tangencial tem como limite a tensão de escoamento por cisalhamento do material da peça.</td></tr>
+    <tr><td>μ do modelo</td><td>Valor de referência para a temperatura de contato informada. Serve para comparar com μ aparente e como dado de entrada de simulações.</td></tr>
+  </tbody>
+</table></div>
+<p class="seg seg-cui"><strong>CUIDADO:</strong> O cálculo vale para corte ortogonal. A transformação despreza a força de sulcamento no raio da aresta e o desgaste de flanco, e supõe μ constante na interface. Com aresta desgastada ou raio de aresta grande, μ aparente difere do atrito real da interface.</p>
+<p class="seg seg-cui"><strong>CUIDADO:</strong> Os parâmetros padrão do modelo foram calibrados por simulação de elementos finitos só para AISI 1045 com metal duro WC-6Co sem revestimento. Não use esses valores em outro par de materiais. A 20 m/min o artigo observou adesão de material, e o modelo não representa essa condição.</p>
+<p class="seg seg-nota"><strong>NOTA:</strong> A temperatura de contato não é medida pelo dinamômetro. O artigo mediu a temperatura da superfície 1,5 mm abaixo do contato e obteve a temperatura de contato por simulação. Quando F<sub>N</sub> é nula ou negativa, μ não tem valor: a tela mostra “indefinido (FN ≤ 0)”. Confira γ0 e os canais de Fc e Ff.</p>
 </section>
 
 <section id="s13">
@@ -451,6 +496,8 @@ razão = Fa / |média de Fp|           [-]</p>
     <tr><td>Tela de uma versão antiga ou verificação com <code>FALHA</code></td><td>O navegador usa arquivos antigos da memória.</td><td>Pressione <strong>Ctrl+F5</strong>. Faça a verificação (seção 6) outra vez.</td></tr>
     <tr><td>“Escolha tempo, Fx, Fy e Fz uma vez cada”</td><td>Uma grandeza está em 2 colunas ou falta uma grandeza.</td><td>Corrija o mapeamento das colunas.</td></tr>
     <tr><td>“Use Fx, Fy e Fz uma vez cada: cada componente em um canal diferente”</td><td>Duas componentes estão no mesmo canal em <strong>Componentes da força</strong>.</td><td>Escolha um canal diferente para cada componente, ou clique em <strong>Voltar ao padrão deste processo</strong>.</td></tr>
+    <tr><td>μ “indefinido (FN ≤ 0)” ou μ muito diferente do esperado</td><td>γ0 errado, ou os canais de Fc e Ff estão trocados.</td><td>Confira o ângulo de saída e <strong>Componentes da força</strong>. No ensaio de atrito, use γ0 = α − 90°.</td></tr>
+    <tr><td><strong>Atrito na face da ferramenta</strong> desabilitado</td><td>O tipo de ensaio não é Torneamento.</td><td>O cálculo usa Fc e Ff. Para um ensaio ortogonal em outra máquina, escolha Torneamento na etapa 1 e indique os canais de Fc e Ff.</td></tr>
     <tr><td>Fc, Ff e Fp trocadas, ou razão Fa/Fp fora do esperado</td><td>A correspondência das componentes não é a da montagem real.</td><td>Compare os eixos do dinamômetro com as direções de corte e de avanço e corrija <strong>Componentes da força</strong>.</td></tr>
     <tr><td><code>arquivo sem 4 colunas numéricas válidas</code></td><td>O arquivo tem menos de 4 colunas, ou o mapeamento está errado.</td><td>Abra o arquivo num editor de texto e confira as colunas.</td></tr>
     <tr><td><code>a coluna de tempo não é crescente</code></td><td>A coluna de tempo está em outra posição.</td><td>Corrija o mapeamento das colunas.</td></tr>
@@ -474,6 +521,8 @@ razão = Fa / |média de Fp|           [-]</p>
   <li>AEROSPACE, SECURITY AND DEFENCE INDUSTRIES ASSOCIATION OF EUROPE (ASD). <em>ASD-STE100</em>: Simplified Technical English. Issue 9. Bruxelas: ASD, 2025. Disponível em: <a href="https://www.asd-ste100.org" rel="noopener noreferrer">https://www.asd-ste100.org</a>. Acesso em: 29 out. 2026.</li>
   <li>KISTLER GROUP. <em>Analyzing and optimizing cutting processes</em>: sensors and solutions for cutting force measurements. Catálogo 960-002e-02.26. Winterthur: Kistler, 2026.</li>
   <li>KIENZLE, O. Die Bestimmung von Kräften und Leistungen an spanenden Werkzeugen und Werkzeugmaschinen. <em>VDI-Zeitschrift</em>, Düsseldorf, v. 94, n. 11/12, p. 299-305, 1952.</li>
+  <li>MERCHANT, M. E. Mechanics of the metal cutting process. I. Orthogonal cutting and a type 2 chip. <em>Journal of Applied Physics</em>, v. 16, p. 267-275, 1945. Citado conforme Puls, Klocke e Lung (2014).</li>
+  <li>PULS, H.; KLOCKE, F.; LUNG, D. Experimental investigation on friction under metal cutting conditions. <em>Wear</em>, v. 310, p. 63-71, 2014. DOI: <a href="https://doi.org/10.1016/j.wear.2013.12.020" rel="noopener noreferrer">10.1016/j.wear.2013.12.020</a>.</li>
   <li>SANDVIK COROMANT. <em>Fórmulas e definições de usinagem</em>. Sandviken: Sandvik Coromant, [2026]. Disponível em: <a href="https://www.sandvik.coromant.com/pt-pt/knowledge/machining-formulas-definitions" rel="noopener noreferrer">https://www.sandvik.coromant.com/pt-pt/knowledge/machining-formulas-definitions</a>. Acesso em: 29 out. 2026.</li>
   <li>SANDVIK COROMANT. <em>Specific cutting force</em>. Sandviken: Sandvik Coromant, [2026]. Disponível em: <a href="https://www.sandvik.coromant.com/pt-pt/knowledge/materials/specific-cutting-force" rel="noopener noreferrer">https://www.sandvik.coromant.com/pt-pt/knowledge/materials/specific-cutting-force</a>. Acesso em: 29 out. 2026.</li>
 </ul>
@@ -482,7 +531,7 @@ razão = Fa / |média de Fp|           [-]</p>
 </div>
 
 <footer class="rodape">
-  <p>LabForce NUPEF, IFG Câmpus Goiânia. Módulo de forças de usinagem, versão web 2.1.0.</p>
+  <p>LabForce NUPEF, IFG Câmpus Goiânia. Módulo de forças de usinagem, versão web 2.2.0.</p>
   <div class="inst">
     <div class="logos-inst">
       <a class="logo-ifg" href="https://www.ifg.edu.br/goiania" rel="noopener noreferrer"><img src="../assets/logo-ifg-goiania.png" alt="Instituto Federal de Goiás, Câmpus Goiânia" width="52" height="72" loading="lazy"></a>
