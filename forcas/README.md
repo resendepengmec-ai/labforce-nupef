@@ -5,9 +5,11 @@ Análise de sinais de dinamômetro (Fx, Fy, Fz) no navegador. É o mesmo padrão
 - **Manual técnico:** [`manual.html`](manual.html), com 14 seções e redação ASD-STE100 em português. Inclui a verificação no navegador.
 - **Entrada:** TXT/CSV com 4 colunas mapeáveis (tempo, Fx, Fy, Fz). Aceita DynoWare: metadados, tab e vírgula decimal.
 - **Calibração:** fator por canal (padrão 1,0). Um fator negativo inverte o sentido.
+- **Componentes da força:** o operador indica qual canal (Fx, Fy, Fz) mede Fc, Ff e Fp (torneamento) ou FfN, Ff e Fp (fresamento, furação e rosqueamento), conforme a montagem. A análise calcula a força ativa Fa e a razão Fa/Fp (indicador de atrito).
 - **Saídas:**
   - `forcas_resumo.csv`;
   - `<faixa>_faixa.csv`;
+  - `componentes.csv`;
   - `corte_teorico.csv` (opcional);
   - PNGs `_faixas`, `_sinal` e `_espectro`;
   - `relatorio.txt`.

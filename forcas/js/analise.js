@@ -1,11 +1,11 @@
 // analise.js - fluxo de um ensaio de forcas, separado da interface:
 //   prepararEnsaio : le o arquivo, aplica a calibracao, verifica o tempo
 //   analisarFaixa  : estatistica por canal, CSV da faixa e forca teorica
-import { lerArquivo, taxaDoTempo, estatistica, corteTeorico } from "./nucleo.js";
+import { lerArquivo, taxaDoTempo, estatistica, corteTeorico, componentes, COMPONENTES, compValido } from "./nucleo.js";
 import { sprintf, nv, nv6g } from "../../comum/js/formato.js";
 import { DINAMOMETROS, verificarFaixa } from "./dinamometros.js";
 
-export const VERSAO = "web 2.0.0";
+export const VERSAO = "web 2.1.0";
 export const CANAIS = [
   { k: "fx", rot: "Fx" }, { k: "fy", rot: "Fy" }, { k: "fz", rot: "Fz" }, { k: "fr", rot: "Fr" },
 ];
@@ -15,6 +15,7 @@ export const PADRAO = {
   teorico: { ap: 2, fn: 0.25, vc: 120, kr: 90, g0: 0, kc1: null, mc: 0.25, canal: "fz" },
 };
 
+export const CAB_COMP = "Faixa;Processo;CompA;CanalA;MediaA[N];CompB;CanalB;MediaB[N];CompP;CanalP;MediaP[N];Fa[N];Fa/Fp[-]";
 export const CAB_RESUMO = "Faixa;Canal;t_ini[s];t_fim[s];n;fs[Hz];Media[N];RMS[N];Pico[N];DP[N];CV[-];FatorCrista[-];Curtose[-];Assimetria[-];FreqDom[Hz]";
 export const CAB_TEORICO = "Faixa;ap[mm];fn[mm/rot];vc[m/min];kr[graus];g0[graus];kc1[N/mm2];mc[-];hm[mm];kc[N/mm2];Fc_teorica[N];Pc[kW];Q[cm3/min];Canal;Fc_medida[N];Diferenca[%]";
 
@@ -78,6 +79,15 @@ export function analisarFaixa(E, c1, c2, rotulo, p, op, log) {
   if (op.fft && Abs.fx && Abs.fy && Abs.fz) {
     const Y = { fx: amplitudePico(Abs.fx, n), fy: amplitudePico(Abs.fy, n), fz: amplitudePico(Abs.fz, n) };
     R.espectro = { f: Float64Array.from({ length: Y.fx.length }, (_, i) => (i + 1) * fs / n), Y };
+  }
+  // componentes da forca (conforme a montagem) e razao Fa/Fp
+  {
+    const tipo = COMPONENTES[p.tipo] ? p.tipo : "torneamento", K = COMPONENTES[tipo], comp = compValido(p.comp) ? p.comp : K.padrao;
+    const c = componentes(E.F, c1, c2, comp);
+    R.comp = { ...c, tipo, mapa: comp, rot: K.rot };
+    log.push(sprintf("  Componentes (%s): %s = %s %.2f N | %s = %s %.2f N | %s = %s %.2f N | Fa = %.2f N | Fa/Fp = %s",
+      tipo, K.rot.a, ROT[comp.a], c.a, K.rot.b, ROT[comp.b], c.b, K.rot.p, ROT[comp.p], c.p, c.fa, Number.isFinite(c.razao) ? sprintf("%.3f", c.razao) : "indefinida (Fp ~ 0)"));
+    R.linhaComp = [rotulo, tipo, K.rot.a, ROT[comp.a], nv(c.a, "%.3f"), K.rot.b, ROT[comp.b], nv(c.b, "%.3f"), K.rot.p, ROT[comp.p], nv(c.p, "%.3f"), nv(c.fa, "%.3f"), Number.isFinite(c.razao) ? nv(c.razao, "%.4f") : ""].join(";");
   }
   if (op.teorico) {
     const q = p.teorico, c = corteTeorico(q), med = est[q.canal].media;

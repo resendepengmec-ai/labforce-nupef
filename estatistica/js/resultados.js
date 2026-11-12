@@ -11,7 +11,7 @@ import { otimizar, conferirObjetivo } from "./otimizacao.js";
 import { qnorm } from "./distribuicoes.js";
 import * as C from "./conclusoes.js";
 
-export const VERSAO = "web 1.0.0";
+export const VERSAO = "web 1.1.0";
 export const TIPOS = { anova: "ANOVA de um fator", manova: "MANOVA de um fator", fatorial: "Fatorial 2^k", ccd: "Composto central (superfície de resposta)" };
 
 // ---- celulas tipadas: tela (num com 4 algarismos) e CSV (precisao total) ------

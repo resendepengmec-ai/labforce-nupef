@@ -87,7 +87,7 @@
             <tr><th>Fa</th><td><i>Active force</i></td><td>Força ativa: F<sub>a</sub> = √(F<sub>c</sub>² + F<sub>f</sub>²)</td></tr>
             <tr><th>R</th><td><i>Resultant force</i></td><td>Força resultante: R = √(F<sub>c</sub>² + F<sub>f</sub>² + F<sub>p</sub>²)</td></tr>
           </table>
-          <p>As setas pretas indicam o giro da peça e o avanço da ferramenta. O triedro Fx, Fy, Fz no canto é ilustrativo: a correspondência com os canais do dinamômetro é a da lista ao lado (convenção DynoWare: Ff → Fx, Fp → Fy, Fc → Fz).</p>
+          <p>As setas pretas indicam o giro da peça e o avanço da ferramenta. O triedro Fx, Fy, Fz no canto é ilustrativo: a correspondência com os canais do dinamômetro depende da montagem e é informada na etapa 2, em “Componentes da força” (padrão, convenção DynoWare: Ff → Fx, Fp → Fy, Fc → Fz).</p>
         </figcaption>
       </figure>
       <div>
@@ -131,7 +131,7 @@
           <li><b>Furação:</b> Ff é axial; Fx e Fy são forças de deflexão. Com o momento: Fc = Mc / d (broca de 2 gumes, diâmetro d).</li>
           <li><b>Rosqueamento:</b> a grandeza principal é o momento; a força axial mostra o sincronismo entre avanço e passo.</li>
         </ul>
-        <p class="nota"><strong>NOTA:</strong> este módulo lê o tempo e 3 forças. Associe as colunas do arquivo a Fx, Fy e Fz na etapa 2. O momento Mz não é lido nesta versão. A força de corte teórica vale só para torneamento.</p>
+        <p class="nota"><strong>NOTA:</strong> este módulo lê o tempo e 3 forças. Associe as colunas do arquivo a Fx, Fy e Fz na etapa 2 e indique qual canal mede F<sub>f</sub>, F<sub>fN</sub> e F<sub>p</sub> na sua montagem. O momento Mz não é lido nesta versão. A força de corte teórica vale só para torneamento.</p>
       </div>
     </div>
     <p class="fonte-tipo">Componentes conforme Kistler, <em>Analyzing and optimizing cutting processes</em> (catálogo 960-002e), traduzido. Figuras: © Kistler Group, reproduzidas do catálogo com indicação da fonte; termos traduzidos na tabela abaixo de cada figura.</p>
@@ -164,6 +164,14 @@
       </fieldset>
     </div>
 
+    <fieldset class="componentes">
+      <legend>Componentes da força (conforme a montagem)</legend>
+      <div class="comp-campos" id="compCampos"></div>
+      <p class="campo-erro" id="e-comp"></p>
+      <p class="nota" id="notaComp"></p>
+      <button id="btCompPadrao" class="lnk" type="button">Voltar ao padrão deste processo</button>
+    </fieldset>
+
     <fieldset class="teorico">
       <legend><label class="chk"><input type="checkbox" id="opTeo"> Força de corte teórica (opcional, torneamento)</label></legend>
       <div id="blocoTeo" hidden>
@@ -176,8 +184,6 @@
           <label class="lin">γ0: ângulo de saída [°]<input id="tG0" inputmode="decimal"><span class="campo-erro" id="e-tG0"></span></label>
           <label class="lin">kc1: força específica (hm = 1 mm) [N/mm²]<input id="tKc1" inputmode="decimal" placeholder="catálogo do material"><span class="campo-erro" id="e-tKc1"></span></label>
           <label class="lin">mc: expoente [-]<input id="tMc" inputmode="decimal"><span class="campo-erro" id="e-tMc"></span></label>
-          <label class="lin">Canal comparado com Fc
-            <select id="tCanal"><option value="fz">Fz</option><option value="fx">Fx</option><option value="fy">Fy</option><option value="fr">Fr</option></select></label>
         </div>
         <details class="calc-vc">
           <summary>Calcular vc pelo diâmetro e pela rotação</summary>
@@ -187,7 +193,7 @@
             <button id="btVc" class="sec" type="button">Usar vc = π·D·n/1000</button>
           </div>
         </details>
-        <p class="nota">kc1 e mc dependem do material da peça: use os valores do catálogo do fabricante da ferramenta.</p>
+        <p class="nota">kc1 e mc dependem do material da peça: use os valores do catálogo do fabricante da ferramenta. A força teórica é comparada com o canal indicado como F<sub>c</sub> em “Componentes da força”.</p>
       </div>
     </fieldset>
 

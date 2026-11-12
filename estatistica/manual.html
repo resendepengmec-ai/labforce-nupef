@@ -55,7 +55,7 @@
 <article class="doc">
 <header>
   <h1>Manual técnico de uso: planejamento de experimentos</h1>
-  <p>Módulo de planejamento de experimentos do LabForce NUPEF, versão web 1.0.0. Redação conforme a ASD-STE100, adaptada ao português.</p>
+  <p>Módulo de planejamento de experimentos do LabForce NUPEF, versão web 1.1.0. Redação conforme a ASD-STE100, adaptada ao português.</p>
 </header>
 
 <section id="s1">
@@ -150,7 +150,7 @@
     <tr><td><code>js/dados.js</code>, <code>js/resultados.js</code></td><td>Leitura do CSV; montagem das tabelas, das conclusões e do relatório.</td></tr>
     <tr><td><code>js/distribuicoes.js</code>, <code>js/algebra.js</code></td><td>Distribuições de probabilidade e álgebra linear.</td></tr>
     <tr><td><code>js/anova1.js</code>, <code>js/manova.js</code>, <code>js/fatorial2k.js</code>, <code>js/ccd.js</code>, <code>js/otimizacao.js</code></td><td>Uma análise em cada arquivo.</td></tr>
-    <tr><td><code>js/conclusoes.js</code>, <code>js/figuras.js</code></td><td>Frases por regras e gráficos.</td></tr>
+    <tr><td><code>js/conclusoes.js</code>, <code>js/figuras.js</code>, <code>js/superficie3d.js</code></td><td>Frases por regras, gráficos e superfície de resposta em 3D (giro, eixos codificados ou reais, par de fatores).</td></tr>
     <tr><td><code>js/autoteste.js</code>, <code>testes/</code></td><td>Teste de verificação (seção 6) e respostas de referência do SciPy e do statsmodels.</td></tr>
     <tr><td><code>exemplos/</code></td><td>Arquivos de exemplo (ANOVA, MANOVA, 2<sup>3</sup> e composto central), exemplos da bibliografia em <code>exemplos/bibliografia/</code> (seção 14.2) e <code>gerar_exemplos.mjs</code>, que gera <code>exemplos.js</code> a partir dos .csv.</td></tr>
   </tbody>
@@ -292,7 +292,9 @@ D = (Π dᵢ^rᵢ)^(1/Σrᵢ)</p>
     <tr><td>Ponto estacionário fora da região</td><td>O ótimo está além dos níveis ensaiados.</td><td>Faça novos ensaios na direção indicada.</td></tr>
     <tr><td><code>D = 0</code></td><td>Nenhuma combinação atende todos os limites L e U.</td><td>Alargue os limites das respostas.</td></tr>
     <tr><td><code>ERRO ao gravar</code></td><td>Arquivo aberto no Excel ou pasta sem permissão.</td><td>Feche o arquivo e analise de novo, ou escolha outra pasta.</td></tr>
-  </tbody>
+      <tr><td>Botão <strong>Níveis reais</strong> desabilitado nos gráficos</td><td>Os níveis −1 e +1 dos fatores não foram informados na revisão.</td><td>Volte à revisão, informe os níveis −1 e +1 (e a unidade) de cada fator e analise outra vez.</td></tr>
+    <tr><td>Superfície 3D não gira com o toque vertical</td><td>No toque, o arrasto vertical rola a página.</td><td>Arraste na horizontal para girar e use os botões ▲ e ▼ para inclinar.</td></tr>
+</tbody>
 </table></div>
 </section>
 
@@ -345,7 +347,7 @@ D = (Π dᵢ^rᵢ)^(1/Σrᵢ)</p>
 </div>
 
 <footer class="rodape">
-  <p>LabForce NUPEF, IFG Câmpus Goiânia. Módulo de planejamento de experimentos, versão web 1.0.0.</p>
+  <p>LabForce NUPEF, IFG Câmpus Goiânia. Módulo de planejamento de experimentos, versão web 1.1.0.</p>
   <div class="inst">
     <div class="logos-inst">
       <a class="logo-ifg" href="https://www.ifg.edu.br/goiania" rel="noopener noreferrer"><img src="../assets/logo-ifg-goiania.png" alt="Instituto Federal de Goiás, Câmpus Goiânia" width="52" height="72" loading="lazy"></a>

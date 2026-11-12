@@ -1,7 +1,7 @@
 // app.js - interface do modulo de forcas: etapas, selecao das faixas, analise e
 // gravacao dos resultados na pasta do usuario (ou .zip). Mesmo padrao do modulo eletrico.
-import { ROT, PADRAO, CANAIS, CAB_RESUMO, CAB_TEORICO, VERSAO, prepararEnsaio, analisarFaixa } from "./analise.js";
-import { mapaValido, vcDeDn } from "./nucleo.js";
+import { ROT, PADRAO, CANAIS, CAB_RESUMO, CAB_TEORICO, CAB_COMP, VERSAO, prepararEnsaio, analisarFaixa } from "./analise.js";
+import { mapaValido, vcDeDn, COMPONENTES, compValido } from "./nucleo.js";
 import { DINAMOMETROS, PADRAO_DINAMOMETRO } from "./dinamometros.js";
 import { CORES, figuraSinal, figuraEspectro, figuraDistribuicao } from "./figuras.js";
 import { sprintf } from "../../comum/js/formato.js";
@@ -55,7 +55,17 @@ function montarConfig() {
   if (s.op) { $("opFFT").checked = s.op.fft; $("opGraf").checked = s.op.graficos; $("opTeo").checked = s.op.teorico; }
   const t = { ...PADRAO.teorico, ...(s.teorico || {}) };
   for (const [id, c] of TEO) $(id).value = txt(t[c]);
-  $("tCanal").value = t.canal;
+  // componentes da forca: qual canal mede cada uma (depende da montagem); guardado por processo
+  const compSalvo = { ...(s.comp || {}) };
+  for (const c of ["a", "b", "p"]) {
+    const l = document.createElement("label"), b = document.createElement("b"), d = document.createElement("span"); b.id = "compRot_" + c; d.id = "compNome_" + c;
+    const sel = document.createElement("select"); sel.id = "comp_" + c;
+    for (const k of ["fx", "fy", "fz"]) sel.add(new Option(`canal ${ROT[k]}`, k));
+    sel.addEventListener("change", () => { compSalvo[tipoEnsaio()] = lerComp(); });
+    l.append(b, d, sel); $("compCampos").appendChild(l);
+  }
+  const aplicaComp = (m) => { for (const c of ["a", "b", "p"]) { $("comp_" + c).value = m[c]; $("comp_" + c).removeAttribute("aria-invalid"); } $("e-comp").textContent = ""; };
+  $("btCompPadrao").addEventListener("click", () => { const t = tipoEnsaio(); aplicaComp(COMPONENTES[t].padrao); compSalvo[t] = lerComp(); });
   $("pDur").value = txt(s.duracaoMin ?? PADRAO.duracaoMin);
   const mostraTeo = () => { $("blocoTeo").hidden = !$("opTeo").checked || $("opTeo").disabled; };
   $("opTeo").addEventListener("change", mostraTeo);
@@ -69,6 +79,10 @@ function montarConfig() {
     document.querySelectorAll(".montagem[data-tipo]").forEach((el) => { el.hidden = el.dataset.tipo !== t; });
     $("opTeo").disabled = t !== "torneamento";
     $("opTeo").closest("label").title = t === "torneamento" ? "" : "A força de corte teórica deste módulo vale só para torneamento.";
+    const K = COMPONENTES[t];
+    for (const c of ["a", "b", "p"]) { $("compRot_" + c).textContent = K.rot[c]; $("compNome_" + c).textContent = K.nome[c]; }
+    aplicaComp(compValido(compSalvo[t]) ? compSalvo[t] : K.padrao);
+    $("notaComp").textContent = `Indique qual canal do dinamômetro mede cada componente nesta montagem. A força ativa é Fa = √(${K.rot.a}² + ${K.rot.b}²); a análise calcula também a razão Fa/Fp. Padrão deste processo: ${["a", "b", "p"].map((c) => `${K.rot[c]} → ${ROT[K.padrao[c]]}`).join(", ")}.`;
     mostraTeo(); mostrarFicha();
   };
   document.querySelectorAll('input[name="tipo"]').forEach((r) => r.addEventListener("change", aplicaTipo));
@@ -103,7 +117,11 @@ function validarConfig() {
   }
   const dur = numero($("pDur").value);
   erros.push(...marcar("pDur", dur >= 0 ? "" : "Digite um valor de 0 s ou mais."));
-  const teo = { canal: $("tCanal").value };
+  const comp = lerComp(), okComp = compValido(comp);
+  for (const c of ["a", "b", "p"]) { if (okComp) $("comp_" + c).removeAttribute("aria-invalid"); else $("comp_" + c).setAttribute("aria-invalid", "true"); }
+  $("e-comp").textContent = okComp ? "" : "Use Fx, Fy e Fz uma vez cada: cada componente em um canal diferente.";
+  if (!okComp) erros.push("componentes");
+  const teo = { canal: comp.a };        // forca teorica (torneamento): comparada com o canal de Fc
   const opTeo = $("opTeo").checked;
   for (const [id, c] of TEO) {
     const v = numero($(id).value); teo[c] = v;
@@ -122,10 +140,11 @@ function validarConfig() {
   const op = { fft: $("opFFT").checked, graficos: $("opGraf").checked, teorico: opTeo };
   const tipo = tipoEnsaio(), modelo = $("modelo").value;
   if (tipo !== "torneamento") op.teorico = false;
-  salvar({ mapa, k, nFaixas: Number($("nFaixas").value), ...lerZoom(), op, teorico: teo, duracaoMin: dur, tipo, modelo });
-  return { nFaixas: Number($("nFaixas").value), ...lerZoom(), op, tipo, modelo, p: { mapa, k, duracaoMin: dur, teorico: teo, modelo } };
+  salvar({ mapa, k, nFaixas: Number($("nFaixas").value), ...lerZoom(), op, teorico: teo, duracaoMin: dur, tipo, modelo, comp: { ...(lerSalvo().comp || {}), [tipo]: comp } });
+  return { nFaixas: Number($("nFaixas").value), ...lerZoom(), op, tipo, modelo, p: { mapa, k, duracaoMin: dur, teorico: teo, modelo, tipo, comp } };
 }
 
+function lerComp() { return { a: $("comp_a").value, b: $("comp_b").value, p: $("comp_p").value }; }
 function tipoEnsaio() { return document.querySelector('input[name="tipo"]:checked').value; }
 function resumoMontagem() {
   return `${tipoEnsaio() === "torneamento" ? "torneamento" : "fresamento, furação ou rosqueamento"}; dinamômetro ${$("modelo").value}`;
@@ -179,6 +198,7 @@ async function iniciarRodada() {
     destino.modo === "pasta" ? `${pasta.name}/${nome}` : `${nome}.zip`));
   log.push(`Ensaio: ${c.tipo === "torneamento" ? "torneamento" : "fresamento, furacao ou rosqueamento"} | dinamometro Kistler ${c.modelo}`);
   log.push(`Colunas: ${c.p.mapa.join(" ")} | calibracao [Fx Fy Fz]: ${[c.p.k.fx, c.p.k.fy, c.p.k.fz].join(" ")}`);
+  log.push(`Componentes (montagem): ${["a", "b", "p"].map((k) => `${COMPONENTES[c.tipo].rot[k]} = ${ROT[c.p.comp[k]]}`).join(" | ")} | Fa = raiz(${COMPONENTES[c.tipo].rot.a}^2 + ${COMPONENTES[c.tipo].rot.b}^2) | atrito: razao Fa/Fp`);
   log.push(sprintf("Faixas por ensaio: %d (%s) | faixa minima %g s | FFT: %s | graficos: %s | forca teorica: %s",
     c.nFaixas, c.zoom ? (c.zoomPorFaixa ? "com zoom em cada faixa" : "com zoom") : "sem zoom", c.p.duracaoMin, c.op.fft ? "sim" : "nao", c.op.graficos ? "sim" : "nao", c.op.teorico ? "sim" : "nao"));
   if (c.op.teorico) {
@@ -186,7 +206,7 @@ async function iniciarRodada() {
     log.push(sprintf("Teorico: ap %g mm | fn %g mm/rot | vc %g m/min | kr %g graus | g0 %g graus | kc1 %g N/mm2 | mc %g | canal %s",
       q.ap, q.fn, q.vc, q.kr, q.g0, q.kc1, q.mc, ROT[q.canal]));
   }
-  rodada = { destino, log, i: 0, resumo: [], teo: [], nomes: [], usados: new Set(), salvoZip: false };
+  rodada = { destino, log, i: 0, resumo: [], teo: [], comp: [], nomes: [], usados: new Set(), salvoZip: false };
   // pasta escolhida: os arquivos ja vao para o disco, sem .zip; o painel mostra cada gravacao
   const naPasta = destino.modo === "pasta";
   rodada.painel = naPasta ? painelGravacao($("statusGravacao"), destino, `${pasta.name}/${nome}`) : null;
@@ -268,6 +288,7 @@ async function analisarEnsaio() {
       }
       R.resumo.push(...r.linhasResumo);
       if (r.linhaTeorico) R.teo.push(r.linhaTeorico);
+      if (r.linhaComp) R.comp.push(r.linhaComp);
       R.nomes.push(rotulo);
       mostrarFaixa(r, figs.map((x) => x[1]));
       await gravarResumos();
@@ -288,6 +309,7 @@ async function gravarResumos() {
   const R = rodada, arqs = [];
   if (R.resumo.length) arqs.push(["forcas_resumo.csv", [CAB_RESUMO, ...R.resumo]]);
   if (R.teo.length) arqs.push(["corte_teorico.csv", [CAB_TEORICO, ...R.teo]]);
+  if (R.comp.length) arqs.push(["componentes.csv", [CAB_COMP, ...R.comp]]);
   await gravarTodos(R, [...arqs, ["relatorio.txt", R.log]]);
 }
 
@@ -313,6 +335,15 @@ function mostrarFaixa(r, figs) {
   const h = document.createElement("h3");
   h.textContent = `${r.rotulo}: ${virg(r.t0, 3)} s a ${virg(r.t1, 3)} s (${virg(r.tu, 3)} s, ${r.n.toLocaleString("pt-BR")} amostras)`;
   d.appendChild(h);
+  if (r.comp) {                          // componentes pela montagem, forca ativa e razao Fa/Fp
+    const q = r.comp, box = document.createElement("div"); box.className = "comparacao";
+    for (const [rot, val] of [...["a", "b", "p"].map((k) => [`${q.rot[k]} (média de ${ROT[q.mapa[k]]}) [N]`, virg(q[k], 1)]),
+      [`Fa = √(${q.rot.a}² + ${q.rot.b}²) [N]`, virg(q.fa, 1)], ["Razão Fa/Fp [-] (atrito)", Number.isFinite(q.razao) ? virg(q.razao, 3) : "indefinida (Fp ≈ 0)"]]) {
+      const c = document.createElement("div"), s = document.createElement("span"), b = document.createElement("strong");
+      s.textContent = rot; b.textContent = val; c.append(s, b); box.appendChild(c);
+    }
+    d.appendChild(box);
+  }
   if (r.teorico) {
     const q = r.teorico, box = document.createElement("div"); box.className = "comparacao";
     for (const [rot, val] of [["Fc teórica [N]", virg(q.Fc, 1)], [`Fc medida, média |${ROT[q.canal]}| [N]`, virg(Math.abs(q.medida), 1)],

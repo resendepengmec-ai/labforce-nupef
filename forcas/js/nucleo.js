@@ -53,6 +53,31 @@ export function mapaValido(mapa) {
   return ["tempo", "fx", "fy", "fz"].every((c) => mapa.filter((m) => m === c).length === 1);
 }
 
+// Componentes da forca de usinagem: quais canais (Fx, Fy, Fz) medem cada componente depende
+// da montagem do dinamometro e do processo. Duas componentes ficam no plano de trabalho
+// (a e b: formam a forca ativa Fa) e uma e a passiva (p).
+//   torneamento: a = Fc (corte), b = Ff (avanco), p = Fp (passiva, radial)
+//   fresamento, furacao e rosqueamento (dinamometro estacionario): a = FfN (normal ao
+//   avanco), b = Ff (avanco), p = Fp (passiva, axial)
+// padrao: convencao DynoWare no torneamento e a da figura Kistler no fresamento.
+export const COMPONENTES = {
+  torneamento: { rot: { a: "Fc", b: "Ff", p: "Fp" }, nome: { a: "força de corte", b: "força de avanço", p: "força passiva (radial)" }, padrao: { a: "fz", b: "fx", p: "fy" } },
+  fresamento: { rot: { a: "FfN", b: "Ff", p: "Fp" }, nome: { a: "força normal ao avanço", b: "força de avanço", p: "força passiva (axial)" }, padrao: { a: "fx", b: "fy", p: "fz" } },
+};
+export const compValido = (c) => !!c && ["fx", "fy", "fz"].every((k) => [c.a, c.b, c.p].filter((v) => v === k).length === 1);
+
+// Componentes na faixa [c1, c2] (indices inclusivos), com o mapa comp = {a, b, p} -> canal:
+//   a, b, p : medias com sinal [N]
+//   fa      : media da forca ativa, Fa(t) = raiz(a(t)^2 + b(t)^2)   [N]
+//   razao   : Fa / |Fp| [-] (indicador de atrito pedido pelo NUPEF); NaN se |Fp| ~ 0
+export function componentes(F, c1, c2, comp) {
+  const A = F[comp.a], B = F[comp.b], Pp = F[comp.p], n = c2 - c1 + 1;
+  let sa = 0, sb = 0, sp = 0, sfa = 0;
+  for (let i = c1; i <= c2; i++) { sa += A[i]; sb += B[i]; sp += Pp[i]; sfa += Math.hypot(A[i], B[i]); }
+  const a = sa / n, b = sb / n, p = sp / n, fa = sfa / n;
+  return { a, b, p, fa, razao: Math.abs(p) > 1e-9 * Math.max(fa, 1) ? fa / Math.abs(p) : NaN };
+}
+
 // Taxa de amostragem pela coluna de tempo e regularidade do passo
 export function taxaDoTempo(t) {
   const N = t.length;

@@ -54,7 +54,7 @@
 <article class="doc">
 <header>
   <h1>Manual técnico de uso: forças de usinagem</h1>
-  <p>Módulo de forças de usinagem do LabForce NUPEF, versão web 2.0.0. Redação conforme a ASD-STE100, adaptada ao português.</p>
+  <p>Módulo de forças de usinagem do LabForce NUPEF, versão web 2.1.0. Redação conforme a ASD-STE100, adaptada ao português.</p>
 </header>
 
 <section id="s1">
@@ -114,7 +114,10 @@
     <tr><td>Rodada</td><td>Uma análise completa, do botão <strong>Iniciar análise</strong> até a mensagem <code>Concluído</code>.</td></tr>
     <tr><td>Pasta de resultados</td><td>A pasta <code>resultados_AAAAMMDD_hhmmss</code> que o módulo cria em cada rodada.</td></tr>
     <tr><td>Canal</td><td>Uma força do arquivo: Fx, Fy ou Fz [N].</td></tr>
-    <tr><td>Fx, Fy, Fz</td><td>No torneamento, na convenção da figura 1: força de avanço (Ff), força passiva (Fp) e força de corte (Fc) [N].</td></tr>
+    <tr><td>Fx, Fy, Fz</td><td>Os 3 canais de força do dinamômetro [N]. A componente que cada canal mede depende da montagem e do processo.</td></tr>
+    <tr><td>Componente</td><td>Uma força do processo: Fc (corte), Ff (avanço), FfN (normal ao avanço) ou Fp (passiva) [N]. O operador indica na etapa 2 o canal que mede cada componente.</td></tr>
+    <tr><td>Força ativa (Fa)</td><td>A força no plano de trabalho, calculada em cada amostra. Torneamento: Fa = √(Fc² + Ff²). Fresamento, furação e rosqueamento: Fa = √(Ff² + FfN²) [N].</td></tr>
+    <tr><td>Razão Fa/Fp</td><td>A média de Fa dividida pelo valor absoluto da média de Fp [-]. O módulo usa esta razão como indicador de atrito (seção 12.4).</td></tr>
     <tr><td>Fr</td><td>Força resultante em cada amostra: Fr = √(Fx² + Fy² + Fz²) [N].</td></tr>
     <tr><td>Fator de calibração</td><td>O número que multiplica o sinal de um canal [-]. Padrão 1,0.</td></tr>
     <tr><td>Taxa de amostragem (fs)</td><td>A quantidade de amostras por segundo, calculada pela coluna de tempo [Hz].</td></tr>
@@ -204,10 +207,11 @@
 <div class="tabela-rolar"><table>
   <thead><tr><th>Tipo de ensaio</th><th>Montagem</th><th>Componentes medidas</th></tr></thead>
   <tbody>
-    <tr><td>Torneamento</td><td>Dinamômetro estacionário entre a ferramenta e a torre (no 9257B, com o porta-ferramenta Tipo 9403).</td><td>Fc: força de corte (Fz); Ff: força de avanço (Fx); Fp: força passiva (Fy). Cabeçalho do DynoWare: <code>Time Ff (Fx) Fp (Fy) Fc (Fz)</code>.</td></tr>
-    <tr><td>Fresamento, furação e rosqueamento</td><td>Peça presa diretamente sobre o dinamômetro estacionário, na mesa da máquina.</td><td>Ff: força de avanço; FfN: força normal ao avanço, no plano de trabalho; Fp: força passiva (axial). Na furação, a força axial é a força de avanço; Fx e Fy são forças de deflexão.</td></tr>
+    <tr><td>Torneamento</td><td>Dinamômetro estacionário entre a ferramenta e a torre (no 9257B, com o porta-ferramenta Tipo 9403).</td><td>Fc: força de corte; Ff: força de avanço; Fp: força passiva (radial). Padrão (convenção DynoWare): Fc em Fz, Ff em Fx, Fp em Fy. Cabeçalho do DynoWare: <code>Time Ff (Fx) Fp (Fy) Fc (Fz)</code>.</td></tr>
+    <tr><td>Fresamento, furação e rosqueamento</td><td>Peça presa diretamente sobre o dinamômetro estacionário, na mesa da máquina.</td><td>Ff: força de avanço; FfN: força normal ao avanço, no plano de trabalho; Fp: força passiva (axial). Padrão (figura Kistler): FfN em Fx, Ff em Fy, Fp em Fz. Na furação, a força axial é a força de avanço; Fx e Fy são forças de deflexão.</td></tr>
   </tbody>
 </table></div>
+<p class="seg seg-cui"><strong>CUIDADO:</strong> O canal que mede cada componente depende de como o dinamômetro está montado na máquina. Compare os eixos do dinamômetro com as direções de corte e de avanço e informe a correspondência em <strong>Componentes da força</strong>, na etapa 2. Uma correspondência errada troca Fc, Ff e Fp nos resultados e na comparação com a força teórica.</p>
 <figure>
   <img src="img/manual/montagem.webp" width="1140" height="1166" alt="Etapa 1 da tela: seletor do tipo de ensaio, seletor do dinamômetro, esquema do torneamento com os vetores Fc, Ff e Fp e lista de conferência." loading="lazy">
   <figcaption>Figura 1 — Etapa 1 da tela: tipo de ensaio, dinamômetro, convenção dos eixos e lista de conferência.</figcaption>
@@ -243,6 +247,7 @@
     <tr><td>Tipo de ensaio</td><td>Torneamento</td><td>-</td><td>Para fresamento, furação ou rosqueamento. A força de corte teórica fica desabilitada nesses processos.</td></tr>
     <tr><td>Dinamômetro</td><td>Kistler 9257B</td><td>-</td><td>Quando outro modelo estiver montado. O modelo define a faixa usada no aviso de sobrecarga.</td></tr>
     <tr><td>Colunas 1 a 4</td><td>tempo, Fx, Fy, Fz</td><td>-</td><td>Quando o arquivo tiver outra ordem de colunas. Cada grandeza deve aparecer uma vez. Use <strong>ignorar</strong> para uma coluna sem uso.</td></tr>
+    <tr><td>Componentes da força</td><td>Torneamento: Fc em Fz, Ff em Fx, Fp em Fy. Fresamento, furação e rosqueamento: FfN em Fx, Ff em Fy, Fp em Fz.</td><td>-</td><td>Quando a montagem do dinamômetro for diferente do padrão. Cada componente fica em um canal diferente. O navegador guarda uma correspondência para cada tipo de ensaio.</td></tr>
     <tr><td>Fatores Fx, Fy, Fz</td><td>1,0</td><td>-</td><td>Quando o arquivo não estiver em N ou quando houver um ganho conhecido a corrigir. Um fator negativo inverte o sentido do canal. O fator não pode ser 0.</td></tr>
     <tr><td>Faixas por ensaio</td><td>1</td><td>-</td><td>Para analisar mais trechos do mesmo ensaio (1 a 8).</td></tr>
     <tr><td>Zoom</td><td>desmarcado</td><td>-</td><td>Para delimitar antes uma região de interesse em ensaios longos.</td></tr>
@@ -263,9 +268,9 @@
     <tr><td>γ0</td><td>0</td><td>°</td><td>Quando o ângulo de saída da ferramenta for outro.</td></tr>
     <tr><td>kc1</td><td>vazio</td><td>N/mm²</td><td>Sempre: digite o valor do catálogo para o material da peça.</td></tr>
     <tr><td>mc</td><td>0,25</td><td>-</td><td>Quando o catálogo der outro valor para o material da peça.</td></tr>
-    <tr><td>Canal comparado com Fc</td><td>Fz</td><td>-</td><td>Quando a força de corte estiver em outro canal.</td></tr>
   </tbody>
 </table></div>
+<p class="seg seg-nota"><strong>NOTA:</strong> A força teórica é comparada com o canal indicado como Fc em <strong>Componentes da força</strong>. Não há mais um campo separado para esse canal.</p>
 <p class="seg seg-nota"><strong>NOTA:</strong> A taxa de amostragem não é um parâmetro. O módulo calcula a taxa pela coluna de tempo (seção 9).</p>
 </section>
 
@@ -302,12 +307,13 @@
 </ol>
 <h3 id="s10-2">10.2 Configurar a análise</h3>
 <figure>
-  <img src="img/manual/configuracao.webp" width="1140" height="881" alt="Etapa 2: quadros de colunas do arquivo, calibração por canal com fatores 1,0, faixas e saídas, e o quadro da força de corte teórica com ap, fn, vc, κr, γ0, kc1, mc e canal comparado." loading="lazy">
+  <img src="img/manual/configuracao.webp" width="1140" height="1231" alt="Etapa 2: quadros de colunas do arquivo, calibração por canal com fatores 1,0, faixas e saídas, o quadro de componentes da força com Fc, Ff e Fp e o canal de cada uma, e o quadro da força de corte teórica com ap, fn, vc, κr, γ0, kc1 e mc." loading="lazy">
   <figcaption>Figura 3 — Etapa 2 com a força de corte teórica marcada.</figcaption>
 </figure>
 <ol class="passos">
   <li>Em <strong>Colunas do arquivo</strong>, escolha a grandeza de cada coluna.</li>
   <li>Em <strong>Calibração por canal</strong>, confirme os fatores. Para voltar ao padrão, clique em <strong>Voltar todos para 1,0</strong>.</li>
+  <li>Em <strong>Componentes da força</strong>, escolha o canal (Fx, Fy ou Fz) que mede cada componente na sua montagem. Para voltar ao padrão do processo, clique em <strong>Voltar ao padrão deste processo</strong>.</li>
   <li>Em <strong>Faixas por ensaio</strong>, escolha quantas faixas vai avaliar em cada ensaio.</li>
   <li>Para delimitar antes uma região de interesse, marque <strong>Delimitar antes uma região de interesse (zoom)</strong>.</li>
   <li>Para escolher um zoom diferente para cada faixa, marque também <strong>Zoom em cada faixa</strong>.</li>
@@ -356,15 +362,16 @@
 <p>Cada rodada cria uma pasta de resultados nova. O módulo não substitui os resultados de rodadas anteriores.</p>
 <p>Com 1 faixa por ensaio, o rótulo é o nome do ensaio (exemplo: <code>E1.3</code>). Com 2 ou mais faixas, o rótulo tem o número da faixa (exemplo: <code>E1.3_f2</code>).</p>
 <figure>
-  <img src="img/manual/resultados.webp" width="1140" height="440" alt="Etapa 5: comparação da força teórica com a medida e tabela com média, RMS, pico, DP, CV, fator de crista, curtose, assimetria e frequência dominante de Fx, Fy, Fz e Fr." loading="lazy">
-  <figcaption>Figura 5 — Etapa 5: comparação com a força teórica e estatística por canal. Abaixo, a tela mostra os gráficos da faixa.</figcaption>
+  <img src="img/manual/resultados.webp" width="1140" height="407" alt="Etapa 5: quadro das componentes Fc, Ff e Fp, da força ativa Fa e da razão Fa/Fp; comparação da força teórica com a medida; tabela com média, RMS, pico, DP, CV, fator de crista, curtose, assimetria e frequência dominante de Fx, Fy, Fz e Fr." loading="lazy">
+  <figcaption>Figura 5 — Etapa 5: componentes da força e razão Fa/Fp, comparação com a força teórica e estatística por canal. Abaixo, a tela mostra os gráficos da faixa.</figcaption>
 </figure>
 <div class="tabela-rolar"><table>
   <thead><tr><th>Arquivo</th><th>Quando o módulo grava</th><th>Conteúdo</th></tr></thead>
   <tbody>
-    <tr><td><code>relatorio.txt</code></td><td>Sempre</td><td>Colunas, calibração, opções, taxa de amostragem, avisos e estatística de cada faixa.</td></tr>
+    <tr><td><code>relatorio.txt</code></td><td>Sempre</td><td>Colunas, calibração, componentes da força, opções, taxa de amostragem, avisos, estatística, componentes e razão Fa/Fp de cada faixa.</td></tr>
     <tr><td><code>forcas_resumo.csv</code></td><td>Sempre</td><td>Uma linha por faixa e canal (Fx, Fy, Fz, Fr): tempos, n, fs, média, RMS, pico, DP, CV, fator de crista, curtose, assimetria, frequência dominante. Separador: ponto e vírgula. Decimal: vírgula.</td></tr>
     <tr><td><code>&lt;rótulo&gt;_faixa.csv</code></td><td>Sempre</td><td>As amostras da faixa: tempo [s], Fx, Fy, Fz e Fr [N], já com os fatores de calibração.</td></tr>
+    <tr><td><code>componentes.csv</code></td><td>Sempre</td><td>Uma linha por faixa: processo, as 3 componentes com o canal e a média de cada uma [N], a força ativa Fa [N] e a razão Fa/Fp [-]. A razão fica vazia quando Fp é nula.</td></tr>
     <tr><td><code>corte_teorico.csv</code></td><td>Força teórica marcada</td><td>Uma linha por faixa: parâmetros de corte, hm, kc, Fc teórica, Pc, Q, Fc medida e diferença [%].</td></tr>
     <tr><td><code>&lt;ensaio&gt;_faixas.png</code></td><td>Gráficos marcados</td><td>Forças do ensaio com as faixas marcadas (registro da seleção).</td></tr>
     <tr><td><code>&lt;rótulo&gt;_sinal.png</code></td><td>Gráficos marcados</td><td>Fx, Fy e Fz na faixa, com a média de cada canal tracejada.</td></tr>
@@ -388,7 +395,7 @@ curtose = Σ(xᵢ − média)⁴ / (N·DP⁴)</p>
 <div class="tabela-rolar"><table>
   <thead><tr><th>Grandeza</th><th>Interpretação</th></tr></thead>
   <tbody>
-    <tr><td>Média de Fz</td><td>Força de corte média da faixa. É o valor que se compara com a força teórica.</td></tr>
+    <tr><td>Média do canal de Fc</td><td>Força de corte média da faixa (Fz na montagem padrão do torneamento). É o valor que se compara com a força teórica.</td></tr>
     <tr><td>DP e CV</td><td>Dispersão da força em torno da média. CV alto indica corte instável, vibração ou cavaco segmentado.</td></tr>
     <tr><td>Fator de crista</td><td>Picos em relação ao RMS. Valores altos indicam impactos (corte interrompido, quebra de cavaco).</td></tr>
     <tr><td>Curtose</td><td>Próxima de 3: variação aleatória. Muito maior que 3: picos isolados. Próxima de 1,5: oscilação periódica.</td></tr>
@@ -405,7 +412,7 @@ Fc = kc · ap · fn                          [N]
 Pc = vc · ap · fn · kc / (60 · 10³)        [kW]
 Q  = vc · ap · fn                          [cm³/min]
 vc = π · D · n / 1000                      [m/min]</p>
-<p>O módulo compara Fc teórica com o valor absoluto da média do canal escolhido:</p>
+<p>O módulo compara Fc teórica com o valor absoluto da média do canal indicado como Fc em <strong>Componentes da força</strong>:</p>
 <p class="formula">diferença = 100 · (|Fc medida| − Fc teórica) / Fc teórica        [%]</p>
 <p class="seg seg-nota"><strong>NOTA:</strong> kc1 e mc dependem do material, do tratamento térmico e da dureza. Use os dados do fabricante da ferramenta para o material real. O desgaste da ferramenta, a geometria real da aresta e o raio de ponta alteram a força. Uma diferença grande não indica, sozinha, erro de medição.</p>
 <p class="seg seg-cui"><strong>CUIDADO:</strong> As fórmulas são de torneamento. Não use a força teórica em fresamento ou furação.</p>
@@ -418,6 +425,22 @@ vc = π · D · n / 1000                      [m/min]</p>
   <li><strong>Escolha da faixa.</strong> A entrada e a saída da ferramenta alteram a média e o DP. Use só o trecho de corte estável.</li>
   <li><strong>Resultante.</strong> Fr é calculada em cada amostra. A média de Fr não é igual à resultante das médias.</li>
 </ol>
+<h3 id="s12-4">12.4 Componentes da força e razão Fa/Fp</h3>
+<p>O módulo usa a correspondência da etapa 2 para dar nome aos canais. As duas componentes do plano de trabalho formam a força ativa, calculada em cada amostra da faixa. A terceira componente é a força passiva.</p>
+<p class="formula">torneamento:                         Fa(t) = √(Fc(t)² + Ff(t)²)
+fresamento, furação e rosqueamento:  Fa(t) = √(Ff(t)² + FfN(t)²)
+Fa = média de Fa(t)                  [N]
+razão = Fa / |média de Fp|           [-]</p>
+<div class="tabela-rolar"><table>
+  <thead><tr><th>Grandeza</th><th>Interpretação</th></tr></thead>
+  <tbody>
+    <tr><td>Fc, Ff, FfN, Fp</td><td>Média com sinal do canal de cada componente. O sinal depende do sentido do eixo do dinamômetro.</td></tr>
+    <tr><td>Fa</td><td>Força no plano de trabalho. É calculada em cada amostra: a média de Fa não é igual à raiz das médias ao quadrado quando as forças oscilam.</td></tr>
+    <tr><td>Razão Fa/Fp</td><td>Indicador de atrito adotado pelo NUPEF: compara a força no plano de trabalho com a força passiva. Use a razão para comparar condições do mesmo processo, da mesma montagem e da mesma geometria de ferramenta.</td></tr>
+  </tbody>
+</table></div>
+<p class="seg seg-cui"><strong>CUIDADO:</strong> A razão Fa/Fp não é o coeficiente de atrito na face de saída da ferramenta. Esse coeficiente depende também do ângulo de saída e do ângulo de posição, que a razão não considera. Não compare a razão de montagens ou de processos diferentes.</p>
+<p class="seg seg-nota"><strong>NOTA:</strong> Quando a média de Fp é praticamente nula, a razão não tem valor: a tela mostra “indefinida (Fp ≈ 0)” e o campo do CSV fica vazio. O offset do amplificador (seção 12.3, item 1) altera Fp e, por isso, a razão.</p>
 </section>
 
 <section id="s13">
@@ -427,6 +450,8 @@ vc = π · D · n / 1000                      [m/min]</p>
   <tbody>
     <tr><td>Tela de uma versão antiga ou verificação com <code>FALHA</code></td><td>O navegador usa arquivos antigos da memória.</td><td>Pressione <strong>Ctrl+F5</strong>. Faça a verificação (seção 6) outra vez.</td></tr>
     <tr><td>“Escolha tempo, Fx, Fy e Fz uma vez cada”</td><td>Uma grandeza está em 2 colunas ou falta uma grandeza.</td><td>Corrija o mapeamento das colunas.</td></tr>
+    <tr><td>“Use Fx, Fy e Fz uma vez cada: cada componente em um canal diferente”</td><td>Duas componentes estão no mesmo canal em <strong>Componentes da força</strong>.</td><td>Escolha um canal diferente para cada componente, ou clique em <strong>Voltar ao padrão deste processo</strong>.</td></tr>
+    <tr><td>Fc, Ff e Fp trocadas, ou razão Fa/Fp fora do esperado</td><td>A correspondência das componentes não é a da montagem real.</td><td>Compare os eixos do dinamômetro com as direções de corte e de avanço e corrija <strong>Componentes da força</strong>.</td></tr>
     <tr><td><code>arquivo sem 4 colunas numéricas válidas</code></td><td>O arquivo tem menos de 4 colunas, ou o mapeamento está errado.</td><td>Abra o arquivo num editor de texto e confira as colunas.</td></tr>
     <tr><td><code>a coluna de tempo não é crescente</code></td><td>A coluna de tempo está em outra posição.</td><td>Corrija o mapeamento das colunas.</td></tr>
     <tr><td><code>AVISO ... o passo de tempo variou</code></td><td>A aquisição perdeu amostras, ou o tempo tem poucas casas decimais.</td><td>Use as estatísticas. Não use a frequência dominante. Exporte o tempo com mais casas decimais.</td></tr>
@@ -457,7 +482,7 @@ vc = π · D · n / 1000                      [m/min]</p>
 </div>
 
 <footer class="rodape">
-  <p>LabForce NUPEF, IFG Câmpus Goiânia. Módulo de forças de usinagem, versão web 2.0.0.</p>
+  <p>LabForce NUPEF, IFG Câmpus Goiânia. Módulo de forças de usinagem, versão web 2.1.0.</p>
   <div class="inst">
     <div class="logos-inst">
       <a class="logo-ifg" href="https://www.ifg.edu.br/goiania" rel="noopener noreferrer"><img src="../assets/logo-ifg-goiania.png" alt="Instituto Federal de Goiás, Câmpus Goiânia" width="52" height="72" loading="lazy"></a>

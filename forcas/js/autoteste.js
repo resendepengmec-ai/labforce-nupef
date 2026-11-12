@@ -1,6 +1,6 @@
 // autoteste.js - verificacao do modulo de forcas com sinais de resposta conhecida.
 // Roda no navegador (manual, secao 6) e no Node (testes/teste_forcas.js).
-import { lerArquivo, taxaDoTempo, estatistica, freqDominante, corteTeorico, vcDeDn, mapaValido } from "./nucleo.js";
+import { lerArquivo, taxaDoTempo, estatistica, freqDominante, corteTeorico, vcDeDn, mapaValido, componentes, compValido, COMPONENTES } from "./nucleo.js";
 import { prepararEnsaio, analisarFaixa, PADRAO } from "./analise.js";
 import { fft } from "../../comum/js/fft.js";
 import { maxF, minPos } from "../../comum/js/graficos.js";
@@ -106,6 +106,19 @@ export async function autoteste() {
   ok(R.linhasResumo.length === 4 && R.arquivos["SINT_faixa.csv"].length === 3001, "ensaio: CSV da faixa e resumo");
   perto(R.teorico.Fc, 800, 1e-3, "ensaio: Fc teorica 800 N (kc1 escolhido)");
   ok(Math.abs(R.teorico.dif) < 0.01, "ensaio: diferenca medida x teorica ~ 0");
+  // componentes pela montagem: padrao do torneamento (Fc = Fz, Ff = Fx, Fp = Fy); Fa/Fp
+  perto(R.comp.a, 800, 1e-3, "componentes: Fc = Fz media 800 N"); perto(R.comp.b, 300, 1e-3, "componentes: Ff = Fx media 300 N"); perto(R.comp.p, 150, 1e-9, "componentes: Fp = Fy 150 N");
+  ok(R.comp.fa > Math.hypot(800, 300) - 0.5 && R.comp.fa < Math.hypot(800, 300) + 0.5, "componentes: Fa ~ raiz(Fc2 + Ff2)");
+  perto(R.comp.razao, R.comp.fa / 150, 1e-12, "componentes: razao Fa/Fp");
+  ok(R.linhaComp.split(";").length === 13 && R.linhaComp.startsWith("SINT;torneamento;Fc;Fz;"), "componentes: linha do CSV");
+  // outra montagem: Fc no canal Fx, Ff em Fy, Fp em Fz; fresamento usa FfN/Ff/Fp
+  const Rm = analisarFaixa(E, 1500, 4499, "SINT", { ...p, comp: { a: "fx", b: "fy", p: "fz" } }, {}, []);
+  perto(Rm.comp.a, 300, 1e-3, "componentes: mapa trocado, Fc = Fx"); perto(Rm.comp.p, 800, 1e-3, "componentes: mapa trocado, Fp = Fz");
+  const Rfz = analisarFaixa(E, 1500, 4499, "SINT", { ...p, tipo: "fresamento", comp: undefined }, {}, []);
+  ok(Rfz.comp.rot.a === "FfN" && Rfz.comp.mapa.p === "fz", "componentes: fresamento, padrao FfN = Fx, Ff = Fy, Fp = Fz");
+  ok(compValido(COMPONENTES.torneamento.padrao) && !compValido({ a: "fx", b: "fx", p: "fz" }) && !compValido(null), "componentes: mapa precisa usar Fx, Fy e Fz uma vez cada");
+  ok(Number.isNaN(componentes({ fx: [3, 3], fy: [4, 4], fz: [0, 0] }, 0, 1, { a: "fx", b: "fy", p: "fz" }).razao), "componentes: Fp nula, razao indefinida");
+  perto(componentes({ fx: [3, 3], fy: [4, 4], fz: [-2, -2] }, 0, 1, { a: "fx", b: "fy", p: "fz" }).razao, 2.5, 1e-12, "componentes: Fa 5 N e Fp −2 N, razao 2,5 (modulo de Fp)");
   // espectro calculado na analise (roda no Web Worker): pico de Fz em 80 Hz
   const Rf = analisarFaixa(E, 1500, 4499, "SINT", p, { fft: true }, []);
   const Y = Rf.espectro.Y.fz; let kmax = 0; for (let i = 1; i < Y.length; i++) if (Y[i] > Y[kmax]) kmax = i;

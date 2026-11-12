@@ -20,7 +20,11 @@
 .colunas, .cal { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px 10px; }
 .cal { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .colunas label, .cal label { display: flex; flex-direction: column; font-size: .82rem; color: var(--cinza); }
-.teorico { margin-top: 16px; }
+.teorico, .componentes { margin-top: 16px; }
+.comp-campos { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px 14px; max-width: 760px; }
+.comp-campos label { display: flex; flex-direction: column; font-size: .88rem; color: var(--cinza); }
+.comp-campos label b { color: var(--tinta); }
+@media (max-width: 700px) { .comp-campos { grid-template-columns: minmax(0, 1fr); } }
 .teorico legend { padding: 0 6px; }
 .teorico legend .chk { margin: 0; font-weight: 600; }
 .grade4 { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px 14px; }
