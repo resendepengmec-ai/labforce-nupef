@@ -368,6 +368,7 @@
     <tr><td><code>corte_teorico.csv</code></td><td>Força teórica marcada</td><td>Uma linha por faixa: parâmetros de corte, hm, kc, Fc teórica, Pc, Q, Fc medida e diferença [%].</td></tr>
     <tr><td><code>&lt;ensaio&gt;_faixas.png</code></td><td>Gráficos marcados</td><td>Forças do ensaio com as faixas marcadas (registro da seleção).</td></tr>
     <tr><td><code>&lt;rótulo&gt;_sinal.png</code></td><td>Gráficos marcados</td><td>Fx, Fy e Fz na faixa, com a média de cada canal tracejada.</td></tr>
+    <tr><td><code>&lt;rótulo&gt;_distribuicao.png</code></td><td>Gráficos marcados</td><td>Histograma de Fx, Fy, Fz e Fr na faixa, com a curva normal de mesma média e DP, a média e os valores de assimetria e curtose. Com os gráficos desmarcados, a figura aparece só na tela.</td></tr>
     <tr><td><code>&lt;rótulo&gt;_espectro.png</code></td><td>FFT e gráficos marcados</td><td>Espectro de amplitude de Fx, Fy e Fz na faixa, sem a média.</td></tr>
   </tbody>
 </table></div>
@@ -395,6 +396,7 @@ curtose = Σ(xᵢ − média)⁴ / (N·DP⁴)</p>
     <tr><td>Frequência dominante</td><td>Compare com a rotação (n/60 [Hz]), com a frequência de passagem dos dentes e com a frequência natural do conjunto.</td></tr>
   </tbody>
 </table></div>
+<p>A figura de distribuição mostra como os valores de cada canal se espalham na faixa. As barras são o histograma em densidade (área total 1, classes pela regra de Freedman–Diaconis, de 10 a 60). A curva tracejada é a normal com a mesma média e o mesmo DP: onde as barras saem dela, a forma dos dados difere da normal. Na caixa de cada painel, a leitura usa estes limites: assimetria entre −0,5 e +0,5 é tratada como simétrica; curtose abaixo de 2,5 é achatada (platicúrtica, típica de oscilação periódica, como a senoide com 1,5), entre 2,5 e 3,5 é próxima da normal (mesocúrtica) e acima de 3,5 indica picos e caudas longas (leptocúrtica, típica de impactos ou picos isolados).</p>
 <h3 id="s12-2">12.2 Força de corte teórica</h3>
 <p>O módulo usa as fórmulas de torneamento da Sandvik Coromant, com o modelo de Kienzle para a força específica de corte:</p>
 <p class="formula">hm = fn · sen κr                          [mm]

@@ -3,7 +3,7 @@
 import { ROT, PADRAO, CANAIS, CAB_RESUMO, CAB_TEORICO, VERSAO, prepararEnsaio, analisarFaixa } from "./analise.js";
 import { mapaValido, vcDeDn } from "./nucleo.js";
 import { DINAMOMETROS, PADRAO_DINAMOMETRO } from "./dinamometros.js";
-import { CORES, figuraSinal, figuraEspectro } from "./figuras.js";
+import { CORES, figuraSinal, figuraEspectro, figuraDistribuicao } from "./figuras.js";
 import { sprintf } from "../../comum/js/formato.js";
 import { figuraFaixas, paraPNG } from "../../comum/js/graficos.js";
 import { temPastaDireta, criarDestino, nomeRodada, baixar, painelGravacao } from "../../comum/js/saida.js";
@@ -258,9 +258,14 @@ async function analisarEnsaio() {
       const figs = [];
       if (c.op.graficos) {
         figs.push([`${rotulo}_sinal.png`, figuraSinal(E, r)]);
+        figs.push([`${rotulo}_distribuicao.png`, figuraDistribuicao(E, r)]);
         if (r.espectro) figs.push([`${rotulo}_espectro.png`, figuraEspectro(E, r)]);
         for (const [arq, cv] of figs) await D.gravar(arq, await paraPNG(cv));
-      } else if (r.espectro) figs.push([null, figuraEspectro(E, r)]);
+      } else {
+        // sem gravar graficos: a distribuicao (e o espectro) aparecem so na tela
+        figs.push([null, figuraDistribuicao(E, r)]);
+        if (r.espectro) figs.push([null, figuraEspectro(E, r)]);
+      }
       R.resumo.push(...r.linhasResumo);
       if (r.linhaTeorico) R.teo.push(r.linhaTeorico);
       R.nomes.push(rotulo);

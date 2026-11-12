@@ -4,6 +4,7 @@ import { lerArquivo, taxaDoTempo, estatistica, freqDominante, corteTeorico, vcDe
 import { prepararEnsaio, analisarFaixa, PADRAO } from "./analise.js";
 import { fft } from "../../comum/js/fft.js";
 import { maxF, minPos } from "../../comum/js/graficos.js";
+import { histograma, leituraForma } from "./figuras.js";
 import { nv, nv6g } from "../../comum/js/formato.js";
 import { nomeUnico } from "../../comum/js/ui.js";
 import { DINAMOMETROS, verificarFaixa, PADRAO_DINAMOMETRO } from "./dinamometros.js";
@@ -64,6 +65,21 @@ export async function autoteste() {
   perto(freqDominante(s2, 2000).f, 123.4, 2e-3, "frequencia dominante entre raias");
   const c = Float64Array.from({ length: 100 }, () => 5), ec = estatistica(c, 1000);
   ok(ec.dp === 0 && ec.cv === 0 && ec.curtose === 0, "sinal constante: DP 0");
+
+  // distribuicao: histograma com area 1 e leitura de assimetria/curtose em formas conhecidas
+  let sem = 12345; const rnd = () => ((sem = (sem * 1103515245 + 12345) % 2147483648) + 0.5) / 2147483648;
+  const gauss = Float64Array.from({ length: 20000 }, () => Math.sqrt(-2 * Math.log(rnd())) * Math.cos(2 * Math.PI * rnd()) * 10 + 500);
+  const expo = Float64Array.from({ length: 20000 }, () => -50 * Math.log(rnd()));
+  for (const [nome, y] of [["normal", gauss], ["exponencial", expo], ["senoide", s]]) {
+    const h = histograma(y), area = h.d.reduce((a, d) => a + d * h.w, 0);
+    perto(area, 1, 1e-9, `histograma ${nome}: área 1`);
+    ok(h.x.length >= 10 && h.x.length <= 60, `histograma ${nome}: 10 a 60 classes (${h.x.length})`);
+  }
+  const eg = estatistica(gauss, 1000), ee = estatistica(expo, 1000);
+  ok(/simétrica/.test(leituraForma(eg.assimetria, eg.curtose).a) && /mesocúrtica/.test(leituraForma(eg.assimetria, eg.curtose).k), "normal: simétrica e mesocúrtica");
+  ok(/direita/.test(leituraForma(ee.assimetria, ee.curtose).a) && /leptocúrtica/.test(leituraForma(ee.assimetria, ee.curtose).k), "exponencial: cauda à direita e leptocúrtica");
+  ok(/platicúrtica/.test(leituraForma(e.assimetria, e.curtose).k), "senoide: platicúrtica");
+  ok(histograma(c).d.length === 1, "histograma de sinal constante: 1 classe");
 
   // forca teorica (Sandvik/Kienzle): ap 2, fn 0,25, kr 90, g0 0, kc1 1500, mc 0,25, vc 200
   const q = corteTeorico({ ap: 2, fn: 0.25, vc: 200, kr: 90, g0: 0, kc1: 1500, mc: 0.25 });
