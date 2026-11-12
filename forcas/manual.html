@@ -54,7 +54,7 @@
 <article class="doc">
 <header>
   <h1>Manual técnico de uso: forças de usinagem</h1>
-  <p>Módulo de forças de usinagem do LabForce NUPEF, versão web 2.3.0. Redação conforme a ASD-STE100, adaptada ao português.</p>
+  <p>Módulo de forças de usinagem do LabForce NUPEF, versão web 2.3.1. Redação conforme a ASD-STE100, adaptada ao português.</p>
 </header>
 
 <section id="s1">
@@ -259,7 +259,7 @@
     <tr><td>Faixa mínima</td><td>0,5</td><td>s</td><td>Para aceitar faixas mais curtas ou exigir faixas mais longas.</td></tr>
   </tbody>
 </table></div>
-<p>O quadro <strong>Ferramenta e peça</strong> registra a condição do ensaio. Todos os campos são opcionais, exceto γ0 e κr quando o atrito ou a força teórica estiverem marcados.</p>
+<p>O quadro <strong>Ferramenta e peça</strong> só aparece quando <strong>Atrito na face da ferramenta</strong> ou <strong>Força de corte teórica</strong> estão marcados. γ0 é obrigatório nas duas análises e κr na força teórica. Os outros campos são opcionais. Com as duas opções desmarcadas, o módulo não pede nem grava dados da ferramenta.</p>
 <div class="tabela-rolar"><table>
   <thead><tr><th>Campo</th><th>Valor padrão</th><th>Unidade</th><th>Uso</th></tr></thead>
   <tbody>
@@ -347,8 +347,7 @@
   <li>Para delimitar antes uma região de interesse, marque <strong>Delimitar antes uma região de interesse (zoom)</strong>.</li>
   <li>Para escolher um zoom diferente para cada faixa, marque também <strong>Zoom em cada faixa</strong>.</li>
   <li>Marque ou desmarque <strong>Espectro de amplitude (FFT)</strong> e <strong>Salvar gráficos (PNG)</strong>.</li>
-  <li>Em <strong>Ferramenta e peça</strong>, registre a ferramenta, a peça e os ângulos γ0 e κr (seção 8).</li>
-  <li>Para calcular o atrito na face da ferramenta, marque <strong>Atrito na face da ferramenta</strong>. A área de contato e a temperatura de contato são opcionais (seção 8).</li>
+  <li>Para calcular o atrito na face da ferramenta, marque <strong>Atrito na face da ferramenta</strong>. O quadro <strong>Ferramenta e peça</strong> abre abaixo: preencha γ0 e, se quiser, os outros dados da ferramenta e da peça. A área de contato e a temperatura de contato são opcionais (seção 8).</li>
   <li>Para comparar com a força teórica, marque <strong>Força de corte teórica</strong> e preencha os campos (seção 8).</li>
   <li>Clique em <strong>Continuar</strong>.</li>
 </ol>
@@ -403,7 +402,7 @@
     <tr><td><code>forcas_resumo.csv</code></td><td>Sempre</td><td>Uma linha por faixa e canal (Fx, Fy, Fz, Fr): tempos, n, fs, média, RMS, pico, DP, CV, fator de crista, curtose, assimetria, frequência dominante. Separador: ponto e vírgula. Decimal: vírgula.</td></tr>
     <tr><td><code>&lt;rótulo&gt;_faixa.csv</code></td><td>Sempre</td><td>As amostras da faixa: tempo [s], Fx, Fy, Fz e Fr [N], já com os fatores de calibração.</td></tr>
     <tr><td><code>componentes.csv</code></td><td>Sempre</td><td>Uma linha por faixa: processo, as 3 componentes com o canal e a média de cada uma [N], a força ativa Fa [N] e a razão Fa/Fp [-]. A razão fica vazia quando Fp é nula.</td></tr>
-    <tr><td><code>ferramenta.csv</code></td><td>Algum campo de <strong>Ferramenta e peça</strong> preenchido</td><td>Uma linha: identificação, material da ferramenta, revestimento, material da peça, γ0, κr, α0, rε, rβ e VB.</td></tr>
+    <tr><td><code>ferramenta.csv</code></td><td>Atrito ou força teórica marcados e algum campo de <strong>Ferramenta e peça</strong> preenchido</td><td>Uma linha: identificação, material da ferramenta, revestimento, material da peça, γ0, κr, α0, rε, rβ e VB.</td></tr>
     <tr><td><code>atrito.csv</code></td><td>Atrito marcado</td><td>Uma linha por faixa: γ0, Fc, Ff, F<sub>T</sub>, F<sub>N</sub>, μ, β, área, tensões τ e σ, temperatura, μ do modelo e os parâmetros do modelo. Os campos sem valor ficam vazios.</td></tr>
     <tr><td><code>corte_teorico.csv</code></td><td>Força teórica marcada</td><td>Uma linha por faixa: parâmetros de corte, hm, kc, Fc teórica, Pc, Q, Fc medida e diferença [%].</td></tr>
     <tr><td><code>&lt;ensaio&gt;_faixas.png</code></td><td>Gráficos marcados</td><td>Forças do ensaio com as faixas marcadas (registro da seleção).</td></tr>
@@ -515,6 +514,7 @@ AISI 1045 com WC-6Co sem revestimento:
     <tr><td>“Use Fx, Fy e Fz uma vez cada: cada componente em um canal diferente”</td><td>Duas componentes estão no mesmo canal em <strong>Componentes da força</strong>.</td><td>Escolha um canal diferente para cada componente, ou clique em <strong>Voltar ao padrão deste processo</strong>.</td></tr>
     <tr><td>μ “indefinido (FN ≤ 0)” ou μ muito diferente do esperado</td><td>γ0 errado, ou os canais de Fc e Ff estão trocados.</td><td>Confira o ângulo de saída e <strong>Componentes da força</strong>. No ensaio de atrito, use γ0 = α − 90°.</td></tr>
     <tr><td>“Digite o ângulo de saída” ou “Digite o ângulo de posição”</td><td>γ0 ou κr está vazio em <strong>Ferramenta e peça</strong> com o atrito ou a força teórica marcados.</td><td>Digite o ângulo, ou desmarque a opção que usa o ângulo.</td></tr>
+    <tr><td>O quadro <strong>Ferramenta e peça</strong> não aparece</td><td>O atrito e a força teórica estão desmarcados.</td><td>Marque <strong>Atrito na face da ferramenta</strong> ou <strong>Força de corte teórica</strong>.</td></tr>
     <tr><td><strong>Atrito na face da ferramenta</strong> desabilitado</td><td>O tipo de ensaio não é Torneamento.</td><td>O cálculo usa Fc e Ff. Para um ensaio ortogonal em outra máquina, escolha Torneamento na etapa 1 e indique os canais de Fc e Ff.</td></tr>
     <tr><td>Fc, Ff e Fp trocadas, ou razão Fa/Fp fora do esperado</td><td>A correspondência das componentes não é a da montagem real.</td><td>Compare os eixos do dinamômetro com as direções de corte e de avanço e corrija <strong>Componentes da força</strong>.</td></tr>
     <tr><td><code>arquivo sem 4 colunas numéricas válidas</code></td><td>O arquivo tem menos de 4 colunas, ou o mapeamento está errado.</td><td>Abra o arquivo num editor de texto e confira as colunas.</td></tr>
@@ -549,7 +549,7 @@ AISI 1045 com WC-6Co sem revestimento:
 </div>
 
 <footer class="rodape">
-  <p>LabForce NUPEF, IFG Câmpus Goiânia. Módulo de forças de usinagem, versão web 2.3.0.</p>
+  <p>LabForce NUPEF, IFG Câmpus Goiânia. Módulo de forças de usinagem, versão web 2.3.1.</p>
   <div class="inst">
     <div class="logos-inst">
       <a class="logo-ifg" href="https://www.ifg.edu.br/goiania" rel="noopener noreferrer"><img src="../assets/logo-ifg-goiania.png" alt="Instituto Federal de Goiás, Câmpus Goiânia" width="52" height="72" loading="lazy"></a>

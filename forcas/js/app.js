@@ -80,14 +80,16 @@ function montarConfig() {
   const at = { ...PADRAO.atrito, ...(s.atrito || {}) };
   for (const [id, c] of ATR) $(id).value = txt(at[c]);
   if (s.op) $("opAtr").checked = !!s.op.atrito;
-  const mostraAtr = () => { $("blocoAtr").hidden = !$("opAtr").checked || $("opAtr").disabled; };
+  // o quadro da ferramenta abre quando o atrito ou a forca teorica estao marcados
+  const mostraFer = () => { $("blocoFer").hidden = !usaFerramenta(); };
+  const mostraAtr = () => { $("blocoAtr").hidden = !$("opAtr").checked || $("opAtr").disabled; mostraFer(); };
   $("opAtr").addEventListener("change", mostraAtr);
   $("btArea").addEventListener("click", () => {
     const [b1, b2, t, al] = ["aB1", "aB2", "aTe", "aAl"].map((id) => numero($(id).value));
     if (b1 > 0 && b2 > 0 && t > 0 && al > 0 && al < 90) { $("aA").value = txt(Math.round(areaContato(b1, b2, t, al) * 1000) / 1000); marcar("aA", ""); }
     else $("e-aA").textContent = "Digite b1, b2 e t maiores que zero e α entre 0° e 90°.";
   });
-  const mostraTeo = () => { $("blocoTeo").hidden = !$("opTeo").checked || $("opTeo").disabled; };
+  const mostraTeo = () => { $("blocoTeo").hidden = !$("opTeo").checked || $("opTeo").disabled; mostraFer(); };
   $("opTeo").addEventListener("change", mostraTeo);
   // tipo de ensaio e dinamometro (etapa 1)
   for (const [k, d] of Object.entries(DINAMOMETROS)) $("modelo").add(new Option(`${d.nome} · ${d.familia}`, k));
@@ -147,8 +149,10 @@ function validarConfig() {
   const teo = { canal: comp.a };        // forca teorica (torneamento): comparada com o canal de Fc
   const opTeo = $("opTeo").checked && !$("opTeo").disabled, usaAtr = $("opAtr").checked && !$("opAtr").disabled;
   const fer = {};
-  for (const [id, c] of FER_TXT) fer[c] = $(id).value.trim().slice(0, 80);
+  const comFer = opTeo || usaAtr;         // quadro fechado: a ferramenta nao e validada nem registrada nesta rodada
+  for (const [id, c] of FER_TXT) fer[c] = comFer ? $(id).value.trim().slice(0, 80) : "";
   for (const [id, c] of FER_NUM) {
+    if (!comFer) { fer[c] = null; marcar(id, ""); continue; }
     const vazio = $(id).value.trim() === "", v = vazio ? null : numero($(id).value); fer[c] = v;
     let msg = "";
     if (c === "g0") msg = vazio ? (opTeo || usaAtr ? "Digite o ângulo de saída: ele é usado no atrito e na força teórica." : "") : v > -90 && v < 90 ? "" : "Digite um ângulo entre −90° e 90°.";
@@ -190,10 +194,11 @@ function validarConfig() {
   const op = { fft: $("opFFT").checked, graficos: $("opGraf").checked, teorico: opTeo, atrito: opAtr };
   const tipo = tipoEnsaio(), modelo = $("modelo").value;
   if (tipo !== "torneamento") op.teorico = false;
-  salvar({ mapa, k, nFaixas: Number($("nFaixas").value), ...lerZoom(), op: { ...op, atrito: $("opAtr").checked }, teorico: teo, atrito: atr, ferramenta: fer, duracaoMin: dur, tipo, modelo, comp: { ...(lerSalvo().comp || {}), [tipo]: comp } });
+  salvar({ mapa, k, nFaixas: Number($("nFaixas").value), ...lerZoom(), op: { ...op, atrito: $("opAtr").checked }, teorico: teo, atrito: atr, ferramenta: Object.fromEntries([...FER_TXT.map(([id, c]) => [c, $(id).value.trim().slice(0, 80)]), ...FER_NUM.map(([id, c]) => [c, $(id).value.trim() === "" ? null : numero($(id).value)])]), duracaoMin: dur, tipo, modelo, comp: { ...(lerSalvo().comp || {}), [tipo]: comp } });
   return { nFaixas: Number($("nFaixas").value), ...lerZoom(), op, tipo, modelo, p: { mapa, k, duracaoMin: dur, teorico: teo, atrito: atr, ferramenta: fer, modelo, tipo, comp } };
 }
 
+function usaFerramenta() { return ($("opAtr").checked && !$("opAtr").disabled) || ($("opTeo").checked && !$("opTeo").disabled); }
 function lerComp() { return { a: $("comp_a").value, b: $("comp_b").value, p: $("comp_p").value }; }
 function tipoEnsaio() { return document.querySelector('input[name="tipo"]:checked').value; }
 function resumoMontagem() {

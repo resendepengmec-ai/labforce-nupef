@@ -6,7 +6,7 @@ Análise de sinais de dinamômetro (Fx, Fy, Fz) no navegador. É o mesmo padrão
 - **Entrada:** TXT/CSV com 4 colunas mapeáveis (tempo, Fx, Fy, Fz). Aceita DynoWare: metadados, tab e vírgula decimal.
 - **Calibração:** fator por canal (padrão 1,0). Um fator negativo inverte o sentido.
 - **Componentes da força:** o operador indica qual canal (Fx, Fy, Fz) mede Fc, Ff e Fp (torneamento) ou FfN, Ff e Fp (fresamento, furação e rosqueamento), conforme a montagem. A análise calcula a força ativa Fa e a razão Fa/Fp (indicador de atrito).
-- **Ferramenta e peça:** registro opcional (inserto, material, revestimento, material da peça, γ0, κr, α0, rε, rβ, VB) no relatório e em `ferramenta.csv`; γ0 e κr alimentam o atrito e a força teórica.
+- **Ferramenta e peça:** quadro que abre ao marcar o atrito ou a força teórica; registro (inserto, material, revestimento, material da peça, γ0, κr, α0, rε, rβ, VB) no relatório e em `ferramenta.csv`; γ0 e κr alimentam o atrito e a força teórica.
 - **Atrito na face da ferramenta (opcional):** μ = FT/FN pela transformação geométrica de Fc e Ff com o ângulo de saída, tensões médias de contato e modelo de atrito com a temperatura, conforme Puls, Klocke e Lung (Wear, v. 310, 2014, DOI 10.1016/j.wear.2013.12.020).
 - **Saídas:**
   - `forcas_resumo.csv`;

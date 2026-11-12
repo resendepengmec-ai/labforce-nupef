@@ -5,7 +5,7 @@ import { lerArquivo, taxaDoTempo, estatistica, corteTeorico, componentes, COMPON
 import { sprintf, nv, nv6g } from "../../comum/js/formato.js";
 import { DINAMOMETROS, verificarFaixa } from "./dinamometros.js";
 
-export const VERSAO = "web 2.3.0";
+export const VERSAO = "web 2.3.1";
 export const CANAIS = [
   { k: "fx", rot: "Fx" }, { k: "fy", rot: "Fy" }, { k: "fz", rot: "Fz" }, { k: "fr", rot: "Fr" },
 ];

@@ -172,27 +172,10 @@
       <button id="btCompPadrao" class="lnk" type="button">Voltar ao padrão deste processo</button>
     </fieldset>
 
-    <fieldset class="teorico ferramenta">
-      <legend>Ferramenta e peça (registro do ensaio)</legend>
-      <div class="grade4">
-        <label class="lin">Identificação / código do inserto<input id="fId" maxlength="80" autocomplete="off" placeholder="ex.: CNMG 120408"></label>
-        <label class="lin">Material e classe da ferramenta<input id="fMat" maxlength="80" autocomplete="off" placeholder="ex.: metal duro H13A"></label>
-        <label class="lin">Revestimento<input id="fRev" maxlength="80" autocomplete="off" placeholder="ex.: sem revestimento"></label>
-        <label class="lin">Material da peça<input id="fPeca" maxlength="80" autocomplete="off" placeholder="ex.: AISI 1045 normalizado"></label>
-        <label class="lin">γ0: ângulo de saída [°]<input id="fG0" inputmode="decimal"><span class="campo-erro" id="e-fG0"></span></label>
-        <label class="lin">κr: ângulo de posição [°]<input id="fKr" inputmode="decimal"><span class="campo-erro" id="e-fKr"></span></label>
-        <label class="lin">α0: ângulo de folga [°]<input id="fA0" inputmode="decimal"><span class="campo-erro" id="e-fA0"></span></label>
-        <label class="lin">rε: raio de ponta [mm]<input id="fRe" inputmode="decimal"><span class="campo-erro" id="e-fRe"></span></label>
-        <label class="lin">rβ: raio de aresta [µm]<input id="fRb" inputmode="decimal"><span class="campo-erro" id="e-fRb"></span></label>
-        <label class="lin">VB: desgaste de flanco no ensaio [mm]<input id="fVB" inputmode="decimal"><span class="campo-erro" id="e-fVB"></span></label>
-      </div>
-      <p class="nota">Todos os campos são opcionais e vão para o relatório e para <code>ferramenta.csv</code>. γ0 é usado no atrito e na força de corte teórica; κr, na força de corte teórica. Os demais campos são registro: não entram nos cálculos, mas geram avisos na análise do atrito.</p>
-    </fieldset>
-
     <fieldset class="teorico">
       <legend><label class="chk"><input type="checkbox" id="opAtr"> Atrito na face da ferramenta (opcional, corte ortogonal)</label></legend>
       <div id="blocoAtr" hidden>
-        <p class="nota">Coeficiente de atrito aparente pela transformação geométrica das forças (Merchant): F<sub>T</sub> = F<sub>c</sub>·sen γ0 + F<sub>f</sub>·cos γ0; F<sub>N</sub> = F<sub>c</sub>·cos γ0 − F<sub>f</sub>·sen γ0; μ = F<sub>T</sub>/F<sub>N</sub>. Tensões médias e modelo de atrito com a temperatura conforme Puls, Klocke e Lung (<a href="https://doi.org/10.1016/j.wear.2013.12.020" rel="noopener noreferrer">Wear, v. 310, 2014</a>). Usa os canais de F<sub>c</sub> e F<sub>f</sub> de “Componentes da força” e o ângulo γ0 de “Ferramenta e peça”.</p>
+        <p class="nota">Coeficiente de atrito aparente pela transformação geométrica das forças (Merchant): F<sub>T</sub> = F<sub>c</sub>·sen γ0 + F<sub>f</sub>·cos γ0; F<sub>N</sub> = F<sub>c</sub>·cos γ0 − F<sub>f</sub>·sen γ0; μ = F<sub>T</sub>/F<sub>N</sub>. Tensões médias e modelo de atrito com a temperatura conforme Puls, Klocke e Lung (<a href="https://doi.org/10.1016/j.wear.2013.12.020" rel="noopener noreferrer">Wear, v. 310, 2014</a>). Usa os canais de F<sub>c</sub> e F<sub>f</sub> de “Componentes da força” e o ângulo γ0 de “Ferramenta e peça”, que aparece abaixo ao marcar esta opção.</p>
         <div class="grade4">
           <label class="lin">A: área de contato [mm²] (opcional)<input id="aA" inputmode="decimal" placeholder="vazio: sem tensões"><span class="campo-erro" id="e-aA"></span></label>
           <label class="lin">T: temperatura de contato [°C] (opcional)<input id="aT" inputmode="decimal" placeholder="vazio: sem modelo"><span class="campo-erro" id="e-aT"></span></label>
@@ -220,6 +203,23 @@
         </details>
         <p class="nota">Válido para corte ortogonal. O valor é aparente: inclui a força no raio da aresta e o desgaste de flanco, e é uma média de toda a interface.</p>
       </div>
+    </fieldset>
+
+    <fieldset class="teorico ferramenta" id="blocoFer" hidden>
+      <legend>Ferramenta e peça (para o atrito e a força teórica)</legend>
+      <div class="grade4">
+        <label class="lin">Identificação / código do inserto<input id="fId" maxlength="80" autocomplete="off" placeholder="ex.: CNMG 120408"></label>
+        <label class="lin">Material e classe da ferramenta<input id="fMat" maxlength="80" autocomplete="off" placeholder="ex.: metal duro H13A"></label>
+        <label class="lin">Revestimento<input id="fRev" maxlength="80" autocomplete="off" placeholder="ex.: sem revestimento"></label>
+        <label class="lin">Material da peça<input id="fPeca" maxlength="80" autocomplete="off" placeholder="ex.: AISI 1045 normalizado"></label>
+        <label class="lin">γ0: ângulo de saída [°]<input id="fG0" inputmode="decimal"><span class="campo-erro" id="e-fG0"></span></label>
+        <label class="lin">κr: ângulo de posição [°]<input id="fKr" inputmode="decimal"><span class="campo-erro" id="e-fKr"></span></label>
+        <label class="lin">α0: ângulo de folga [°]<input id="fA0" inputmode="decimal"><span class="campo-erro" id="e-fA0"></span></label>
+        <label class="lin">rε: raio de ponta [mm]<input id="fRe" inputmode="decimal"><span class="campo-erro" id="e-fRe"></span></label>
+        <label class="lin">rβ: raio de aresta [µm]<input id="fRb" inputmode="decimal"><span class="campo-erro" id="e-fRb"></span></label>
+        <label class="lin">VB: desgaste de flanco no ensaio [mm]<input id="fVB" inputmode="decimal"><span class="campo-erro" id="e-fVB"></span></label>
+      </div>
+      <p class="nota">Este quadro aparece quando o atrito ou a força de corte teórica estão marcados. γ0 é obrigatório nas duas análises e κr na força teórica. Os demais campos são opcionais: não entram nos cálculos, mas vão para o relatório e para <code>ferramenta.csv</code> e geram avisos na análise do atrito.</p>
     </fieldset>
 
     <fieldset class="teorico">
