@@ -1,7 +1,7 @@
 // autoteste.js - verificacao do modulo de forcas com sinais de resposta conhecida.
 // Roda no navegador (manual, secao 6) e no Node (testes/teste_forcas.js).
 import { lerArquivo, taxaDoTempo, estatistica, freqDominante, corteTeorico, vcDeDn, mapaValido, componentes, compValido, COMPONENTES, atritoMerchant, areaContato, muTermico, ATRITO_TERMICO } from "./nucleo.js";
-import { prepararEnsaio, analisarFaixa, PADRAO } from "./analise.js";
+import { prepararEnsaio, analisarFaixa, PADRAO, avisosAtrito, linhaFerramenta, temFerramenta, textoCSV, CAB_FERRAMENTA } from "./analise.js";
 import { fft } from "../../comum/js/fft.js";
 import { maxF, minPos } from "../../comum/js/graficos.js";
 import { histograma, leituraForma } from "./figuras.js";
@@ -132,6 +132,16 @@ export async function autoteste() {
     const Ra = analisarFaixa(E, 1500, 4499, "SINT", { ...p, atrito: { g0: 0, A: 4, T: 1050 } }, { atrito: true }, []);
     perto(Ra.atrito.mu, Ra.comp.b / Ra.comp.a, 1e-12, "atrito: na faixa, mu = Ff/Fc com g0 = 0"); perto(Ra.atrito.tau, Ra.atrito.FT / 4, 1e-12, "atrito: tensao tangencial media");
     ok(Ra.linhaAtrito.split(";").length === 17 && !analisarFaixa(E, 1500, 4499, "SINT", { ...p, tipo: "fresamento" }, { atrito: true }, []).atrito, "atrito: linha do CSV; nao se aplica ao fresamento"); }
+  // ferramenta: registro em CSV e avisos do atrito
+  { const fer = { id: "CNMG 120408", material: "metal duro; H13A", revestimento: "=TiN", peca: "AISI 1045", g0: -6, kr: 95, a0: 6, re: 0.8, rb: 30, vb: 0.1 };
+    ok(linhaFerramenta(fer) === "CNMG 120408;metal duro, H13A;'=TiN;AISI 1045;-6;95;6;0,8;30;0,1" && linhaFerramenta(fer).split(";").length === CAB_FERRAMENTA.split(";").length, "ferramenta: linha do CSV (sem ; no texto, formula neutralizada)");
+    ok(textoCSV("-x") === "'-x" && textoCSV(" a\nb ") === "a, b" && textoCSV(null) === "", "ferramenta: texto livre seguro no CSV");
+    ok(temFerramenta(fer) && !temFerramenta({ id: " ", g0: null }) && !temFerramenta(undefined), "ferramenta: so grava quando ha algum campo");
+    const q0 = { ...PADRAO.atrito, T: 900 };
+    ok(avisosAtrito(fer, q0, { fn: 0.25 }).length === 5 && avisosAtrito({ kr: 90 }, PADRAO.atrito, null).length === 0 && avisosAtrito(undefined, PADRAO.atrito, null).length === 0, "atrito: avisos pela ferramenta (kr, raio de ponta, VB, raio de aresta, modelo padrao)");
+    ok(avisosAtrito({}, { ...q0, mu0: 0.5 }, null).length === 0, "atrito: modelo com parametros proprios nao gera aviso");
+    const Rv = analisarFaixa(E, 1500, 4499, "SINT", { ...p, ferramenta: fer, atrito: { g0: -6 } }, { atrito: true }, []);
+    ok(Rv.atrito.avisos.length === 4 && Rv.atrito.g0 === -6, "atrito: avisos chegam ao resultado da faixa"); }
   // espectro calculado na analise (roda no Web Worker): pico de Fz em 80 Hz
   const Rf = analisarFaixa(E, 1500, 4499, "SINT", p, { fft: true }, []);
   const Y = Rf.espectro.Y.fz; let kmax = 0; for (let i = 1; i < Y.length; i++) if (Y[i] > Y[kmax]) kmax = i;

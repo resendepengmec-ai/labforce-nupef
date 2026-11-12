@@ -54,7 +54,7 @@
 <article class="doc">
 <header>
   <h1>Manual técnico de uso: forças de usinagem</h1>
-  <p>Módulo de forças de usinagem do LabForce NUPEF, versão web 2.2.0. Redação conforme a ASD-STE100, adaptada ao português.</p>
+  <p>Módulo de forças de usinagem do LabForce NUPEF, versão web 2.3.0. Redação conforme a ASD-STE100, adaptada ao português.</p>
 </header>
 
 <section id="s1">
@@ -259,11 +259,27 @@
     <tr><td>Faixa mínima</td><td>0,5</td><td>s</td><td>Para aceitar faixas mais curtas ou exigir faixas mais longas.</td></tr>
   </tbody>
 </table></div>
-<p>Os campos do atrito só aparecem com a opção <strong>Atrito na face da ferramenta</strong> marcada (tipo de ensaio Torneamento).</p>
+<p>O quadro <strong>Ferramenta e peça</strong> registra a condição do ensaio. Todos os campos são opcionais, exceto γ0 e κr quando o atrito ou a força teórica estiverem marcados.</p>
+<div class="tabela-rolar"><table>
+  <thead><tr><th>Campo</th><th>Valor padrão</th><th>Unidade</th><th>Uso</th></tr></thead>
+  <tbody>
+    <tr><td>Identificação / código do inserto</td><td>vazio</td><td>-</td><td>Registro (exemplo: <code>CNMG 120408</code>).</td></tr>
+    <tr><td>Material e classe da ferramenta</td><td>vazio</td><td>-</td><td>Registro. Aparece no aviso do modelo de atrito com a temperatura.</td></tr>
+    <tr><td>Revestimento</td><td>vazio</td><td>-</td><td>Registro. Aparece no mesmo aviso.</td></tr>
+    <tr><td>Material da peça</td><td>vazio</td><td>-</td><td>Registro. Aparece no mesmo aviso.</td></tr>
+    <tr><td>γ0</td><td>0</td><td>°</td><td>Ângulo de saída, entre −90° e 90°. Entra no cálculo do atrito e da força teórica. No ensaio de atrito com plano inclinado de α, use γ0 = α − 90°.</td></tr>
+    <tr><td>κr</td><td>90</td><td>°</td><td>Ângulo de posição, entre 0° e 180°. Entra no cálculo da força teórica. Diferente de 90°: aviso de corte não ortogonal no atrito.</td></tr>
+    <tr><td>α0</td><td>vazio</td><td>°</td><td>Ângulo de folga. Registro.</td></tr>
+    <tr><td>rε</td><td>vazio</td><td>mm</td><td>Raio de ponta. Registro. Maior que 0: aviso de corte não ortogonal no atrito.</td></tr>
+    <tr><td>rβ</td><td>vazio</td><td>µm</td><td>Raio de aresta. Registro. Maior que 0: aviso de sulcamento no atrito, com a razão rβ/hm quando a força teórica estiver marcada.</td></tr>
+    <tr><td>VB</td><td>vazio</td><td>mm</td><td>Desgaste de flanco no ensaio. Registro. Maior que 0: aviso no atrito.</td></tr>
+  </tbody>
+</table></div>
+<p class="seg seg-nota"><strong>NOTA:</strong> Os campos de registro não entram em nenhum cálculo. O módulo não corrige μ pelo raio de aresta nem pelo desgaste: ele só avisa que essas condições alteram o valor aparente.</p>
+<p>Os campos do atrito só aparecem com a opção <strong>Atrito na face da ferramenta</strong> marcada (tipo de ensaio Torneamento). O ângulo γ0 vem do quadro <strong>Ferramenta e peça</strong>.</p>
 <div class="tabela-rolar"><table>
   <thead><tr><th>Campo</th><th>Valor padrão</th><th>Unidade</th><th>Quando alterar</th></tr></thead>
   <tbody>
-    <tr><td>γ0</td><td>0</td><td>°</td><td>Em cada ferramenta: use o ângulo de saída real, entre −90° e 90°. No ensaio de atrito com plano inclinado de α, use γ0 = α − 90°.</td></tr>
     <tr><td>A</td><td>vazio</td><td>mm²</td><td>Para calcular as tensões médias de contato. Vazio: o módulo não calcula as tensões. No ensaio de atrito, use <strong>Calcular A no ensaio de atrito</strong> com b1, b2, t e α.</td></tr>
     <tr><td>T</td><td>vazio</td><td>°C</td><td>Para calcular μ pelo modelo com a temperatura. Use uma temperatura de contato estimada por medição ou por simulação. Vazio: o módulo não calcula o modelo.</td></tr>
     <tr><td>μ0</td><td>0,7</td><td>-</td><td>Quando o par de materiais não for AISI 1045 com metal duro WC-6Co sem revestimento.</td></tr>
@@ -272,15 +288,13 @@
     <tr><td>T de fusão</td><td>1500</td><td>°C</td><td>Use a temperatura de fusão do material da peça. Deve ser maior que T0.</td></tr>
   </tbody>
 </table></div>
-<p>Os campos da força teórica só aparecem com a opção <strong>Força de corte teórica</strong> marcada.</p>
+<p>Os campos da força teórica só aparecem com a opção <strong>Força de corte teórica</strong> marcada. Os ângulos κr e γ0 vêm do quadro <strong>Ferramenta e peça</strong>.</p>
 <div class="tabela-rolar"><table>
   <thead><tr><th>Campo</th><th>Valor padrão</th><th>Unidade</th><th>Quando alterar</th></tr></thead>
   <tbody>
     <tr><td>ap</td><td>2</td><td>mm</td><td>Em cada ensaio: use a profundidade de corte real.</td></tr>
     <tr><td>fn</td><td>0,25</td><td>mm/rot</td><td>Em cada ensaio: use o avanço real.</td></tr>
     <tr><td>vc</td><td>120</td><td>m/min</td><td>Em cada ensaio. Para calcular vc pelo diâmetro D [mm] e pela rotação n [rpm], use <strong>Calcular vc pelo diâmetro e pela rotação</strong>.</td></tr>
-    <tr><td>κr</td><td>90</td><td>°</td><td>Quando o ângulo de posição da ferramenta for outro.</td></tr>
-    <tr><td>γ0</td><td>0</td><td>°</td><td>Quando o ângulo de saída da ferramenta for outro.</td></tr>
     <tr><td>kc1</td><td>vazio</td><td>N/mm²</td><td>Sempre: digite o valor do catálogo para o material da peça.</td></tr>
     <tr><td>mc</td><td>0,25</td><td>-</td><td>Quando o catálogo der outro valor para o material da peça.</td></tr>
   </tbody>
@@ -322,8 +336,8 @@
 </ol>
 <h3 id="s10-2">10.2 Configurar a análise</h3>
 <figure>
-  <img src="img/manual/configuracao.webp" width="1140" height="1595" alt="Etapa 2: quadros de colunas do arquivo, calibração por canal com fatores 1,0, faixas e saídas, o quadro de componentes da força com Fc, Ff e Fp e o canal de cada uma, o quadro do atrito na face da ferramenta com γ0, área de contato e temperatura de contato, e o quadro da força de corte teórica com ap, fn, vc, κr, γ0, kc1 e mc." loading="lazy">
-  <figcaption>Figura 3 — Etapa 2 com o atrito na face da ferramenta e a força de corte teórica marcados.</figcaption>
+  <img src="img/manual/configuracao.webp" width="1140" height="2028" alt="Etapa 2: quadros de colunas do arquivo, calibração por canal com fatores 1,0, faixas e saídas, o quadro de componentes da força com Fc, Ff e Fp e o canal de cada uma, o quadro de ferramenta e peça com identificação, materiais, γ0, κr, α0, rε, rβ e VB, o quadro do atrito na face da ferramenta com área de contato e temperatura de contato, e o quadro da força de corte teórica com ap, fn, vc, kc1 e mc." loading="lazy">
+  <figcaption>Figura 3 — Etapa 2 com a ferramenta informada e com o atrito na face da ferramenta e a força de corte teórica marcados.</figcaption>
 </figure>
 <ol class="passos">
   <li>Em <strong>Colunas do arquivo</strong>, escolha a grandeza de cada coluna.</li>
@@ -333,7 +347,8 @@
   <li>Para delimitar antes uma região de interesse, marque <strong>Delimitar antes uma região de interesse (zoom)</strong>.</li>
   <li>Para escolher um zoom diferente para cada faixa, marque também <strong>Zoom em cada faixa</strong>.</li>
   <li>Marque ou desmarque <strong>Espectro de amplitude (FFT)</strong> e <strong>Salvar gráficos (PNG)</strong>.</li>
-  <li>Para calcular o atrito na face da ferramenta, marque <strong>Atrito na face da ferramenta</strong> e preencha γ0. A área de contato e a temperatura de contato são opcionais (seção 8).</li>
+  <li>Em <strong>Ferramenta e peça</strong>, registre a ferramenta, a peça e os ângulos γ0 e κr (seção 8).</li>
+  <li>Para calcular o atrito na face da ferramenta, marque <strong>Atrito na face da ferramenta</strong>. A área de contato e a temperatura de contato são opcionais (seção 8).</li>
   <li>Para comparar com a força teórica, marque <strong>Força de corte teórica</strong> e preencha os campos (seção 8).</li>
   <li>Clique em <strong>Continuar</strong>.</li>
 </ol>
@@ -378,16 +393,17 @@
 <p>Cada rodada cria uma pasta de resultados nova. O módulo não substitui os resultados de rodadas anteriores.</p>
 <p>Com 1 faixa por ensaio, o rótulo é o nome do ensaio (exemplo: <code>E1.3</code>). Com 2 ou mais faixas, o rótulo tem o número da faixa (exemplo: <code>E1.3_f2</code>).</p>
 <figure>
-  <img src="img/manual/resultados.webp" width="1140" height="539" alt="Etapa 5: quadro das componentes Fc, Ff e Fp, da força ativa Fa e da razão Fa/Fp; quadro do atrito com FT, FN, μ, β, tensões τ e σ e μ do modelo; comparação da força teórica com a medida; tabela com média, RMS, pico, DP, CV, fator de crista, curtose, assimetria e frequência dominante de Fx, Fy, Fz e Fr." loading="lazy">
+  <img src="img/manual/resultados.webp" width="1140" height="613" alt="Etapa 5: quadro das componentes Fc, Ff e Fp, da força ativa Fa e da razão Fa/Fp; quadro do atrito com FT, FN, μ, β, tensões τ e σ e μ do modelo; comparação da força teórica com a medida; tabela com média, RMS, pico, DP, CV, fator de crista, curtose, assimetria e frequência dominante de Fx, Fy, Fz e Fr." loading="lazy">
   <figcaption>Figura 5 — Etapa 5: componentes da força e razão Fa/Fp, atrito na face da ferramenta, comparação com a força teórica e estatística por canal. Abaixo, a tela mostra os gráficos da faixa.</figcaption>
 </figure>
 <div class="tabela-rolar"><table>
   <thead><tr><th>Arquivo</th><th>Quando o módulo grava</th><th>Conteúdo</th></tr></thead>
   <tbody>
-    <tr><td><code>relatorio.txt</code></td><td>Sempre</td><td>Colunas, calibração, componentes da força, opções, taxa de amostragem, avisos, estatística, componentes e razão Fa/Fp de cada faixa.</td></tr>
+    <tr><td><code>relatorio.txt</code></td><td>Sempre</td><td>Colunas, calibração, ferramenta e peça, componentes da força, opções, taxa de amostragem, avisos, estatística, componentes e razão Fa/Fp de cada faixa.</td></tr>
     <tr><td><code>forcas_resumo.csv</code></td><td>Sempre</td><td>Uma linha por faixa e canal (Fx, Fy, Fz, Fr): tempos, n, fs, média, RMS, pico, DP, CV, fator de crista, curtose, assimetria, frequência dominante. Separador: ponto e vírgula. Decimal: vírgula.</td></tr>
     <tr><td><code>&lt;rótulo&gt;_faixa.csv</code></td><td>Sempre</td><td>As amostras da faixa: tempo [s], Fx, Fy, Fz e Fr [N], já com os fatores de calibração.</td></tr>
     <tr><td><code>componentes.csv</code></td><td>Sempre</td><td>Uma linha por faixa: processo, as 3 componentes com o canal e a média de cada uma [N], a força ativa Fa [N] e a razão Fa/Fp [-]. A razão fica vazia quando Fp é nula.</td></tr>
+    <tr><td><code>ferramenta.csv</code></td><td>Algum campo de <strong>Ferramenta e peça</strong> preenchido</td><td>Uma linha: identificação, material da ferramenta, revestimento, material da peça, γ0, κr, α0, rε, rβ e VB.</td></tr>
     <tr><td><code>atrito.csv</code></td><td>Atrito marcado</td><td>Uma linha por faixa: γ0, Fc, Ff, F<sub>T</sub>, F<sub>N</sub>, μ, β, área, tensões τ e σ, temperatura, μ do modelo e os parâmetros do modelo. Os campos sem valor ficam vazios.</td></tr>
     <tr><td><code>corte_teorico.csv</code></td><td>Força teórica marcada</td><td>Uma linha por faixa: parâmetros de corte, hm, kc, Fc teórica, Pc, Q, Fc medida e diferença [%].</td></tr>
     <tr><td><code>&lt;ensaio&gt;_faixas.png</code></td><td>Gráficos marcados</td><td>Forças do ensaio com as faixas marcadas (registro da seleção).</td></tr>
@@ -485,6 +501,7 @@ AISI 1045 com WC-6Co sem revestimento:
 </table></div>
 <p class="seg seg-cui"><strong>CUIDADO:</strong> O cálculo vale para corte ortogonal. A transformação despreza a força de sulcamento no raio da aresta e o desgaste de flanco, e supõe μ constante na interface. Com aresta desgastada ou raio de aresta grande, μ aparente difere do atrito real da interface.</p>
 <p class="seg seg-cui"><strong>CUIDADO:</strong> Os parâmetros padrão do modelo foram calibrados por simulação de elementos finitos só para AISI 1045 com metal duro WC-6Co sem revestimento. Não use esses valores em outro par de materiais. A 20 m/min o artigo observou adesão de material, e o modelo não representa essa condição.</p>
+<p>Com a ferramenta informada, a análise do atrito mostra avisos na tela e no relatório (<code>AVISO atrito</code>): κr diferente de 90° ou raio de ponta maior que 0 (corte não ortogonal), VB maior que 0 (força no flanco), raio de aresta maior que 0 (sulcamento) e modelo com a temperatura usado com os parâmetros padrão.</p>
 <p class="seg seg-nota"><strong>NOTA:</strong> A temperatura de contato não é medida pelo dinamômetro. O artigo mediu a temperatura da superfície 1,5 mm abaixo do contato e obteve a temperatura de contato por simulação. Quando F<sub>N</sub> é nula ou negativa, μ não tem valor: a tela mostra “indefinido (FN ≤ 0)”. Confira γ0 e os canais de Fc e Ff.</p>
 </section>
 
@@ -497,6 +514,7 @@ AISI 1045 com WC-6Co sem revestimento:
     <tr><td>“Escolha tempo, Fx, Fy e Fz uma vez cada”</td><td>Uma grandeza está em 2 colunas ou falta uma grandeza.</td><td>Corrija o mapeamento das colunas.</td></tr>
     <tr><td>“Use Fx, Fy e Fz uma vez cada: cada componente em um canal diferente”</td><td>Duas componentes estão no mesmo canal em <strong>Componentes da força</strong>.</td><td>Escolha um canal diferente para cada componente, ou clique em <strong>Voltar ao padrão deste processo</strong>.</td></tr>
     <tr><td>μ “indefinido (FN ≤ 0)” ou μ muito diferente do esperado</td><td>γ0 errado, ou os canais de Fc e Ff estão trocados.</td><td>Confira o ângulo de saída e <strong>Componentes da força</strong>. No ensaio de atrito, use γ0 = α − 90°.</td></tr>
+    <tr><td>“Digite o ângulo de saída” ou “Digite o ângulo de posição”</td><td>γ0 ou κr está vazio em <strong>Ferramenta e peça</strong> com o atrito ou a força teórica marcados.</td><td>Digite o ângulo, ou desmarque a opção que usa o ângulo.</td></tr>
     <tr><td><strong>Atrito na face da ferramenta</strong> desabilitado</td><td>O tipo de ensaio não é Torneamento.</td><td>O cálculo usa Fc e Ff. Para um ensaio ortogonal em outra máquina, escolha Torneamento na etapa 1 e indique os canais de Fc e Ff.</td></tr>
     <tr><td>Fc, Ff e Fp trocadas, ou razão Fa/Fp fora do esperado</td><td>A correspondência das componentes não é a da montagem real.</td><td>Compare os eixos do dinamômetro com as direções de corte e de avanço e corrija <strong>Componentes da força</strong>.</td></tr>
     <tr><td><code>arquivo sem 4 colunas numéricas válidas</code></td><td>O arquivo tem menos de 4 colunas, ou o mapeamento está errado.</td><td>Abra o arquivo num editor de texto e confira as colunas.</td></tr>
@@ -531,7 +549,7 @@ AISI 1045 com WC-6Co sem revestimento:
 </div>
 
 <footer class="rodape">
-  <p>LabForce NUPEF, IFG Câmpus Goiânia. Módulo de forças de usinagem, versão web 2.2.0.</p>
+  <p>LabForce NUPEF, IFG Câmpus Goiânia. Módulo de forças de usinagem, versão web 2.3.0.</p>
   <div class="inst">
     <div class="logos-inst">
       <a class="logo-ifg" href="https://www.ifg.edu.br/goiania" rel="noopener noreferrer"><img src="../assets/logo-ifg-goiania.png" alt="Instituto Federal de Goiás, Câmpus Goiânia" width="52" height="72" loading="lazy"></a>

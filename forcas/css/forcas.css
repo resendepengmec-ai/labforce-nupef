@@ -21,6 +21,8 @@
 .cal { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .colunas label, .cal label { display: flex; flex-direction: column; font-size: .82rem; color: var(--cinza); }
 .teorico, .componentes { margin-top: 16px; }
+.ferramenta legend { font-weight: 600; }
+.avisos-faixa { margin: 4px 0 10px; padding-left: 20px; color: var(--cinza); font-size: .88rem; }
 .comp-campos { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px 14px; max-width: 760px; }
 .comp-campos label { display: flex; flex-direction: column; font-size: .88rem; color: var(--cinza); }
 .comp-campos label b { color: var(--tinta); }

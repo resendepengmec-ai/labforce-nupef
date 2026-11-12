@@ -1,6 +1,6 @@
 // app.js - interface do modulo de forcas: etapas, selecao das faixas, analise e
 // gravacao dos resultados na pasta do usuario (ou .zip). Mesmo padrao do modulo eletrico.
-import { ROT, PADRAO, CANAIS, CAB_RESUMO, CAB_TEORICO, CAB_COMP, CAB_ATRITO, VERSAO, prepararEnsaio, analisarFaixa } from "./analise.js";
+import { ROT, PADRAO, CANAIS, CAB_RESUMO, CAB_TEORICO, CAB_COMP, CAB_ATRITO, CAB_FERRAMENTA, linhaFerramenta, temFerramenta, VERSAO, prepararEnsaio, analisarFaixa } from "./analise.js";
 import { mapaValido, vcDeDn, COMPONENTES, compValido, areaContato } from "./nucleo.js";
 import { DINAMOMETROS, PADRAO_DINAMOMETRO } from "./dinamometros.js";
 import { CORES, figuraSinal, figuraEspectro, figuraDistribuicao } from "./figuras.js";
@@ -15,9 +15,12 @@ import {
 
 const CHAVE = "forcas-config-v1";
 const ROT_CAMPO = { tempo: "tempo [s]", fx: "Fx [N]", fy: "Fy [N]", fz: "Fz [N]", ignorar: "ignorar" };
-const TEO = [["tAp", "ap"], ["tFn", "fn"], ["tVc", "vc"], ["tKr", "kr"], ["tG0", "g0"], ["tKc1", "kc1"], ["tMc", "mc"]];
+const TEO = [["tAp", "ap"], ["tFn", "fn"], ["tVc", "vc"], ["tKc1", "kc1"], ["tMc", "mc"]];
+// ferramenta e peca: texto (registro) e numeros; g0 e kr alimentam o atrito e a forca teorica
+const FER_TXT = [["fId", "id"], ["fMat", "material"], ["fRev", "revestimento"], ["fPeca", "peca"]];
+const FER_NUM = [["fG0", "g0"], ["fKr", "kr"], ["fA0", "a0"], ["fRe", "re"], ["fRb", "rb"], ["fVB", "vb"]];
 
-const ATR = [["aG0", "g0"], ["aA", "A"], ["aT", "T"], ["aMu0", "mu0"], ["aT0", "T0"], ["aM", "m"], ["aTf", "Tf"]];
+const ATR = [["aA", "A"], ["aT", "T"], ["aMu0", "mu0"], ["aT0", "T0"], ["aM", "m"], ["aTf", "Tf"]];
 
 let pasta = null, arquivos = [], cfg = null, rodada = null, ensaio = null;
 
@@ -69,6 +72,10 @@ function montarConfig() {
   const aplicaComp = (m) => { for (const c of ["a", "b", "p"]) { $("comp_" + c).value = m[c]; $("comp_" + c).removeAttribute("aria-invalid"); } $("e-comp").textContent = ""; };
   $("btCompPadrao").addEventListener("click", () => { const t = tipoEnsaio(); aplicaComp(COMPONENTES[t].padrao); compSalvo[t] = lerComp(); });
   $("pDur").value = txt(s.duracaoMin ?? PADRAO.duracaoMin);
+  // ferramenta e peca; configuracao antiga: g0 e kr vinham da forca teorica e do atrito
+  const fer = { g0: s.atrito?.g0 ?? s.teorico?.g0 ?? PADRAO.teorico.g0, kr: s.teorico?.kr ?? PADRAO.teorico.kr, ...(s.ferramenta || {}) };
+  for (const [id, c] of FER_TXT) $(id).value = fer[c] || "";
+  for (const [id, c] of FER_NUM) $(id).value = txt(fer[c]);
   // atrito na face da ferramenta (Puls; Klocke; Lung, 2014)
   const at = { ...PADRAO.atrito, ...(s.atrito || {}) };
   for (const [id, c] of ATR) $(id).value = txt(at[c]);
@@ -138,7 +145,19 @@ function validarConfig() {
   $("e-comp").textContent = okComp ? "" : "Use Fx, Fy e Fz uma vez cada: cada componente em um canal diferente.";
   if (!okComp) erros.push("componentes");
   const teo = { canal: comp.a };        // forca teorica (torneamento): comparada com o canal de Fc
-  const opTeo = $("opTeo").checked;
+  const opTeo = $("opTeo").checked && !$("opTeo").disabled, usaAtr = $("opAtr").checked && !$("opAtr").disabled;
+  const fer = {};
+  for (const [id, c] of FER_TXT) fer[c] = $(id).value.trim().slice(0, 80);
+  for (const [id, c] of FER_NUM) {
+    const vazio = $(id).value.trim() === "", v = vazio ? null : numero($(id).value); fer[c] = v;
+    let msg = "";
+    if (c === "g0") msg = vazio ? (opTeo || usaAtr ? "Digite o ângulo de saída: ele é usado no atrito e na força teórica." : "") : v > -90 && v < 90 ? "" : "Digite um ângulo entre −90° e 90°.";
+    else if (c === "kr") msg = vazio ? (opTeo ? "Digite o ângulo de posição: ele é usado na força teórica." : "") : v > 0 && v <= 180 ? "" : "Digite um ângulo entre 0° e 180°.";
+    else if (c === "a0") msg = vazio || (v >= 0 && v < 90) ? "" : "Digite um ângulo entre 0° e 90° ou deixe vazio.";
+    else msg = vazio || v >= 0 ? "" : "Digite um valor de 0 ou mais, ou deixe vazio.";
+    erros.push(...marcar(id, msg));
+  }
+  teo.kr = fer.kr; teo.g0 = fer.g0;
   for (const [id, c] of TEO) {
     const v = numero($(id).value); teo[c] = v;
     if (!opTeo) { marcar(id, ""); continue; }
@@ -150,7 +169,7 @@ function validarConfig() {
     else msg = v > 0 ? "" : "Digite um valor maior que zero.";
     erros.push(...marcar(id, msg));
   }
-  const atr = {}, opAtr = $("opAtr").checked && !$("opAtr").disabled;
+  const atr = { g0: fer.g0 }, opAtr = usaAtr;
   for (const [id, c] of ATR) {
     const vazio = $(id).value.trim() === "", v = vazio ? null : numero($(id).value); atr[c] = v;
     if (!opAtr) { marcar(id, ""); continue; }
@@ -171,8 +190,8 @@ function validarConfig() {
   const op = { fft: $("opFFT").checked, graficos: $("opGraf").checked, teorico: opTeo, atrito: opAtr };
   const tipo = tipoEnsaio(), modelo = $("modelo").value;
   if (tipo !== "torneamento") op.teorico = false;
-  salvar({ mapa, k, nFaixas: Number($("nFaixas").value), ...lerZoom(), op: { ...op, atrito: $("opAtr").checked }, teorico: teo, atrito: atr, duracaoMin: dur, tipo, modelo, comp: { ...(lerSalvo().comp || {}), [tipo]: comp } });
-  return { nFaixas: Number($("nFaixas").value), ...lerZoom(), op, tipo, modelo, p: { mapa, k, duracaoMin: dur, teorico: teo, atrito: atr, modelo, tipo, comp } };
+  salvar({ mapa, k, nFaixas: Number($("nFaixas").value), ...lerZoom(), op: { ...op, atrito: $("opAtr").checked }, teorico: teo, atrito: atr, ferramenta: fer, duracaoMin: dur, tipo, modelo, comp: { ...(lerSalvo().comp || {}), [tipo]: comp } });
+  return { nFaixas: Number($("nFaixas").value), ...lerZoom(), op, tipo, modelo, p: { mapa, k, duracaoMin: dur, teorico: teo, atrito: atr, ferramenta: fer, modelo, tipo, comp } };
 }
 
 function lerComp() { return { a: $("comp_a").value, b: $("comp_b").value, p: $("comp_p").value }; }
@@ -229,6 +248,11 @@ async function iniciarRodada() {
     destino.modo === "pasta" ? `${pasta.name}/${nome}` : `${nome}.zip`));
   log.push(`Ensaio: ${c.tipo === "torneamento" ? "torneamento" : "fresamento, furacao ou rosqueamento"} | dinamometro Kistler ${c.modelo}`);
   log.push(`Colunas: ${c.p.mapa.join(" ")} | calibracao [Fx Fy Fz]: ${[c.p.k.fx, c.p.k.fy, c.p.k.fz].join(" ")}`);
+  if (temFerramenta(c.p.ferramenta)) {
+    const f = c.p.ferramenta, t = (v) => v || "-", n = (v, u) => (Number.isFinite(v) ? `${String(v).replace(".", ",")} ${u}` : "-");
+    log.push(`Ferramenta: ${t(f.id)} | material ${t(f.material)} | revestimento ${t(f.revestimento)} | peca: ${t(f.peca)}`);
+    log.push(`  g0 ${n(f.g0, "graus")} | kr ${n(f.kr, "graus")} | a0 ${n(f.a0, "graus")} | raio de ponta ${n(f.re, "mm")} | raio de aresta ${n(f.rb, "um")} | VB ${n(f.vb, "mm")}`);
+  }
   log.push(`Componentes (montagem): ${["a", "b", "p"].map((k) => `${COMPONENTES[c.tipo].rot[k]} = ${ROT[c.p.comp[k]]}`).join(" | ")} | Fa = raiz(${COMPONENTES[c.tipo].rot.a}^2 + ${COMPONENTES[c.tipo].rot.b}^2) | atrito: razao Fa/Fp`);
   log.push(sprintf("Faixas por ensaio: %d (%s) | faixa minima %g s | FFT: %s | graficos: %s | forca teorica: %s",
     c.nFaixas, c.zoom ? (c.zoomPorFaixa ? "com zoom em cada faixa" : "com zoom") : "sem zoom", c.p.duracaoMin, c.op.fft ? "sim" : "nao", c.op.graficos ? "sim" : "nao", c.op.teorico ? "sim" : "nao"));
@@ -348,6 +372,7 @@ async function gravarResumos() {
   if (R.teo.length) arqs.push(["corte_teorico.csv", [CAB_TEORICO, ...R.teo]]);
   if (R.comp.length) arqs.push(["componentes.csv", [CAB_COMP, ...R.comp]]);
   if (R.atr.length) arqs.push(["atrito.csv", [CAB_ATRITO, ...R.atr]]);
+  if (temFerramenta(cfg?.p.ferramenta)) arqs.push(["ferramenta.csv", [CAB_FERRAMENTA, linhaFerramenta(cfg.p.ferramenta)]]);
   await gravarTodos(R, [...arqs, ["relatorio.txt", R.log]]);
 }
 
@@ -393,6 +418,11 @@ function mostrarFaixa(r, figs) {
       s.textContent = rot; b.textContent = val; c.append(s, b); box.appendChild(c);
     }
     d.appendChild(box);
+    if (q.avisos?.length) {
+      const ul = document.createElement("ul"); ul.className = "avisos-faixa";
+      for (const av of q.avisos) { const li = document.createElement("li"); li.textContent = "Atrito: " + av; ul.appendChild(li); }
+      d.appendChild(ul);
+    }
   }
   if (r.teorico) {
     const q = r.teorico, box = document.createElement("div"); box.className = "comparacao";

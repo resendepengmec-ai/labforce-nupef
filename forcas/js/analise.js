@@ -5,7 +5,7 @@ import { lerArquivo, taxaDoTempo, estatistica, corteTeorico, componentes, COMPON
 import { sprintf, nv, nv6g } from "../../comum/js/formato.js";
 import { DINAMOMETROS, verificarFaixa } from "./dinamometros.js";
 
-export const VERSAO = "web 2.2.0";
+export const VERSAO = "web 2.3.0";
 export const CANAIS = [
   { k: "fx", rot: "Fx" }, { k: "fy", rot: "Fy" }, { k: "fz", rot: "Fz" }, { k: "fr", rot: "Fr" },
 ];
@@ -17,6 +17,28 @@ export const PADRAO = {
 };
 
 export const CAB_COMP = "Faixa;Processo;CompA;CanalA;MediaA[N];CompB;CanalB;MediaB[N];CompP;CanalP;MediaP[N];Fa[N];Fa/Fp[-]";
+export const CAB_FERRAMENTA = "Identificacao;MaterialFerramenta;Revestimento;MaterialPeca;g0[graus];kr[graus];a0[graus];r_ponta[mm];r_aresta[um];VB[mm]";
+// texto livre em CSV: sem ponto e virgula nem quebra de linha; valor iniciado por = + - @ ganha
+// apostrofo, para a planilha nao o interpretar como formula
+export const textoCSV = (v) => { const t = String(v ?? "").trim().replace(/\s*[;\r\n\t]+\s*/g, ", "); return /^[=+\-@]/.test(t) ? "'" + t : t; };
+export function linhaFerramenta(f = {}) {
+  const n = (v) => (Number.isFinite(v) ? nv(v, "%g") : "");
+  return [textoCSV(f.id), textoCSV(f.material), textoCSV(f.revestimento), textoCSV(f.peca), n(f.g0), n(f.kr), n(f.a0), n(f.re), n(f.rb), n(f.vb)].join(";");
+}
+export const temFerramenta = (f) => !!f && Object.values(f).some((v) => (typeof v === "string" ? v.trim() !== "" : Number.isFinite(v)));
+// Avisos do atrito conforme a ferramenta informada (limites da analise por forcas; Puls, Klocke e Lung, 2014)
+export function avisosAtrito(f = {}, q, teo) {
+  const a = [];
+  if (Number.isFinite(f.kr) && Math.abs(f.kr - 90) > 1e-9) a.push(sprintf("angulo de posicao kr = %g graus: o corte nao e ortogonal; mu e uma aproximacao.", f.kr));
+  if (f.re > 0) a.push(sprintf("raio de ponta %g mm: parte da aresta corta fora do plano ortogonal; mu e uma aproximacao.", f.re));
+  if (f.vb > 0) a.push(sprintf("desgaste de flanco VB = %g mm: a forca no flanco entra em FT e FN; mu aparente difere do atrito na face.", f.vb));
+  if (f.rb > 0) a.push(teo && teo.fn > 0 && Number.isFinite(f.kr)
+    ? sprintf("raio de aresta %g um = %.2f x a espessura de corte hm (%.3f mm): quanto maior a razao, maior a parcela de sulcamento em mu.", f.rb, f.rb / 1000 / (teo.fn * Math.sin(f.kr * Math.PI / 180)), teo.fn * Math.sin(f.kr * Math.PI / 180))
+    : sprintf("raio de aresta %g um: a forca de sulcamento na aresta entra em mu aparente.", f.rb));
+  if (Number.isFinite(q.T) && q.mu0 === ATRITO_TERMICO.mu0 && q.T0 === ATRITO_TERMICO.T0 && q.m === ATRITO_TERMICO.m && q.Tf === ATRITO_TERMICO.Tf)
+    a.push(`modelo termico com os parametros padrao, validos so para AISI 1045 com WC-6Co sem revestimento${f.material || f.revestimento || f.peca ? ` (informado: ferramenta ${[f.material, f.revestimento].filter(Boolean).join(", ") || "-"}; peca ${f.peca || "-"})` : ""}.`);
+  return a;
+}
 export const CAB_ATRITO = "Faixa;g0[graus];Fc[N];Ff[N];FT[N];FN[N];mu[-];beta[graus];A[mm2];tau[MPa];sigma[MPa];T[C];mu_modelo[-];mu0[-];T0[C];m[-];Tfusao[C]";
 export const CAB_RESUMO = "Faixa;Canal;t_ini[s];t_fim[s];n;fs[Hz];Media[N];RMS[N];Pico[N];DP[N];CV[-];FatorCrista[-];Curtose[-];Assimetria[-];FreqDom[Hz]";
 export const CAB_TEORICO = "Faixa;ap[mm];fn[mm/rot];vc[m/min];kr[graus];g0[graus];kc1[N/mm2];mc[-];hm[mm];kc[N/mm2];Fc_teorica[N];Pc[kW];Q[cm3/min];Canal;Fc_medida[N];Diferenca[%]";
@@ -102,6 +124,8 @@ export function analisarFaixa(E, c1, c2, rotulo, p, op, log) {
       q.g0, a.FT, a.FN, Number.isFinite(a.mu) ? sprintf("%.3f", a.mu) : "indefinido (FN <= 0)", Number.isFinite(a.mu) ? sprintf("%.2f", a.beta) : "-"));
     if (temA) log.push(sprintf("  Tensoes medias de contato (A = %g mm2): tangencial %.1f MPa | normal %.1f MPa", q.A, A.tau, A.sigma));
     if (temT) log.push(sprintf("  Modelo termico (mu0 %g, T0 %g C, m %g, fusao %g C): mu(%g C) = %.3f", q.mu0, q.T0, q.m, q.Tf, q.T, A.muModelo));
+    A.avisos = avisosAtrito(p.ferramenta, q, op.teorico ? p.teorico : null);
+    for (const av of A.avisos) log.push("  AVISO atrito: " + av);
     R.linhaAtrito = [rotulo, nv(q.g0, "%g"), nv(Fc, "%.3f"), nv(Ff, "%.3f"), nv(a.FT, "%.3f"), nv(a.FN, "%.3f"), f(a.mu, "%.4f"), Number.isFinite(a.mu) ? nv(a.beta, "%.3f") : "",
       f(A.A, "%g"), f(A.tau, "%.2f"), f(A.sigma, "%.2f"), f(A.T, "%g"), f(A.muModelo, "%.4f"), nv(q.mu0, "%g"), nv(q.T0, "%g"), nv(q.m, "%g"), nv(q.Tf, "%g")].join(";");
   }
