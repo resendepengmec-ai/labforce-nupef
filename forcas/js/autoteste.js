@@ -5,6 +5,7 @@ import { prepararEnsaio, analisarFaixa, PADRAO, avisosAtrito, linhaFerramenta, t
 import { fft } from "../../comum/js/fft.js";
 import { maxF, minPos } from "../../comum/js/graficos.js";
 import { histograma, leituraForma } from "./figuras.js";
+import { svgModeloAtrito } from "./ilustracao.js";
 import { nv, nv6g } from "../../comum/js/formato.js";
 import { nomeUnico } from "../../comum/js/ui.js";
 import { DINAMOMETROS, verificarFaixa, PADRAO_DINAMOMETRO } from "./dinamometros.js";
@@ -125,7 +126,11 @@ export async function autoteste() {
     perto(Math.hypot(a6.FT, a6.FN), Math.hypot(800, 300), 1e-9, "atrito: FT e FN conservam a resultante");
     // ensaio de atrito do artigo: plano inclinado de alfa = 10 graus -> g0 = -80 graus; FN = Fz cos(alfa) + Fy sen(alfa)
     const al = 10 * Math.PI / 180, ae = atritoMerchant(2000, 8000, -80); perto(ae.FN, 8000 * Math.cos(al) + 2000 * Math.sin(al), 1e-9, "atrito: ensaio com alfa 10 graus, FN"); perto(Math.abs(ae.FT), Math.abs(8000 * Math.sin(al) - 2000 * Math.cos(al)), 1e-9, "atrito: ensaio com alfa 10 graus, FT");
+    // mu positivo no ensaio de atrito (artigo, Fig. 4): Fc na direcao de v_rel, Ff perpendicular
+    { const e3 = atritoMerchant(3000, 8000, -80); perto(e3.mu, (3000 * Math.cos(al) - 8000 * Math.sin(al)) / (3000 * Math.sin(al) + 8000 * Math.cos(al)), 1e-12, "atrito: ensaio, mu = FT/FN positivo"); ok(e3.mu > 0 && e3.beta > 0, "atrito: ensaio, mu e beta positivos"); }
     ok(Number.isNaN(atritoMerchant(100, 800, 45).mu), "atrito: FN <= 0, mu indefinido");
+    { const sv = svgModeloAtrito(ATRITO_TERMICO, 900), sx = svgModeloAtrito({ mu0: 0.7, T0: 600, m: 0.35, Tf: 500 }, 900);
+      ok(sv.includes("<polyline") && sv.includes("μ(900 °C) = 0,223") && !sx.includes("<polyline") && sx.includes("Preencha"), "atrito: gráfico do modelo (ponto em 900 °C e aviso com fusão < T0)"); }
     perto(areaContato(1.5, 3, 1, 10), 4.5 / (2 * Math.sin(al)), 1e-12, "atrito: area de contato (eq. 1)");
     perto(muTermico(400), 0.7, 1e-12, "atrito termico: mu0 abaixo de T0"); perto(muTermico(600), 0.7, 1e-12, "atrito termico: mu0 em T0"); perto(muTermico(1500), 0, 1e-12, "atrito termico: zero na fusao");
     perto(muTermico(1050), 0.7 * (1 - 0.5 ** 0.35), 1e-12, "atrito termico: eq. 2 a meio caminho"); ok(muTermico(900) > muTermico(1200) && ATRITO_TERMICO.Tf === 1500, "atrito termico: mu cai com a temperatura");

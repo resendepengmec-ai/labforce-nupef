@@ -89,7 +89,10 @@ export function componentes(F, c1, c2, comp) {
 // Limites (artigo, secao 1.2): despreza a forca de sulcamento no raio da aresta e o desgaste
 // de flanco, e trata mu como constante na interface; mu varia com velocidade e temperatura.
 export function atritoMerchant(Fc, Ff, g0) {
-  const g = g0 * Math.PI / 180, FT = Fc * Math.sin(g) + Ff * Math.cos(g), FN = Fc * Math.cos(g) - Ff * Math.sin(g);
+  // FT em modulo: com o angulo de saida muito negativo do ensaio de atrito (g0 = alfa - 90), o metal
+  // escoa no sentido da velocidade e nao "sobe" a face como o cavaco; o sinal de Merchant inverte,
+  // mas a forca tangencial e a mesma (Puls et al., 2014: mu = FT/FN positivo)
+  const g = g0 * Math.PI / 180, FT = Math.abs(Fc * Math.sin(g) + Ff * Math.cos(g)), FN = Fc * Math.cos(g) - Ff * Math.sin(g);
   const mu = FN > 1e-9 * Math.max(Math.abs(FT), 1) ? FT / FN : NaN;
   return { FT, FN, mu, beta: Math.atan(mu) * 180 / Math.PI };
 }

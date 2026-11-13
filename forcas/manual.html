@@ -342,7 +342,7 @@
 <ol class="passos">
   <li>Em <strong>Colunas do arquivo</strong>, escolha a grandeza de cada coluna.</li>
   <li>Em <strong>Calibração por canal</strong>, confirme os fatores. Para voltar ao padrão, clique em <strong>Voltar todos para 1,0</strong>.</li>
-  <li>Em <strong>Componentes da força</strong>, escolha o canal (Fx, Fy ou Fz) que mede cada componente na sua montagem. Para voltar ao padrão do processo, clique em <strong>Voltar ao padrão deste processo</strong>.</li>
+  <li>Em <strong>Componentes da força</strong>, clique no botão do canal (Fx, Fy ou Fz) que mede cada componente na sua montagem. Cada canal fica com uma componente só: ao escolher um canal já usado, as duas componentes trocam de canal. Para voltar ao padrão do processo, clique em <strong>Voltar ao padrão deste processo</strong>.</li>
   <li>Em <strong>Faixas por ensaio</strong>, escolha quantas faixas vai avaliar em cada ensaio.</li>
   <li>Para delimitar antes uma região de interesse, marque <strong>Delimitar antes uma região de interesse (zoom)</strong>.</li>
   <li>Para escolher um zoom diferente para cada faixa, marque também <strong>Zoom em cada faixa</strong>.</li>
@@ -480,15 +480,28 @@ FN = Fc · cos γ0 − Ff · sen γ0             [N]
 μ  = FT / FN                               [-]
 β  = arctan μ                              [°]
 τ  = FT / A        σ = FN / A              [MPa], com A em mm²</p>
+<figure>
+  <img src="img/atrito-corte.svg" width="740" height="400" loading="lazy" alt="Corte ortogonal: a peça avança contra a ferramenta com velocidade vc e o cavaco sobe pela face de saída, inclinada do ângulo de saída γ0. Na face atuam a força tangencial FT e a força normal FN. À direita, as forças medidas Fc e Ff somam a resultante R, que também é FT mais FN; β é o ângulo de atrito entre R e FN.">
+  <figcaption>Figura 6 — Corte ortogonal: as forças medidas Fc (na direção da velocidade) e Ff (perpendicular a ela) são decompostas em FT, ao longo da face de saída, e FN, normal a ela. γ0 é o ângulo de saída e β o ângulo de atrito. Esquema original, fora de escala.</figcaption>
+</figure>
+<p class="seg seg-nota"><strong>NOTA:</strong> O módulo usa FT em módulo. Com o ângulo de saída muito negativo do ensaio de atrito, o metal escoa no sentido da velocidade e não sobe a face como o cavaco: a fórmula de Merchant dá FT com o sinal trocado, mas a força tangencial é a mesma. Assim μ e β ficam positivos, como no artigo.</p>
 <p>No ensaio de atrito do artigo, a ferramenta tem um ângulo de saída muito negativo, não se forma cavaco e o metal escoa sobre um plano inclinado de α em relação à velocidade. Esse ensaio é o caso γ0 = α − 90°. A área de contato é um trapézio:</p>
 <p class="formula">A = (b1 + b2) · t / (2 · sen α)            [mm²]
 b1, b2: largura da peça antes e depois da deformação [mm]
 t: profundidade de engajamento [mm]</p>
+<figure>
+  <img src="img/atrito-ensaio.svg" width="580" height="420" loading="lazy" alt="Ensaio de atrito: uma chapa desce com a velocidade relativa v_rel contra o plano da ferramenta, inclinado do ângulo α. A ferramenta penetra a profundidade t e o contato tem comprimento CL; na face atuam FN e FT, e o dinamômetro mede Fc na direção de v_rel e Ff perpendicular a ela. Na vista lateral, a largura da chapa passa de b1 para b2 e a zona de contato é um trapézio de área A.">
+  <figcaption>Figura 7 — Ensaio de atrito de Puls, Klocke e Lung (2014): α é a inclinação do plano da ferramenta, t a profundidade de engajamento, CL o comprimento de contato (t = CL·sen α), b1 e b2 as larguras da chapa antes e depois do contato e A a área do trapézio de contato. Esquema original baseado nas figuras 1 e 2 do artigo, fora de escala.</figcaption>
+</figure>
 <p>O artigo mostra que a tensão tangencial cai quando a temperatura de contato sobe, por amolecimento térmico do material da peça, e que a pressão normal quase não muda. Por isso μ não é constante: ele cai com a velocidade. O modelo proposto é:</p>
 <p class="formula">μ = μ0 · [1 − ((T − T0) / (Tfusão − T0))^m]     para T &gt; T0
 μ = μ0                                          para T ≤ T0
 AISI 1045 com WC-6Co sem revestimento:
 μ0 = 0,7; T0 = 600 °C; m = 0,35; Tfusão = 1773 K (1500 °C)</p>
+<figure>
+  <img src="img/atrito-modelo.svg" width="520" height="280" loading="lazy" alt="Gráfico do modelo de atrito com a temperatura: μ fica em 0,7 até T0 = 600 °C e cai até zero na fusão, a 1500 °C; em 900 °C, μ = 0,223.">
+  <figcaption>Figura 8 — Modelo de atrito com a temperatura para AISI 1045 com WC-6Co (valores padrão): μ = μ0 até T0 e queda até zero na fusão, com expoente m. O ponto mostra T = 900 °C. Na etapa 2, o mesmo gráfico aparece em “Parâmetros do modelo de atrito com a temperatura” e muda com os valores digitados.</figcaption>
+</figure>
 <div class="tabela-rolar"><table>
   <thead><tr><th>Grandeza</th><th>Interpretação</th></tr></thead>
   <tbody>

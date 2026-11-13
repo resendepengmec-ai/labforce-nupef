@@ -176,6 +176,19 @@
       <legend><label class="chk"><input type="checkbox" id="opAtr"> Atrito na face da ferramenta (opcional, corte ortogonal)</label></legend>
       <div id="blocoAtr" hidden>
         <p class="nota">Coeficiente de atrito aparente pela transformação geométrica das forças (Merchant): F<sub>T</sub> = F<sub>c</sub>·sen γ0 + F<sub>f</sub>·cos γ0; F<sub>N</sub> = F<sub>c</sub>·cos γ0 − F<sub>f</sub>·sen γ0; μ = F<sub>T</sub>/F<sub>N</sub>. Tensões médias e modelo de atrito com a temperatura conforme Puls, Klocke e Lung (<a href="https://doi.org/10.1016/j.wear.2013.12.020" rel="noopener noreferrer">Wear, v. 310, 2014</a>). Usa os canais de F<sub>c</sub> e F<sub>f</sub> de “Componentes da força” e o ângulo γ0 de “Ferramenta e peça”, que aparece abaixo ao marcar esta opção.</p>
+        <details class="ilustra" open>
+          <summary>Ilustração das grandezas</summary>
+          <div class="ilustra-figs">
+            <figure>
+              <img src="img/atrito-corte.svg" width="740" height="400" loading="lazy" alt="Corte ortogonal: a peça avança contra a ferramenta com velocidade vc e o cavaco sobe pela face de saída, inclinada do ângulo de saída γ0. Na face atuam a força tangencial FT e a força normal FN. À direita, as forças medidas Fc, na direção da velocidade, e Ff, perpendicular a ela, somam a resultante R, que também é FT mais FN; β é o ângulo de atrito entre R e FN.">
+              <figcaption>Corte ortogonal: as forças medidas F<sub>c</sub> e F<sub>f</sub> viram F<sub>T</sub> e F<sub>N</sub> na face de saída, pelo ângulo γ0. μ = F<sub>T</sub>/F<sub>N</sub> = tan β.</figcaption>
+            </figure>
+            <figure>
+              <img src="img/atrito-ensaio.svg" width="580" height="420" loading="lazy" alt="Ensaio de atrito: uma chapa desce com a velocidade relativa v_rel contra o plano da ferramenta, inclinado do ângulo α. A ferramenta penetra a profundidade t e o contato tem comprimento CL. Na vista lateral, a largura da chapa passa de b1 para b2 e a zona de contato é um trapézio de área A.">
+              <figcaption>Ensaio de atrito (Puls, Klocke e Lung, 2014): sem cavaco, γ0 = α − 90°. Os campos b1, b2, t e α de “Calcular A” dão a área de contato do trapézio.</figcaption>
+            </figure>
+          </div>
+        </details>
         <div class="grade4">
           <label class="lin">A: área de contato [mm²] (opcional)<input id="aA" inputmode="decimal" placeholder="vazio: sem tensões"><span class="campo-erro" id="e-aA"></span></label>
           <label class="lin">T: temperatura de contato [°C] (opcional)<input id="aT" inputmode="decimal" placeholder="vazio: sem modelo"><span class="campo-erro" id="e-aT"></span></label>
@@ -199,6 +212,7 @@
             <label class="lin">m [-]<input id="aM" inputmode="decimal"><span class="campo-erro" id="e-aM"></span></label>
             <label class="lin">T de fusão [°C]<input id="aTf" inputmode="decimal"><span class="campo-erro" id="e-aTf"></span></label>
           </div>
+          <div class="ilustra-modelo" id="graficoModelo"></div>
           <p class="nota">μ = μ0·[1 − ((T − T0)/(T<sub>fusão</sub> − T0))<sup>m</sup>] para T &gt; T0; μ0 abaixo de T0. Os valores padrão valem só para aço AISI 1045 com metal duro WC-6Co sem revestimento.</p>
         </details>
         <p class="nota">Válido para corte ortogonal. O valor é aparente: inclui a força no raio da aresta e o desgaste de flanco, e é uma média de toda a interface.</p>

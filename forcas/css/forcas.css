@@ -24,8 +24,15 @@
 .ferramenta legend { font-weight: 600; }
 .avisos-faixa { margin: 4px 0 10px; padding-left: 20px; color: var(--cinza); font-size: .88rem; }
 .comp-campos { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px 14px; max-width: 760px; }
-.comp-campos label { display: flex; flex-direction: column; font-size: .88rem; color: var(--cinza); }
-.comp-campos label b { color: var(--tinta); }
+.comp-campos .comp-linha { display: flex; flex-direction: column; gap: 4px; font-size: .88rem; color: var(--cinza); }
+.comp-campos .comp-linha b { color: var(--tinta); }
+/* botoes de canal por componente (Fx, Fy, Fz) */
+.comp-campos .alterna { display: inline-flex; }
+.comp-campos .alterna button { border-radius: 0; min-width: 3.4em; padding: 8px 12px; }
+.comp-campos .alterna button + button { margin-left: -1px; }
+.comp-campos .alterna button:first-child { border-radius: 6px 0 0 6px; }
+.comp-campos .alterna button:last-child { border-radius: 0 6px 6px 0; }
+.comp-campos .alterna button[aria-pressed="true"] { background: var(--acento); color: var(--acento-t); border-color: var(--acento); font-weight: 600; }
 @media (max-width: 700px) { .comp-campos { grid-template-columns: minmax(0, 1fr); } }
 .teorico legend { padding: 0 6px; }
 .teorico legend .chk { margin: 0; font-weight: 600; }
@@ -94,3 +101,11 @@
 .foto-dina figcaption { flex: 1 1 240px; display: flex; flex-direction: column; gap: 4px; color: #2b3438; font-size: .9rem; }
 .foto-dina strong { font-size: 1.05rem; }
 .foto-dina small { color: #5e6a64; }
+
+/* ilustracao das grandezas do atrito (corte ortogonal, ensaio de Puls et al. e modelo mu(T)) */
+.ilustra { margin: 10px 0 14px; }
+.ilustra-figs { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr)); gap: 14px; margin-top: 10px; }
+.ilustra-figs figure { margin: 0; }
+.ilustra-figs img, .ilustra-modelo svg { display: block; width: 100%; height: auto; border: 1px solid var(--linha); border-radius: 6px; background: #fff; }
+.ilustra-figs figcaption { font-size: .88rem; color: var(--cinza); margin-top: 6px; }
+.ilustra-modelo { max-width: 560px; margin: 10px 0; }

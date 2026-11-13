@@ -4,6 +4,7 @@ import { ROT, PADRAO, CANAIS, CAB_RESUMO, CAB_TEORICO, CAB_COMP, CAB_ATRITO, CAB
 import { mapaValido, vcDeDn, COMPONENTES, compValido, areaContato } from "./nucleo.js";
 import { DINAMOMETROS, PADRAO_DINAMOMETRO } from "./dinamometros.js";
 import { CORES, figuraSinal, figuraEspectro, figuraDistribuicao } from "./figuras.js";
+import { svgModeloAtrito } from "./ilustracao.js";
 import { sprintf } from "../../comum/js/formato.js";
 import { figuraFaixas, paraPNG } from "../../comum/js/graficos.js";
 import { temPastaDireta, criarDestino, nomeRodada, baixar, painelGravacao } from "../../comum/js/saida.js";
@@ -61,15 +62,31 @@ function montarConfig() {
   const t = { ...PADRAO.teorico, ...(s.teorico || {}) };
   for (const [id, c] of TEO) $(id).value = txt(t[c]);
   // componentes da forca: qual canal mede cada uma (depende da montagem); guardado por processo
+  // botoes: uma linha por componente com os canais Fx, Fy, Fz; escolher um canal ja usado por outra
+  // componente troca as duas, entao cada canal fica sempre com uma componente so
   const compSalvo = { ...(s.comp || {}) };
   for (const c of ["a", "b", "p"]) {
-    const l = document.createElement("label"), b = document.createElement("b"), d = document.createElement("span"); b.id = "compRot_" + c; d.id = "compNome_" + c;
-    const sel = document.createElement("select"); sel.id = "comp_" + c;
-    for (const k of ["fx", "fy", "fz"]) sel.add(new Option(`canal ${ROT[k]}`, k));
-    sel.addEventListener("change", () => { compSalvo[tipoEnsaio()] = lerComp(); });
-    l.append(b, d, sel); $("compCampos").appendChild(l);
+    const l = document.createElement("div"); l.className = "comp-linha";
+    const b = document.createElement("b"), d = document.createElement("span"); b.id = "compRot_" + c; d.id = "compNome_" + c;
+    const grupo = document.createElement("div"); grupo.className = "alterna"; grupo.id = "comp_" + c; grupo.setAttribute("role", "group"); grupo.setAttribute("aria-labelledby", `compRot_${c} compNome_${c}`);
+    for (const k of ["fx", "fy", "fz"]) {
+      const bt = document.createElement("button"); bt.type = "button"; bt.className = "sec"; bt.dataset.canal = k; bt.textContent = ROT[k];
+      bt.addEventListener("click", () => {
+        const m = lerComp(), outra = ["a", "b", "p"].find((x) => x !== c && m[x] === k);
+        if (outra) m[outra] = m[c];
+        m[c] = k; aplicaComp(m); compSalvo[tipoEnsaio()] = lerComp();
+      });
+      grupo.appendChild(bt);
+    }
+    l.append(b, d, grupo); $("compCampos").appendChild(l);
   }
-  const aplicaComp = (m) => { for (const c of ["a", "b", "p"]) { $("comp_" + c).value = m[c]; $("comp_" + c).removeAttribute("aria-invalid"); } $("e-comp").textContent = ""; };
+  const aplicaComp = (m) => {
+    for (const c of ["a", "b", "p"]) {
+      const g = $("comp_" + c); g.dataset.valor = m[c]; g.removeAttribute("aria-invalid");
+      for (const bt of g.querySelectorAll("button")) bt.setAttribute("aria-pressed", String(bt.dataset.canal === m[c]));
+    }
+    $("e-comp").textContent = "";
+  };
   $("btCompPadrao").addEventListener("click", () => { const t = tipoEnsaio(); aplicaComp(COMPONENTES[t].padrao); compSalvo[t] = lerComp(); });
   $("pDur").value = txt(s.duracaoMin ?? PADRAO.duracaoMin);
   // ferramenta e peca; configuracao antiga: g0 e kr vinham da forca teorica e do atrito
@@ -79,6 +96,13 @@ function montarConfig() {
   // atrito na face da ferramenta (Puls; Klocke; Lung, 2014)
   const at = { ...PADRAO.atrito, ...(s.atrito || {}) };
   for (const [id, c] of ATR) $(id).value = txt(at[c]);
+  // grafico do modelo de atrito com a temperatura: redesenha a cada mudanca de mu0, T0, m, fusao ou T
+  const desenhaModelo = () => {
+    const q = { mu0: numero($("aMu0").value), T0: numero($("aT0").value), m: numero($("aM").value), Tf: numero($("aTf").value) };
+    $("graficoModelo").innerHTML = svgModeloAtrito(q, numero($("aT").value));   // so numeros entram no SVG
+  };
+  for (const id of ["aMu0", "aT0", "aM", "aTf", "aT"]) $(id).addEventListener("input", desenhaModelo);
+  desenhaModelo();
   if (s.op) $("opAtr").checked = !!s.op.atrito;
   // o quadro da ferramenta abre quando o atrito ou a forca teorica estao marcados
   const mostraFer = () => { $("blocoFer").hidden = !usaFerramenta(); };
@@ -199,7 +223,7 @@ function validarConfig() {
 }
 
 function usaFerramenta() { return ($("opAtr").checked && !$("opAtr").disabled) || ($("opTeo").checked && !$("opTeo").disabled); }
-function lerComp() { return { a: $("comp_a").value, b: $("comp_b").value, p: $("comp_p").value }; }
+function lerComp() { return { a: $("comp_a").dataset.valor, b: $("comp_b").dataset.valor, p: $("comp_p").dataset.valor }; }
 function tipoEnsaio() { return document.querySelector('input[name="tipo"]:checked').value; }
 function resumoMontagem() {
   return `${tipoEnsaio() === "torneamento" ? "torneamento" : "fresamento, furação ou rosqueamento"}; dinamômetro ${$("modelo").value}`;

@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 580 420" width="580" height="420" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif" font-size="14" fill="#17201c">
+  <title>Ensaio de atrito de Puls, Klocke e Lung (2014): grandezas</title>
+  <desc>Esquema original baseado nas figuras 1 e 2 do artigo. Vista frontal: uma chapa (peça) desce com a velocidade relativa v_rel contra o plano da ferramenta, inclinado do ângulo α em relação à velocidade; a ferramenta penetra a profundidade de engajamento t e o contato tem comprimento CL. Na face atuam a força normal FN e a força tangencial FT; o dinamômetro mede Fc na direção de v_rel e Ff perpendicular a ela. Não se forma cavaco: o ângulo de saída equivalente é γ0 = α − 90°. Vista lateral: a largura da chapa passa de b1 para b2 na zona de contato, que é um trapézio de área A = (b1 + b2)·t / (2·sen α).</desc>
+  <defs>
+    
+    
+  </defs>
+  <rect width="580" height="420" fill="#ffffff"/>
+  <text x="165" y="18" text-anchor="middle" font-weight="600">Vista frontal</text>
+  <text x="440" y="18" text-anchor="middle" font-weight="600">Vista lateral</text>
+
+  <!-- ===== vista frontal (alfa = 12 graus) ===== -->
+  <!-- ferramenta: plano inclinado de (150.6,40) a (104.7,256) -->
+  <path d="M150.6 40 L104.7 256 L122 300 L290 300 L290 40 Z" fill="#c9ced3" stroke="#3b4248" stroke-width="1.5"/>
+  <text x="225" y="62" text-anchor="middle">ferramenta</text>
+  <!-- peca (chapa): superficie original em x = 140; apos o contato, em x = 104.7 -->
+  <path d="M40 28 L140 28 L140 90 L104.7 256 L104.7 345 L40 345 Z" fill="#e4e8e5" stroke="#5e6a64" stroke-width="1.5"/>
+  <text x="50" y="48">peça</text>
+  <text x="50" y="64" font-size="12" fill="#5e6a64">(chapa)</text>
+  <!-- zona de contato -->
+  <line x1="140" y1="90" x2="104.7" y2="256" stroke="#d9480f" stroke-width="4" stroke-linecap="round"/>
+  <!-- superficie original tracejada -->
+  <line x1="140" y1="90" x2="140" y2="290" stroke="#5e6a64" stroke-width="1" stroke-dasharray="5 4"/>
+  <!-- v_rel -->
+  <line x1="56.0" y1="130.0" x2="56.0" y2="207.0" stroke="#17201c" stroke-width="2"/><path d="M56.0 215.0 L51.8 204.0 L60.2 204.0 Z" fill="#17201c"/>
+  <text x="44" y="240">v<tspan dy="4" font-size="11">rel</tspan><tspan dy="-4">&#8203;</tspan></text>
+  <!-- alfa: entre a superficie original (vertical) e o plano, no ponto de entrada -->
+  <path d="M140 135 A45 45 0 0 1 130.6 134" fill="none" stroke="#17201c" stroke-width="1.2"/>
+  <text x="143" y="126" font-size="13">α</text>
+  <!-- t: profundidade de engajamento -->
+  <line x1="112.7" y1="278.0" x2="132.0" y2="278.0" stroke="#17201c" stroke-width="1.2"/><path d="M140.0 278.0 L129.0 282.2 L129.0 273.8 Z" fill="#17201c"/><path d="M104.7 278.0 L115.7 273.8 L115.7 282.2 Z" fill="#17201c"/>
+  <text x="122" y="296" text-anchor="middle" font-size="13">t</text>
+  <!-- CL: comprimento de contato, paralelo ao plano -->
+  <line x1="122.7" y1="94.5" x2="90.7" y2="244.9" stroke="#17201c" stroke-width="1.2"/><path d="M89.0 252.7 L87.2 241.1 L95.4 242.8 Z" fill="#17201c"/><path d="M124.4 86.7 L126.2 98.3 L118.0 96.6 Z" fill="#17201c"/>
+  <text x="98" y="176" font-size="13" text-anchor="end">CL</text>
+  <!-- forcas na face -->
+  <line x1="127.3" y1="174.0" x2="177.2" y2="184.6" stroke="#6b3fa0" stroke-width="2.5"/><path d="M185.0 186.3 L173.4 188.1 L175.1 179.9 Z" fill="#6b3fa0"/>
+  <text x="188" y="182" font-weight="600">F<tspan dy="4" font-size="11">N</tspan><tspan dy="-4">&#8203;</tspan></text>
+  <line x1="127.3" y1="174.0" x2="117.7" y2="219.2" stroke="#0b7a5a" stroke-width="2.5"/><path d="M116.0 227.0 L114.2 215.4 L122.4 217.1 Z" fill="#0b7a5a"/>
+  <text x="145" y="226" font-weight="600">F<tspan dy="4" font-size="11">T</tspan><tspan dy="-4">&#8203;</tspan></text>
+  <!-- componentes medidas pelo dinamometro -->
+  <line x1="215.0" y1="215.0" x2="215.0" y2="264.0" stroke="#dc0000" stroke-width="2.5"/><path d="M215.0 272.0 L210.8 261.0 L219.2 261.0 Z" fill="#dc0000"/>
+  <text x="222" y="270" font-weight="600">F<tspan dy="4" font-size="11">c</tspan><tspan dy="-4">&#8203;</tspan></text>
+  <line x1="215.0" y1="215.0" x2="260.0" y2="215.0" stroke="#0000cd" stroke-width="2.5"/><path d="M268.0 215.0 L257.0 219.2 L257.0 210.8 Z" fill="#0000cd"/>
+  <text x="248" y="207" font-weight="600">F<tspan dy="4" font-size="11">f</tspan><tspan dy="-4">&#8203;</tspan></text>
+  <text x="208" y="320" font-size="12" fill="#3b4248">medidas: F<tspan dy="4" font-size="9">c</tspan><tspan dy="-4">&#8203;</tspan> ∥ v<tspan dy="4" font-size="9">rel</tspan><tspan dy="-4">&#8203;</tspan>, F<tspan dy="4" font-size="9">f</tspan><tspan dy="-4">&#8203;</tspan> ⊥ v<tspan dy="4" font-size="9">rel</tspan><tspan dy="-4">&#8203;</tspan></text>
+
+  <!-- ===== vista lateral ===== -->
+  <rect x="362" y="60" width="156" height="240" fill="#c9ced3" stroke="#3b4248" stroke-width="1.5"/>
+  <text x="0" y="0" text-anchor="middle" transform="translate(507 180) rotate(-90)">ferramenta</text>
+  <!-- chapa: largura b1 acima, trapezio de contato, largura b2 abaixo -->
+  <path d="M422 28 L458 28 L458 90 L486 256 L486 345 L394 345 L394 256 L422 90 Z" fill="#e4e8e5" stroke="#5e6a64" stroke-width="1.5"/>
+  <path d="M422 90 L458 90 L486 256 L394 256 Z" fill="#d9480f" fill-opacity="0.28" stroke="#d9480f" stroke-width="2"/>
+  <text x="440" y="180" text-anchor="middle" font-weight="600">A</text>
+  <text x="440" y="198" text-anchor="middle" font-size="11" fill="#3b4248">contato</text>
+  <!-- cotas b1 e b2 -->
+  <line x1="422" y1="22" x2="422" y2="34" stroke="#17201c"/><line x1="458" y1="22" x2="458" y2="34" stroke="#17201c"/>
+  <line x1="430.0" y1="28.0" x2="450.0" y2="28.0" stroke="#17201c" stroke-width="1.2"/><path d="M458.0 28.0 L447.0 32.2 L447.0 23.8 Z" fill="#17201c"/><path d="M422.0 28.0 L433.0 23.8 L433.0 32.2 Z" fill="#17201c"/>
+  <text x="466" y="40" font-size="13">b<tspan dy="4" font-size="10">1</tspan><tspan dy="-4">&#8203;</tspan></text>
+  <line x1="402.0" y1="356.0" x2="478.0" y2="356.0" stroke="#17201c" stroke-width="1.2"/><path d="M486.0 356.0 L475.0 360.2 L475.0 351.8 Z" fill="#17201c"/><path d="M394.0 356.0 L405.0 351.8 L405.0 360.2 Z" fill="#17201c"/>
+  <line x1="394" y1="348" x2="394" y2="362" stroke="#17201c"/><line x1="486" y1="348" x2="486" y2="362" stroke="#17201c"/>
+  <text x="440" y="376" text-anchor="middle" font-size="13">b<tspan dy="4" font-size="10">2</tspan><tspan dy="-4">&#8203;</tspan></text>
+
+  <!-- formulas -->
+  <text x="20" y="398" font-size="13">γ<tspan dy="4" font-size="10">0</tspan><tspan dy="-4">&#8203;</tspan> = α − 90°&#160;&#160;&#160;&#160;&#160;t = CL·sen α&#160;&#160;&#160;&#160;&#160;A = (b<tspan dy="4" font-size="10">1</tspan><tspan dy="-4">&#8203;</tspan> + b<tspan dy="4" font-size="10">2</tspan><tspan dy="-4">&#8203;</tspan>)·t / (2·sen α)&#160;&#160;&#160;&#160;&#160;τ = F<tspan dy="4" font-size="10">T</tspan><tspan dy="-4">&#8203;</tspan>/A&#160;&#160;&#160;&#160;&#160;σ = F<tspan dy="4" font-size="10">N</tspan><tspan dy="-4">&#8203;</tspan>/A</text>
+  <text x="20" y="414" font-size="11" fill="#5e6a64">Esquema original do LabForce NUPEF, conforme as figuras 1 e 2 de Puls, Klocke e Lung (2014). Fora de escala.</text>
+</svg>
